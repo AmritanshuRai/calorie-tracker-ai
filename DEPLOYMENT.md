@@ -75,7 +75,7 @@ npx prisma studio
    - **Build Command**: `npm install && npx prisma generate`
    - **Start Command**: `npm start`
 
-### 2.3 Add Environment Variables
+### 2.3 Add Environment Variabl
 
 1. Go to **"Variables"** tab
 2. Click **"New Variable"** and add these:
