@@ -78,7 +78,7 @@ Food description: "${text}"
 Return ONLY the JSON object, no other text.`;
 
     const completion = await client.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-5-nano',
       messages: [
         {
           role: 'system',
@@ -91,7 +91,7 @@ Return ONLY the JSON object, no other text.`;
         },
       ],
       temperature: 0.3,
-      max_tokens: 500,
+      max_tokens: 800,
     });
 
     const content = completion.choices[0].message.content.trim();
