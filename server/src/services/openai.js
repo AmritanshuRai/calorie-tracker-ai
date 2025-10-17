@@ -125,7 +125,7 @@ export async function parseFood(text) {
     });
 
     console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
-    
+
     const content = completion.choices[0]?.message?.content?.trim();
 
     if (!content) {

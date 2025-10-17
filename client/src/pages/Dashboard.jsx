@@ -490,9 +490,19 @@ const Dashboard = () => {
         <div className='max-w-md mx-auto px-6 py-3'>
           <div className='flex items-center justify-around'>
             {[
-              { id: 'dietitian', label: 'Dietitian', icon: '👨‍⚕️', path: '/dietitian' },
+              {
+                id: 'dietitian',
+                label: 'Dietitian',
+                icon: '👨‍⚕️',
+                path: '/dietitian',
+              },
               { id: 'diet', label: 'Diet', icon: '🥗', path: '/diet' },
-              { id: 'tracker', label: 'Tracker', icon: '📊', path: '/dashboard' },
+              {
+                id: 'tracker',
+                label: 'Tracker',
+                icon: '📊',
+                path: '/dashboard',
+              },
               { id: 'logging', label: 'Logging', icon: '✍️', path: '/logging' },
               { id: 'account', label: 'Account', icon: '👤', path: '/account' },
             ].map((tab) => (
