@@ -7,6 +7,7 @@ export default function Button({
   disabled = false,
   type = 'button',
   fullWidth = false,
+  icon = null,
 }) {
   const baseStyles =
     'font-semibold rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98]';
@@ -33,6 +34,7 @@ export default function Button({
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${
         fullWidth ? 'w-full' : ''
       } ${className}`}>
+      {icon && <span className='flex items-center'>{icon}</span>}
       {children}
     </button>
   );

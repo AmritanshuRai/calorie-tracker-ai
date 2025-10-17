@@ -21,6 +21,7 @@ model User {
   profileCompleted Boolean @default(false)
   gender           String?
   age              Int?
+  height           Float?  // in cm
   goal             String? // weight_loss, improved_health, weight_gain
   currentWeight    Float?
   targetWeight     Float?
@@ -42,10 +43,44 @@ model User {
   updatedAt DateTime @updatedAt
   
   // Relations
-  foodEntries FoodEntry[]
+  foodEntries      FoodEntry[]
+  onboardingHistory UserOnboarding[]
   
   @@index([email])
   @@index([googleId])
+}
+
+model UserOnboarding {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Onboarding data snapshot
+  gender           String?
+  age              Int?
+  height           Float?  // in cm
+  goal             String? // weight_loss, improved_health, weight_gain
+  currentWeight    Float?
+  targetWeight     Float?
+  targetDate       DateTime?
+  activityLevel    String?
+  activityMultiplier Float?
+  
+  // Calculated values at the time
+  bmr                    Int?
+  tdee                   Int?
+  dailyCalorieTarget     Int?
+  targetWeightChangeRate Float?
+  proteinTarget          Int?
+  carbsTarget            Int?
+  fatsTarget             Int?
+  
+  // Metadata
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([completedAt])
 }
 
 model FoodEntry {

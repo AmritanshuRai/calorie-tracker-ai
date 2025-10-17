@@ -6,94 +6,47 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import useUserStore from '../../stores/useUserStore';
 
-const WeightPage = () => {
+const HeightPage = () => {
   const navigate = useNavigate();
   const onboardingData = useUserStore((state) => state.onboardingData);
   const updateOnboardingData = useUserStore(
     (state) => state.updateOnboardingData
   );
 
-  const [currentWeight, setCurrentWeight] = useState(
-    onboardingData.currentWeight || ''
-  );
-  const [targetWeight, setTargetWeight] = useState(
-    onboardingData.targetWeight || ''
-  );
+  const [height, setHeight] = useState(onboardingData.height || '');
   const [error, setError] = useState('');
 
-  const isImprovedHealth = onboardingData.goal === 'improved_health';
-
   const handleContinue = () => {
-    const current = parseFloat(currentWeight);
+    const heightValue = parseFloat(height);
 
-    if (!currentWeight || isNaN(current) || current <= 0) {
-      setError('Please enter a valid current weight');
+    if (!height || isNaN(heightValue) || heightValue <= 0) {
+      setError('Please enter a valid height');
       return;
     }
 
-    if (!isImprovedHealth) {
-      const target = parseFloat(targetWeight);
-
-      if (!targetWeight || isNaN(target) || target <= 0) {
-        setError('Please enter a valid target weight');
-        return;
-      }
-
-      if (onboardingData.goal === 'weight_loss' && target >= current) {
-        setError(
-          'Target weight must be less than current weight for weight loss'
-        );
-        return;
-      }
-
-      if (onboardingData.goal === 'weight_gain' && target <= current) {
-        setError(
-          'Target weight must be more than current weight for weight gain'
-        );
-        return;
-      }
-
-      updateOnboardingData({
-        currentWeight: current,
-        targetWeight: target,
-      });
-    } else {
-      updateOnboardingData({
-        currentWeight: current,
-        targetWeight: current,
-      });
+    if (heightValue < 100 || heightValue > 250) {
+      setError('Please enter a height between 100 and 250 cm');
+      return;
     }
 
-    if (isImprovedHealth) {
-      navigate('/onboarding/activity');
-    } else {
-      navigate('/onboarding/timeline');
-    }
+    updateOnboardingData({ height: heightValue });
+    navigate('/onboarding/weight');
   };
 
-  const weightDifference =
-    currentWeight && targetWeight
-      ? Math.abs(parseFloat(targetWeight) - parseFloat(currentWeight)).toFixed(
-          1
-        )
-      : 0;
+  const heightInFeet = height ? (parseFloat(height) / 30.48).toFixed(1) : '0.0';
 
   return (
-    <PageLayout title='Target Weight' showBack={true}>
+    <PageLayout title='Your Height' showBack={true}>
       <div className='space-y-6'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
           <h2 className='text-3xl font-bold text-gray-800 mb-2'>
-            {isImprovedHealth
-              ? "What's your current weight?"
-              : "What's your target weight?"}
+            What's your height?
           </h2>
           <p className='text-gray-600'>
-            {isImprovedHealth
-              ? "We'll help you maintain a healthy weight"
-              : 'Set a realistic target for your goal'}
+            This helps us calculate your accurate calorie needs
           </p>
         </motion.div>
 
@@ -103,42 +56,22 @@ const WeightPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}>
             <Input
-              label='Current Weight'
+              label='Height'
               type='number'
-              value={currentWeight}
+              value={height}
               onChange={(e) => {
-                setCurrentWeight(e.target.value);
+                setHeight(e.target.value);
                 setError('');
               }}
-              placeholder='75'
-              unit='kg'
-              min='1'
+              placeholder='170'
+              unit='cm'
+              min='100'
+              max='250'
               step='0.1'
             />
           </motion.div>
 
-          {!isImprovedHealth && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}>
-              <Input
-                label='Target Weight'
-                type='number'
-                value={targetWeight}
-                onChange={(e) => {
-                  setTargetWeight(e.target.value);
-                  setError('');
-                }}
-                placeholder='70'
-                unit='kg'
-                min='1'
-                step='0.1'
-              />
-            </motion.div>
-          )}
-
-          {!isImprovedHealth && weightDifference > 0 && (
+          {height && parseFloat(height) >= 100 && parseFloat(height) <= 250 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -155,9 +88,7 @@ const WeightPage = () => {
                   />
                 </svg>
                 <span className='font-semibold'>
-                  Change needed:{' '}
-                  {onboardingData.goal === 'weight_gain' ? '+' : '-'}
-                  {weightDifference} kg
+                  That's approximately {heightInFeet} feet
                 </span>
               </div>
             </motion.div>
@@ -171,6 +102,49 @@ const WeightPage = () => {
               {error}
             </motion.div>
           )}
+
+          {/* Common heights helper */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className='bg-gray-50 rounded-xl p-4'>
+            <p className='text-sm text-gray-600 mb-3 font-medium'>
+              Quick reference:
+            </p>
+            <div className='grid grid-cols-2 gap-3 text-sm'>
+              <button
+                onClick={() => setHeight('150')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                4'11" ≈ 150 cm
+              </button>
+              <button
+                onClick={() => setHeight('160')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                5'3" ≈ 160 cm
+              </button>
+              <button
+                onClick={() => setHeight('170')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                5'7" ≈ 170 cm
+              </button>
+              <button
+                onClick={() => setHeight('180')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                5'11" ≈ 180 cm
+              </button>
+              <button
+                onClick={() => setHeight('190')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                6'3" ≈ 190 cm
+              </button>
+              <button
+                onClick={() => setHeight('200')}
+                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
+                6'7" ≈ 200 cm
+              </button>
+            </div>
+          </motion.div>
         </div>
 
         <motion.div
@@ -193,7 +167,7 @@ const WeightPage = () => {
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 4 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
+                i <= 2 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
               }`}
             />
           ))}
@@ -203,4 +177,4 @@ const WeightPage = () => {
   );
 };
 
-export default WeightPage;
+export default HeightPage;

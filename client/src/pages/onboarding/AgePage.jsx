@@ -85,7 +85,7 @@ const AgePage = () => {
 
         {/* Progress indicator */}
         <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(7)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${

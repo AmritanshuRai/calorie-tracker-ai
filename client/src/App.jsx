@@ -10,11 +10,13 @@ import useUserStore from './stores/useUserStore';
 // Pages
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/DashboardNew';
+import Account from './pages/Account';
 
 // Onboarding Pages
 import GenderPage from './pages/onboarding/GenderPage';
 import AgePage from './pages/onboarding/AgePage';
 import GoalPage from './pages/onboarding/GoalPage';
+import HeightPage from './pages/onboarding/HeightPage';
 import WeightPage from './pages/onboarding/WeightPage';
 import TimelinePage from './pages/onboarding/TimelinePage';
 import ActivityLevelPage from './pages/onboarding/ActivityLevelPage';
@@ -67,6 +69,14 @@ function App() {
             }
           />
           <Route
+            path='/onboarding/height'
+            element={
+              <ProtectedRoute>
+                <HeightPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path='/onboarding/weight'
             element={
               <ProtectedRoute>
@@ -105,6 +115,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/account'
+            element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             }
           />

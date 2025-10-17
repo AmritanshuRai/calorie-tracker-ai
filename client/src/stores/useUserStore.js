@@ -34,8 +34,16 @@ const useUserStore = create(
 
       // Actions
       setUser: (user) => set({ user, isAuthenticated: true }),
-      setToken: (token) => set({ token }),
-      logout: () =>
+      setToken: (token) => {
+        set({ token });
+        // Also store in localStorage for API interceptor
+        if (token) {
+          localStorage.setItem('token', token);
+        } else {
+          localStorage.removeItem('token');
+        }
+      },
+      logout: () => {
         set({
           user: null,
           token: null,
@@ -55,7 +63,10 @@ const useUserStore = create(
           dailyCalorieTarget: null,
           targetWeightChangeRate: null,
           macros: { protein: null, carbs: null, fats: null },
-        }),
+        });
+        // Clear from localStorage
+        localStorage.removeItem('token');
+      },
 
       updateOnboardingData: (data) =>
         set((state) => ({
@@ -65,12 +76,10 @@ const useUserStore = create(
       setCalculatedValues: (values) => set(values),
 
       calculateBMR: () => {
-        const { gender, age, currentWeight } = get().onboardingData;
-        if (!gender || !age || !currentWeight) return 0;
+        const { gender, age, currentWeight, height } = get().onboardingData;
+        if (!gender || !age || !currentWeight || !height) return 0;
 
-        // Using Mifflin-St Jeor equation with estimated height
-        const height = gender === 'male' ? 175 : 162; // cm
-
+        // Using Mifflin-St Jeor equation
         let bmr;
         if (gender === 'male') {
           bmr = 10 * currentWeight + 6.25 * height - 5 * age + 5;

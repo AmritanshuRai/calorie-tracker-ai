@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, addDays, startOfWeek, isToday } from 'date-fns';
 import useUserStore from '../stores/useUserStore';
 import CircularProgress from '../components/CircularProgress';
@@ -6,6 +7,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
   const macros = useUserStore((state) => state.macros);
@@ -55,14 +57,25 @@ export default function Dashboard() {
           <div className='text-3xl xl:text-4xl text-center mb-12'>🥗</div>
           <nav className='flex-1 flex flex-col gap-4 px-3'>
             {[
-              { icon: '🤵', label: 'Dietitian', active: false },
-              { icon: '🥗', label: 'Diet', active: false },
-              { icon: '📊', label: 'Tracker', active: true },
-              { icon: '✍️', label: 'Logging', active: false },
-              { icon: '👤', label: 'Account', active: false },
+              {
+                icon: '🤵',
+                label: 'Dietitian',
+                active: false,
+                path: '/dietitian',
+              },
+              { icon: '🥗', label: 'Diet', active: false, path: '/diet' },
+              {
+                icon: '📊',
+                label: 'Tracker',
+                active: true,
+                path: '/dashboard',
+              },
+              { icon: '✍️', label: 'Logging', active: false, path: '/logging' },
+              { icon: '👤', label: 'Account', active: false, path: '/account' },
             ].map((item) => (
               <button
                 key={item.label}
+                onClick={() => navigate(item.path)}
                 className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl transition-all ${
                   item.active
                     ? 'bg-green-50 text-green-600 shadow-sm'
@@ -271,14 +284,20 @@ export default function Dashboard() {
       <nav className='lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 shadow-xl z-50'>
         <div className='grid grid-cols-5 h-20'>
           {[
-            { icon: '🤵', label: 'Dietitian', active: false },
-            { icon: '🥗', label: 'Diet', active: false },
-            { icon: '📊', label: 'Tracker', active: true },
-            { icon: '✍️', label: 'Logging', active: false },
-            { icon: '👤', label: 'Account', active: false },
+            {
+              icon: '🤵',
+              label: 'Dietitian',
+              active: false,
+              path: '/dietitian',
+            },
+            { icon: '🥗', label: 'Diet', active: false, path: '/diet' },
+            { icon: '📊', label: 'Tracker', active: true, path: '/dashboard' },
+            { icon: '✍️', label: 'Logging', active: false, path: '/logging' },
+            { icon: '👤', label: 'Account', active: false, path: '/account' },
           ].map((item) => (
             <button
               key={item.label}
+              onClick={() => navigate(item.path)}
               className={`flex flex-col items-center justify-center gap-1.5 transition-colors ${
                 item.active ? 'text-green-600' : 'text-neutral-500'
               }`}>

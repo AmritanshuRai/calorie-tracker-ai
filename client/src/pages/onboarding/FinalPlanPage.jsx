@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import useUserStore from '../../stores/useUserStore';
+import { authService } from '../../services/authService';
 import {
   calculateWeeksBetween,
   calculateWeightChangeRate,
@@ -13,6 +14,7 @@ import {
 const FinalPlanPage = () => {
   const navigate = useNavigate();
   const onboardingData = useUserStore((state) => state.onboardingData);
+  const bmr = useUserStore((state) => state.bmr);
   const tdee = useUserStore((state) => state.tdee);
   const calculateDailyTarget = useUserStore(
     (state) => state.calculateDailyTarget
@@ -22,6 +24,13 @@ const FinalPlanPage = () => {
   );
   const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
   const macros = useUserStore((state) => state.macros);
+  const setUser = useUserStore((state) => state.setUser);
+  const targetWeightChangeRate = useUserStore(
+    (state) => state.targetWeightChangeRate
+  );
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const isImprovedHealth = onboardingData.goal === 'improved_health';
 
@@ -48,9 +57,49 @@ const FinalPlanPage = () => {
   const validation = validateWeightChangeRate(weeklyRate);
   const calorieAdjustment = isImprovedHealth ? 0 : tdee - dailyCalorieTarget;
 
-  const handleFinish = () => {
-    // TODO: Save to backend
-    navigate('/dashboard');
+  const handleFinish = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Prepare onboarding data to send to backend
+      const onboardingPayload = {
+        gender: onboardingData.gender,
+        age: onboardingData.age,
+        height: onboardingData.height,
+        goal: onboardingData.goal,
+        currentWeight: onboardingData.currentWeight,
+        targetWeight: onboardingData.targetWeight,
+        targetDate: onboardingData.targetDate,
+        activityLevel: onboardingData.activityLevel,
+        activityMultiplier: onboardingData.activityMultiplier,
+        bmr,
+        tdee,
+        dailyCalorieTarget,
+        targetWeightChangeRate,
+        proteinTarget: macros.protein,
+        carbsTarget: macros.carbs,
+        fatsTarget: macros.fats,
+      };
+
+      // Save to backend
+      const updatedUser = await authService.completeOnboarding(
+        onboardingPayload
+      );
+
+      // Update user state with profile completed
+      setUser({
+        ...updatedUser,
+        profileCompleted: true,
+      });
+
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Failed to save onboarding data:', err);
+      setError('Failed to save your data. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -205,6 +254,28 @@ const FinalPlanPage = () => {
           </div>
         </motion.div>
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className='mb-6 p-4 bg-red-50 border border-red-200 rounded-xl'>
+            <div className='flex items-start gap-3'>
+              <svg
+                className='w-5 h-5 text-red-600 flex-shrink-0 mt-0.5'
+                fill='currentColor'
+                viewBox='0 0 20 20'>
+                <path
+                  fillRule='evenodd'
+                  d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                  clipRule='evenodd'
+                />
+              </svg>
+              <p className='text-sm text-red-800'>{error}</p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Finish Button */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -216,6 +287,7 @@ const FinalPlanPage = () => {
             size='lg'
             fullWidth
             onClick={handleFinish}
+            disabled={loading}
             icon={
               <svg
                 className='w-6 h-6'
@@ -230,13 +302,13 @@ const FinalPlanPage = () => {
                 />
               </svg>
             }>
-            Start Tracking →
+            {loading ? 'Saving...' : 'Start Tracking →'}
           </Button>
         </motion.div>
 
         {/* Progress indicator - All complete */}
         <div className='flex justify-center gap-2 mt-8'>
-          {[...Array(7)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <div key={i} className='h-2 w-8 rounded-full bg-green-500' />
           ))}
         </div>

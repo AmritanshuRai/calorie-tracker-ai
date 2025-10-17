@@ -96,6 +96,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
         profileCompleted: true,
         gender: true,
         age: true,
+        height: true,
         goal: true,
         currentWeight: true,
         targetWeight: true,
@@ -130,6 +131,7 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
     const {
       gender,
       age,
+      height,
       goal,
       currentWeight,
       targetWeight,
@@ -145,12 +147,14 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
       fatsTarget,
     } = req.body;
 
+    // Update user profile
     const user = await prisma.user.update({
       where: { id: req.user.userId },
       data: {
         profileCompleted: true,
         gender,
         age,
+        height,
         goal,
         currentWeight,
         targetWeight,
@@ -173,6 +177,7 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
         profileCompleted: true,
         gender: true,
         age: true,
+        height: true,
         goal: true,
         currentWeight: true,
         targetWeight: true,
@@ -180,6 +185,29 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
         proteinTarget: true,
         carbsTarget: true,
         fatsTarget: true,
+      },
+    });
+
+    // Create onboarding history entry
+    await prisma.userOnboarding.create({
+      data: {
+        userId: req.user.userId,
+        gender,
+        age,
+        height,
+        goal,
+        currentWeight,
+        targetWeight,
+        targetDate: targetDate ? new Date(targetDate) : null,
+        activityLevel,
+        activityMultiplier,
+        bmr,
+        tdee,
+        dailyCalorieTarget,
+        targetWeightChangeRate,
+        proteinTarget,
+        carbsTarget,
+        fatsTarget,
       },
     });
 
