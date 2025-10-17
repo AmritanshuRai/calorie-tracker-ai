@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays, startOfWeek } from 'date-fns';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -10,6 +11,7 @@ import FoodLogModal from '../components/FoodLogModal';
 import { foodService } from '../services/foodService';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
   const macros = useUserStore((state) => state.macros);
@@ -488,15 +490,18 @@ const Dashboard = () => {
         <div className='max-w-md mx-auto px-6 py-3'>
           <div className='flex items-center justify-around'>
             {[
-              { id: 'dietitian', label: 'Dietitian', icon: '👨‍⚕️' },
-              { id: 'diet', label: 'Diet', icon: '🥗' },
-              { id: 'tracker', label: 'Tracker', icon: '📊' },
-              { id: 'logging', label: 'Logging', icon: '✍️' },
-              { id: 'account', label: 'Account', icon: '👤' },
+              { id: 'dietitian', label: 'Dietitian', icon: '👨‍⚕️', path: '/dietitian' },
+              { id: 'diet', label: 'Diet', icon: '🥗', path: '/diet' },
+              { id: 'tracker', label: 'Tracker', icon: '📊', path: '/dashboard' },
+              { id: 'logging', label: 'Logging', icon: '✍️', path: '/logging' },
+              { id: 'account', label: 'Account', icon: '👤', path: '/account' },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.path) navigate(tab.path);
+                }}
                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
                   activeTab === tab.id ? 'text-green-600' : 'text-gray-500'
                 }`}>

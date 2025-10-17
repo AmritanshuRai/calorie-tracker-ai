@@ -46,66 +46,95 @@ export async function parseFood(text) {
   }
 
   try {
-    const prompt = `You are a nutrition expert. Parse the following food description and return ONLY a valid JSON object (no markdown, no code blocks, no explanations) with these exact fields:
-
-{
-  "foodName": "string (brief name)",
-  "description": "string (detailed description)",
-  "calories": number,
-  "protein": number (grams),
-  "carbs": number (grams),
-  "fats": number (grams),
-  "fiber": number (grams, optional),
-  "sugar": number (grams, optional),
-  "sodium": number (mg, optional),
-  "cholesterol": number (mg, optional),
-  "water": number (ml, optional),
-  "omega3": number (grams, optional),
-  "vitaminA": number (mcg, optional),
-  "vitaminC": number (mg, optional),
-  "vitaminD": number (mcg, optional),
-  "vitaminE": number (mg, optional),
-  "vitaminK": number (mcg, optional),
-  "calcium": number (mg, optional),
-  "iron": number (mg, optional),
-  "magnesium": number (mg, optional),
-  "potassium": number (mg, optional),
-  "zinc": number (mg, optional)
-}
-
-Food description: "${text}"
-
-Return ONLY the JSON object, no other text.`;
-
+    // Use Structured Outputs for reliable JSON
     const completion = await client.chat.completions.create({
       model: 'gpt-5-nano',
       messages: [
         {
           role: 'system',
           content:
-            'You are a nutrition expert that returns accurate nutritional data in JSON format. Always return valid JSON only, with no markdown formatting or code blocks.',
+            'You are a nutrition expert that analyzes food descriptions and returns accurate nutritional data.',
         },
         {
           role: 'user',
-          content: prompt,
+          content: `Analyze this food and provide nutritional information: "${text}"`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 800,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'nutrition_data',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              foodName: { type: 'string' },
+              description: { type: 'string' },
+              calories: { type: 'number' },
+              protein: { type: 'number' },
+              carbs: { type: 'number' },
+              fats: { type: 'number' },
+              fiber: { type: ['number', 'null'] },
+              sugar: { type: ['number', 'null'] },
+              sodium: { type: ['number', 'null'] },
+              cholesterol: { type: ['number', 'null'] },
+              water: { type: ['number', 'null'] },
+              omega3: { type: ['number', 'null'] },
+              vitaminA: { type: ['number', 'null'] },
+              vitaminC: { type: ['number', 'null'] },
+              vitaminD: { type: ['number', 'null'] },
+              vitaminE: { type: ['number', 'null'] },
+              vitaminK: { type: ['number', 'null'] },
+              calcium: { type: ['number', 'null'] },
+              iron: { type: ['number', 'null'] },
+              magnesium: { type: ['number', 'null'] },
+              potassium: { type: ['number', 'null'] },
+              zinc: { type: ['number', 'null'] },
+            },
+            required: [
+              'foodName',
+              'description',
+              'calories',
+              'protein',
+              'carbs',
+              'fats',
+              'fiber',
+              'sugar',
+              'sodium',
+              'cholesterol',
+              'water',
+              'omega3',
+              'vitaminA',
+              'vitaminC',
+              'vitaminD',
+              'vitaminE',
+              'vitaminK',
+              'calcium',
+              'iron',
+              'magnesium',
+              'potassium',
+              'zinc',
+            ],
+            additionalProperties: false,
+          },
+        },
+      },
+      // Increase token limit and use minimal reasoning for faster response
+      max_completion_tokens: 1500,
+      reasoning_effort: 'minimal',
     });
 
-    const content = completion.choices[0].message.content.trim();
+    console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
+    
+    const content = completion.choices[0]?.message?.content?.trim();
 
-    // Remove markdown code blocks if present
-    let jsonStr = content;
-    if (content.startsWith('```')) {
-      jsonStr = content
-        .replace(/```json?\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
     }
 
-    const nutritionData = JSON.parse(jsonStr);
+    console.log('Raw content from OpenAI:', content);
+
+    const nutritionData = JSON.parse(content);
 
     // Ensure required fields have default values
     return {

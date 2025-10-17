@@ -94,15 +94,19 @@ model FoodEntry {
   alcohol     Float?
   
   // Vitamins
-  vitaminD    Float?
-  vitaminB12  Float?
+  vitaminA    Float?
   vitaminC    Float?
+  vitaminD    Float?
+  vitaminE    Float?
+  vitaminK    Float?
   vitaminB9   Float?
+  vitaminB12  Float?
   
   // Minerals
-  iron        Float?
   calcium     Float?
+  iron        Float?
   magnesium   Float?
+  potassium   Float?
   zinc        Float?
   
   // Metadata

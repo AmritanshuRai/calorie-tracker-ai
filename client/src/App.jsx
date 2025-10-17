@@ -9,7 +9,7 @@ import useUserStore from './stores/useUserStore';
 
 // Pages
 import SignIn from './pages/SignIn';
-import Dashboard from './pages/DashboardNew';
+import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
 
 // Onboarding Pages
