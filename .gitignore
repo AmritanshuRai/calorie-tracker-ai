@@ -67,7 +67,6 @@ client/dev-dist/
 *.sqlite3
 
 # Package manager files
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
