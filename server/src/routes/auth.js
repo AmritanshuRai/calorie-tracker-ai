@@ -94,22 +94,6 @@ router.get('/profile', authenticateToken, async (req, res) => {
         name: true,
         picture: true,
         profileCompleted: true,
-        gender: true,
-        age: true,
-        height: true,
-        goal: true,
-        currentWeight: true,
-        targetWeight: true,
-        targetDate: true,
-        activityLevel: true,
-        activityMultiplier: true,
-        bmr: true,
-        tdee: true,
-        dailyCalorieTarget: true,
-        targetWeightChangeRate: true,
-        proteinTarget: true,
-        carbsTarget: true,
-        fatsTarget: true,
         createdAt: true,
       },
     });
@@ -118,7 +102,37 @@ router.get('/profile', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json(user);
+    // Get latest onboarding data if profile is completed
+    let latestOnboarding = null;
+    if (user.profileCompleted) {
+      latestOnboarding = await prisma.userOnboarding.findFirst({
+        where: { userId: req.user.userId },
+        orderBy: { completedAt: 'desc' },
+      });
+    }
+
+    // Combine user and onboarding data
+    res.json({
+      ...user,
+      ...(latestOnboarding && {
+        gender: latestOnboarding.gender,
+        age: latestOnboarding.age,
+        height: latestOnboarding.height,
+        goal: latestOnboarding.goal,
+        currentWeight: latestOnboarding.currentWeight,
+        targetWeight: latestOnboarding.targetWeight,
+        targetDate: latestOnboarding.targetDate,
+        activityLevel: latestOnboarding.activityLevel,
+        activityMultiplier: latestOnboarding.activityMultiplier,
+        bmr: latestOnboarding.bmr,
+        tdee: latestOnboarding.tdee,
+        dailyCalorieTarget: latestOnboarding.dailyCalorieTarget,
+        targetWeightChangeRate: latestOnboarding.targetWeightChangeRate,
+        proteinTarget: latestOnboarding.proteinTarget,
+        carbsTarget: latestOnboarding.carbsTarget,
+        fatsTarget: latestOnboarding.fatsTarget,
+      }),
+    });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Failed to get profile' });
@@ -147,27 +161,11 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
       fatsTarget,
     } = req.body;
 
-    // Update user profile
+    // Update user profile - only set profileCompleted flag
     const user = await prisma.user.update({
       where: { id: req.user.userId },
       data: {
         profileCompleted: true,
-        gender,
-        age,
-        height,
-        goal,
-        currentWeight,
-        targetWeight,
-        targetDate: targetDate ? new Date(targetDate) : null,
-        activityLevel,
-        activityMultiplier,
-        bmr,
-        tdee,
-        dailyCalorieTarget,
-        targetWeightChangeRate,
-        proteinTarget,
-        carbsTarget,
-        fatsTarget,
       },
       select: {
         id: true,
@@ -175,21 +173,12 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
         name: true,
         picture: true,
         profileCompleted: true,
-        gender: true,
-        age: true,
-        height: true,
-        goal: true,
-        currentWeight: true,
-        targetWeight: true,
-        dailyCalorieTarget: true,
-        proteinTarget: true,
-        carbsTarget: true,
-        fatsTarget: true,
+        createdAt: true,
       },
     });
 
-    // Create onboarding history entry
-    await prisma.userOnboarding.create({
+    // Create onboarding history entry with all data
+    const onboarding = await prisma.userOnboarding.create({
       data: {
         userId: req.user.userId,
         gender,
@@ -211,7 +200,11 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
       },
     });
 
-    res.json(user);
+    // Return combined data
+    res.json({
+      ...user,
+      ...onboarding,
+    });
   } catch (error) {
     console.error('Onboarding error:', error);
     res.status(500).json({ error: 'Failed to complete onboarding' });
