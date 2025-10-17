@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import { PrismaClient } from '@prisma/client';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -14,6 +16,9 @@ import userRoutes from './routes/user.js';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Prisma Client
+const prisma = new PrismaClient();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,14 +46,20 @@ app.use(cookieParser());
 // Session configuration
 app.use(
   session({
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    },
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
+    store: new PrismaSessionStore(prisma, {
+      checkPeriod: 2 * 60 * 1000, // 2 minutes - cleanup expired sessions
+      dbRecordIdIsSessionId: true,
+      dbRecordIdFunction: undefined,
+    }),
   })
 );
 

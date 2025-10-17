@@ -120,3 +120,12 @@ model FoodEntry {
   @@index([date])
   @@index([userId, date])
 }
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+  
+  @@index([expiresAt])
+}
