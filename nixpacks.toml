@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20", "openssl"]
 
 [phases.install]
-cmds = ["npm ci --prefer-offline --no-audit"]
+cmds = ["cd server && npm ci --prefer-offline --no-audit"]
 
 [phases.build]
-cmds = ["npx prisma generate"]
+cmds = ["cd server && npx prisma generate"]
 
 [start]
-cmd = "npm start"
+cmd = "cd server && npm start"
