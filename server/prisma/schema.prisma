@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  picture   String?
+  googleId  String?  @unique
+  
+  // Onboarding data
+  profileCompleted Boolean @default(false)
+  gender           String?
+  age              Int?
+  goal             String? // weight_loss, improved_health, weight_gain
+  currentWeight    Float?
+  targetWeight     Float?
+  targetDate       DateTime?
+  activityLevel    String?
+  activityMultiplier Float?
+  
+  // Calculated values
+  bmr                    Int?
+  tdee                   Int?
+  dailyCalorieTarget     Int?
+  targetWeightChangeRate Float?
+  proteinTarget          Int?
+  carbsTarget            Int?
+  fatsTarget             Int?
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  foodEntries FoodEntry[]
+  
+  @@index([email])
+  @@index([googleId])
+}
+
+model FoodEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Entry details
+  date        DateTime @default(now())
+  mealType    String   // breakfast, lunch, dinner, snacks
+  foodName    String
+  description String?
+  
+  // Nutrition data
+  calories    Float
+  protein     Float
+  carbs       Float
+  fats        Float
+  
+  // Optional detailed nutrients
+  cholesterol Float?
+  omega3      Float?
+  fiber       Float?
+  water       Float?
+  sodium      Float?
+  sugar       Float?
+  transFat    Float?
+  caffeine    Float?
+  alcohol     Float?
+  
+  // Vitamins
+  vitaminD    Float?
+  vitaminB12  Float?
+  vitaminC    Float?
+  vitaminB9   Float?
+  
+  // Minerals
+  iron        Float?
+  calcium     Float?
+  magnesium   Float?
+  zinc        Float?
+  
+  // Metadata
+  source      String?  // text, voice, image, barcode, label
+  aiParsed    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+}
