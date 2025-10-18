@@ -53,6 +53,32 @@ const Dashboard = () => {
     cholesterol: 0,
     water: 0,
     omega3: 0,
+    transFat: 0,
+    caffeine: 0,
+    alcohol: 0,
+    // Vitamins
+    vitaminA: 0,
+    vitaminC: 0,
+    vitaminD: 0,
+    vitaminE: 0,
+    vitaminK: 0,
+    vitaminB1: 0,
+    vitaminB2: 0,
+    vitaminB3: 0,
+    vitaminB5: 0,
+    vitaminB6: 0,
+    vitaminB9: 0,
+    vitaminB12: 0,
+    // Minerals
+    calcium: 0,
+    iron: 0,
+    magnesium: 0,
+    phosphorus: 0,
+    potassium: 0,
+    zinc: 0,
+    manganese: 0,
+    copper: 0,
+    selenium: 0,
   });
 
   // Fetch food entries when date changes
@@ -99,6 +125,32 @@ const Dashboard = () => {
           cholesterol: acc.cholesterol + (entry.cholesterol || 0),
           water: acc.water + (entry.water || 0),
           omega3: acc.omega3 + (entry.omega3 || 0),
+          transFat: acc.transFat + (entry.transFat || 0),
+          caffeine: acc.caffeine + (entry.caffeine || 0),
+          alcohol: acc.alcohol + (entry.alcohol || 0),
+          // Vitamins
+          vitaminA: acc.vitaminA + (entry.vitaminA || 0),
+          vitaminC: acc.vitaminC + (entry.vitaminC || 0),
+          vitaminD: acc.vitaminD + (entry.vitaminD || 0),
+          vitaminE: acc.vitaminE + (entry.vitaminE || 0),
+          vitaminK: acc.vitaminK + (entry.vitaminK || 0),
+          vitaminB1: acc.vitaminB1 + (entry.vitaminB1 || 0),
+          vitaminB2: acc.vitaminB2 + (entry.vitaminB2 || 0),
+          vitaminB3: acc.vitaminB3 + (entry.vitaminB3 || 0),
+          vitaminB5: acc.vitaminB5 + (entry.vitaminB5 || 0),
+          vitaminB6: acc.vitaminB6 + (entry.vitaminB6 || 0),
+          vitaminB9: acc.vitaminB9 + (entry.vitaminB9 || 0),
+          vitaminB12: acc.vitaminB12 + (entry.vitaminB12 || 0),
+          // Minerals
+          calcium: acc.calcium + (entry.calcium || 0),
+          iron: acc.iron + (entry.iron || 0),
+          magnesium: acc.magnesium + (entry.magnesium || 0),
+          phosphorus: acc.phosphorus + (entry.phosphorus || 0),
+          potassium: acc.potassium + (entry.potassium || 0),
+          zinc: acc.zinc + (entry.zinc || 0),
+          manganese: acc.manganese + (entry.manganese || 0),
+          copper: acc.copper + (entry.copper || 0),
+          selenium: acc.selenium + (entry.selenium || 0),
         }),
         {
           calories: 0,
@@ -111,6 +163,32 @@ const Dashboard = () => {
           cholesterol: 0,
           water: 0,
           omega3: 0,
+          transFat: 0,
+          caffeine: 0,
+          alcohol: 0,
+          // Vitamins
+          vitaminA: 0,
+          vitaminC: 0,
+          vitaminD: 0,
+          vitaminE: 0,
+          vitaminK: 0,
+          vitaminB1: 0,
+          vitaminB2: 0,
+          vitaminB3: 0,
+          vitaminB5: 0,
+          vitaminB6: 0,
+          vitaminB9: 0,
+          vitaminB12: 0,
+          // Minerals
+          calcium: 0,
+          iron: 0,
+          magnesium: 0,
+          phosphorus: 0,
+          potassium: 0,
+          zinc: 0,
+          manganese: 0,
+          copper: 0,
+          selenium: 0,
         }
       );
       setDailyTotals(totals);
@@ -505,6 +583,167 @@ const Dashboard = () => {
                     );
                   })
                 )}
+              </div>
+            </Card>
+
+            {/* Vitamins & Minerals */}
+            <Card padding='lg' variant='default'>
+              <div className='flex items-center gap-2 mb-6'>
+                <div className='p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500'>
+                  <Sparkles className='w-5 h-5 text-white' />
+                </div>
+                <h3 className='text-xl font-bold text-slate-800'>
+                  Vitamins & Minerals
+                </h3>
+              </div>
+
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                {/* Vitamins Section */}
+                <div>
+                  <h4 className='text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4'>
+                    Vitamins
+                  </h4>
+                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
+                    {[
+                      {
+                        label: 'Vitamin A',
+                        value: dailyTotals.vitaminA,
+                        unit: 'mcg',
+                      },
+                      {
+                        label: 'Vitamin C',
+                        value: dailyTotals.vitaminC,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Vitamin D',
+                        value: dailyTotals.vitaminD,
+                        unit: 'mcg',
+                      },
+                      {
+                        label: 'Vitamin E',
+                        value: dailyTotals.vitaminE,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Vitamin K',
+                        value: dailyTotals.vitaminK,
+                        unit: 'mcg',
+                      },
+                      {
+                        label: 'B1 (Thiamine)',
+                        value: dailyTotals.vitaminB1,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'B2 (Riboflavin)',
+                        value: dailyTotals.vitaminB2,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'B3 (Niacin)',
+                        value: dailyTotals.vitaminB3,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'B5 (Pantothenic)',
+                        value: dailyTotals.vitaminB5,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'B6 (Pyridoxine)',
+                        value: dailyTotals.vitaminB6,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'B9 (Folate)',
+                        value: dailyTotals.vitaminB9,
+                        unit: 'mcg',
+                      },
+                      {
+                        label: 'B12 (Cobalamin)',
+                        value: dailyTotals.vitaminB12,
+                        unit: 'mcg',
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className='bg-amber-50 rounded-xl p-3 hover-lift'>
+                        <p className='text-xs text-slate-600 mb-1 font-medium'>
+                          {item.label}
+                        </p>
+                        <p className='text-base font-bold text-slate-800'>
+                          {item.value > 0 ? item.value.toFixed(2) : '0'}{' '}
+                          <span className='text-xs text-slate-500 font-normal'>
+                            {item.unit}
+                          </span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Minerals Section */}
+                <div>
+                  <h4 className='text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4'>
+                    Minerals
+                  </h4>
+                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
+                    {[
+                      {
+                        label: 'Calcium',
+                        value: dailyTotals.calcium,
+                        unit: 'mg',
+                      },
+                      { label: 'Iron', value: dailyTotals.iron, unit: 'mg' },
+                      {
+                        label: 'Magnesium',
+                        value: dailyTotals.magnesium,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Phosphorus',
+                        value: dailyTotals.phosphorus,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Potassium',
+                        value: dailyTotals.potassium,
+                        unit: 'mg',
+                      },
+                      { label: 'Zinc', value: dailyTotals.zinc, unit: 'mg' },
+                      {
+                        label: 'Manganese',
+                        value: dailyTotals.manganese,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Copper',
+                        value: dailyTotals.copper,
+                        unit: 'mg',
+                      },
+                      {
+                        label: 'Selenium',
+                        value: dailyTotals.selenium,
+                        unit: 'mcg',
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className='bg-orange-50 rounded-xl p-3 hover-lift'>
+                        <p className='text-xs text-slate-600 mb-1 font-medium'>
+                          {item.label}
+                        </p>
+                        <p className='text-base font-bold text-slate-800'>
+                          {item.value > 0 ? item.value.toFixed(2) : '0'}{' '}
+                          <span className='text-xs text-slate-500 font-normal'>
+                            {item.unit}
+                          </span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </Card>
           </div>

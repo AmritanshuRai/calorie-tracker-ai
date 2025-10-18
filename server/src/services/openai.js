@@ -189,8 +189,11 @@ All values must be calculated for the specified quantity. Use null only when the
           },
         },
       },
-      // Increase token limit to allow for more careful analysis
+      // Optional: Set reasonable token limit for cost control
+      // If omitted, model uses its default maximum
       max_completion_tokens: 2500,
+      // 'minimal' reasoning effort is optimal for structured data extraction tasks
+      // If omitted, defaults to 'medium' - but 'minimal' is better for this use case
       reasoning_effort: 'minimal',
     });
 
