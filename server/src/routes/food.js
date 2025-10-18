@@ -14,7 +14,12 @@ router.post('/parse', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    const nutritionData = await parseFood(text);
+    // Pass userId and endpoint for logging
+    const nutritionData = await parseFood(
+      text,
+      req.user.userId,
+      '/api/food/parse'
+    );
     res.json(nutritionData);
   } catch (error) {
     console.error('Parse food error:', error);

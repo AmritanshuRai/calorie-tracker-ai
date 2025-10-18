@@ -27,6 +27,7 @@ model User {
   // Relations
   foodEntries       FoodEntry[]
   onboardingHistory UserOnboarding[]
+  openaiLogs        OpenAILog[]
   
   @@index([email])
   @@index([googleId])
@@ -142,4 +143,45 @@ model Session {
   expiresAt DateTime
   
   @@index([expiresAt])
+}
+
+model OpenAILog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Request details
+  model             String   // gpt-5, gpt-4o, gpt-4-turbo, etc.
+  requestType       String   // text, voice, image, embedding
+  input             String   @db.Text // User input or prompt
+  rawOutput         String?  @db.Text // Raw response from OpenAI
+  
+  // Token usage
+  inputTokens       Int?     // Prompt tokens
+  outputTokens      Int?     // Completion tokens
+  totalTokens       Int?     // Total tokens used
+  
+  // Cost tracking (in USD)
+  inputCost         Float?   // Cost for input tokens
+  outputCost        Float?   // Cost for output tokens
+  totalCost         Float?   // Total cost for this request
+  
+  // Performance metrics
+  responseTimeMs    Int?     // Time taken to get response in milliseconds
+  
+  // Additional metadata
+  status            String   @default("success") // success, error, timeout
+  errorMessage      String?  @db.Text
+  endpoint          String?  // /api/food/parse, /api/chat, etc.
+  reasoningEffort   String?  // minimal, medium, high (for reasoning models)
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([model])
+  @@index([requestType])
+  @@index([status])
+  @@index([userId, createdAt])
 }

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import prisma from '../lib/prisma.js';
 
 // Lazy initialization of OpenAI client
 let openai = null;
@@ -12,11 +13,133 @@ function getOpenAIClient() {
   return openai;
 }
 
-export async function parseFood(text) {
+// Pricing per 1M tokens (in USD) - Updated as of Oct 2024
+const PRICING = {
+  'gpt-5': {
+    input: 1.25, // $1.25 per 1M input tokens
+    output: 5.0, // $5.00 per 1M output tokens
+  },
+  'gpt-4o': {
+    input: 2.5,
+    output: 10.0,
+  },
+  'gpt-4o-mini': {
+    input: 0.15,
+    output: 0.6,
+  },
+  'gpt-4-turbo': {
+    input: 10.0,
+    output: 30.0,
+  },
+  'gpt-4': {
+    input: 30.0,
+    output: 60.0,
+  },
+  'gpt-3.5-turbo': {
+    input: 0.5,
+    output: 1.5,
+  },
+};
+
+/**
+ * Calculate cost based on token usage and model
+ */
+function calculateCost(model, inputTokens, outputTokens) {
+  const pricing = PRICING[model];
+  if (!pricing) {
+    return { inputCost: null, outputCost: null, totalCost: null };
+  }
+
+  const inputCost = (inputTokens / 1_000_000) * pricing.input;
+  const outputCost = (outputTokens / 1_000_000) * pricing.output;
+  const totalCost = inputCost + outputCost;
+
+  return {
+    inputCost: parseFloat(inputCost.toFixed(6)),
+    outputCost: parseFloat(outputCost.toFixed(6)),
+    totalCost: parseFloat(totalCost.toFixed(6)),
+  };
+}
+
+/**
+ * Log OpenAI API call to database
+ */
+async function logOpenAICall({
+  userId = null,
+  model,
+  requestType,
+  input,
+  rawOutput,
+  inputTokens,
+  outputTokens,
+  totalTokens,
+  responseTimeMs,
+  status = 'success',
+  errorMessage = null,
+  endpoint = null,
+  reasoningEffort = null,
+}) {
+  try {
+    // Calculate costs
+    const { inputCost, outputCost, totalCost } = calculateCost(
+      model,
+      inputTokens || 0,
+      outputTokens || 0
+    );
+
+    await prisma.openAILog.create({
+      data: {
+        userId,
+        model,
+        requestType,
+        input,
+        rawOutput,
+        inputTokens,
+        outputTokens,
+        totalTokens,
+        inputCost,
+        outputCost,
+        totalCost,
+        responseTimeMs,
+        status,
+        errorMessage,
+        endpoint,
+        reasoningEffort,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to log OpenAI call:', error);
+    // Don't throw - logging should not break the main flow
+  }
+}
+
+export async function parseFood(
+  text,
+  userId = null,
+  endpoint = '/api/food/parse'
+) {
   const client = getOpenAIClient();
+  const startTime = Date.now();
 
   if (!client) {
     console.warn('OpenAI API key not configured, returning basic fallback');
+
+    // Log the failed attempt
+    await logOpenAICall({
+      userId,
+      model: 'gpt-5',
+      requestType: 'text',
+      input: text,
+      rawOutput: null,
+      inputTokens: null,
+      outputTokens: null,
+      totalTokens: null,
+      responseTimeMs: Date.now() - startTime,
+      status: 'error',
+      errorMessage: 'OpenAI API key not configured',
+      endpoint,
+    });
+
     return {
       foodName: text.substring(0, 50),
       description: text,
@@ -60,9 +183,12 @@ export async function parseFood(text) {
   }
 
   try {
+    const model = 'gpt-5';
+    const reasoningEffort = 'minimal';
+
     // Use Structured Outputs for reliable JSON
     const completion = await client.chat.completions.create({
-      model: 'gpt-5',
+      model,
       messages: [
         {
           role: 'system',
@@ -194,8 +320,10 @@ All values must be calculated for the specified quantity. Use null only when the
       max_completion_tokens: 2500,
       // 'minimal' reasoning effort is optimal for structured data extraction tasks
       // If omitted, defaults to 'medium' - but 'minimal' is better for this use case
-      reasoning_effort: 'minimal',
+      reasoning_effort: reasoningEffort,
     });
+
+    const responseTimeMs = Date.now() - startTime;
 
     console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
 
@@ -206,6 +334,22 @@ All values must be calculated for the specified quantity. Use null only when the
     }
 
     console.log('Raw content from OpenAI:', content);
+
+    // Log the successful API call
+    await logOpenAICall({
+      userId,
+      model,
+      requestType: 'text',
+      input: text,
+      rawOutput: content,
+      inputTokens: completion.usage?.prompt_tokens || null,
+      outputTokens: completion.usage?.completion_tokens || null,
+      totalTokens: completion.usage?.total_tokens || null,
+      responseTimeMs,
+      status: 'success',
+      endpoint,
+      reasoningEffort,
+    });
 
     const nutritionData = JSON.parse(content);
 
@@ -249,7 +393,24 @@ All values must be calculated for the specified quantity. Use null only when the
       selenium: nutritionData.selenium || null,
     };
   } catch (error) {
+    const responseTimeMs = Date.now() - startTime;
     console.error('OpenAI parse error:', error);
+
+    // Log the failed API call
+    await logOpenAICall({
+      userId,
+      model: 'gpt-5',
+      requestType: 'text',
+      input: text,
+      rawOutput: null,
+      inputTokens: null,
+      outputTokens: null,
+      totalTokens: null,
+      responseTimeMs,
+      status: 'error',
+      errorMessage: error.message || 'Unknown error',
+      endpoint,
+    });
 
     // Return basic fallback data
     return {
