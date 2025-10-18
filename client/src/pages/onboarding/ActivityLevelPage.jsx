@@ -56,7 +56,7 @@ const ActivityLevelPage = () => {
       alert('Please select an activity level');
       return;
     }
-    navigate('/onboarding/final');
+    navigate('/onboarding/timeline');
   };
 
   return (

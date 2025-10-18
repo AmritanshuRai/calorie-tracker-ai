@@ -1,15 +1,12 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart3, Target, Check, Flame, Apple } from 'lucide-react';
 import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
+import Card from '../../components/Card';
 import useUserStore from '../../stores/useUserStore';
 import { authService } from '../../services/authService';
-import {
-  calculateWeeksBetween,
-  calculateWeightChangeRate,
-  validateWeightChangeRate,
-} from '../../utils/helpers';
 
 const FinalPlanPage = () => {
   const navigate = useNavigate();
@@ -34,19 +31,8 @@ const FinalPlanPage = () => {
 
   const isImprovedHealth = onboardingData.goal === 'improved_health';
 
-  // Calculate initial weekly rate
-  const weeks = isImprovedHealth
-    ? 0
-    : calculateWeeksBetween(new Date(), onboardingData.targetDate);
-  const initialRate = isImprovedHealth
-    ? 0
-    : calculateWeightChangeRate(
-        onboardingData.currentWeight,
-        onboardingData.targetWeight,
-        weeks
-      );
-
-  const [weeklyRate, setWeeklyRateLocal] = useState(Math.min(initialRate, 1));
+  // Use the weeklyRate from onboarding data (set in TimelinePage)
+  const weeklyRate = onboardingData.weeklyRate || 0.5;
 
   useEffect(() => {
     const rate = isImprovedHealth ? 0 : weeklyRate;
@@ -54,7 +40,6 @@ const FinalPlanPage = () => {
     setWeightChangeRate(rate);
   }, [weeklyRate, calculateDailyTarget, setWeightChangeRate, isImprovedHealth]);
 
-  const validation = validateWeightChangeRate(weeklyRate);
   const calorieAdjustment = isImprovedHealth ? 0 : tdee - dailyCalorieTarget;
 
   const handleFinish = async () => {
@@ -104,15 +89,15 @@ const FinalPlanPage = () => {
 
   return (
     <PageLayout title='Your Plan' showBack={true}>
-      <div className='space-y-6'>
+      <div className='space-y-8 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
-            📊 Your Personalized Plan
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+            Your Personalized Plan
           </h2>
-          <p className='text-gray-600'>
+          <p className='text-lg font-medium text-slate-600'>
             Here's your custom calorie and macro targets
           </p>
         </motion.div>
@@ -121,158 +106,145 @@ const FinalPlanPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className='bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-blue-200'>
-          <div className='text-center'>
-            <p className='text-sm text-blue-700 font-medium mb-1'>
-              TDEE (Maintenance)
-            </p>
-            <p className='text-4xl font-bold text-blue-900'>
-              {tdee?.toLocaleString() || 0}
-            </p>
-            <p className='text-sm text-blue-700'>kcal/day</p>
-          </div>
+          transition={{ delay: 0.1 }}>
+          <Card
+            padding='lg'
+            variant='outline'
+            className='bg-blue-50 border-blue-300'>
+            <div className='flex items-center justify-between gap-4'>
+              <div className='flex items-center gap-4'>
+                <div className='w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center'>
+                  <Flame className='w-6 h-6 text-blue-600' />
+                </div>
+                <div>
+                  <p className='text-sm font-bold text-blue-700'>
+                    TDEE (Maintenance)
+                  </p>
+                  <p className='text-xs font-medium text-blue-600'>
+                    Your daily energy expenditure
+                  </p>
+                </div>
+              </div>
+              <div className='text-right'>
+                <p className='text-3xl font-black text-blue-900'>
+                  {tdee?.toLocaleString() || 0}
+                </p>
+                <p className='text-sm font-bold text-blue-700'>kcal/day</p>
+              </div>
+            </div>
+          </Card>
         </motion.div>
 
         {/* Daily Target Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className='bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border-2 border-green-300'>
-          <div className='text-center space-y-2'>
-            {!isImprovedHealth && (
-              <p className='text-sm text-green-700 font-medium'>
-                Calorie{' '}
-                {onboardingData.goal === 'weight_gain' ? 'Surplus' : 'Deficit'}:{' '}
-                {onboardingData.goal === 'weight_gain' ? '+' : '-'}
-                {Math.abs(calorieAdjustment).toFixed(0)} kcal
-              </p>
-            )}
-            <p className='text-sm text-green-700 font-medium'>Daily Target</p>
-            <p className='text-5xl font-bold text-green-900'>
-              {dailyCalorieTarget?.toLocaleString() || 0}
-            </p>
-            <p className='text-lg text-green-700 font-medium'>kcal/day</p>
-          </div>
-        </motion.div>
-
-        {/* Slider for weight change rate */}
-        {!isImprovedHealth && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className='bg-white rounded-2xl p-6 border-2 border-gray-200'>
-            <h3 className='font-semibold text-gray-800 mb-4'>
-              Target {onboardingData.goal === 'weight_gain' ? 'Gain' : 'Loss'}{' '}
-              Rate
-            </h3>
-
+          transition={{ delay: 0.2 }}>
+          <Card padding='lg' variant='gradient'>
             <div className='space-y-4'>
-              <div className='relative'>
-                <input
-                  type='range'
-                  min='0.25'
-                  max='1'
-                  step='0.05'
-                  value={weeklyRate}
-                  onChange={(e) =>
-                    setWeeklyRateLocal(parseFloat(e.target.value))
-                  }
-                  className='w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider'
-                  style={{
-                    background: `linear-gradient(to right, #22c55e 0%, #22c55e ${
-                      ((weeklyRate - 0.25) / 0.75) * 100
-                    }%, #e5e7eb ${
-                      ((weeklyRate - 0.25) / 0.75) * 100
-                    }%, #e5e7eb 100%)`,
-                  }}
-                />
-                <div className='flex justify-between text-xs text-gray-500 mt-2'>
-                  <span>0.25 kg/week</span>
-                  <span className='font-bold text-green-600'>
-                    {weeklyRate.toFixed(2)} kg/week
-                  </span>
-                  <span>1.0 kg/week</span>
+              <div className='flex items-center justify-center gap-3'>
+                <Target className='w-6 h-6 text-white' />
+                <span className='text-lg font-black text-white'>
+                  Daily Target
+                </span>
+              </div>
+
+              {!isImprovedHealth && (
+                <div className='text-center'>
+                  <p className='text-sm font-bold text-white/80'>
+                    Calorie{' '}
+                    {onboardingData.goal === 'weight_gain'
+                      ? 'Surplus'
+                      : 'Deficit'}
+                    : {onboardingData.goal === 'weight_gain' ? '+' : '-'}
+                    {Math.abs(calorieAdjustment).toFixed(0)} kcal
+                  </p>
                 </div>
-              </div>
+              )}
 
-              <div
-                className={`rounded-xl p-4 ${
-                  validation.severity === 'error'
-                    ? 'bg-red-50 border border-red-200'
-                    : validation.severity === 'warning'
-                    ? 'bg-yellow-50 border border-yellow-200'
-                    : validation.severity === 'success'
-                    ? 'bg-green-50 border border-green-200'
-                    : 'bg-blue-50 border border-blue-200'
-                }`}>
-                <p className='text-sm font-medium text-gray-800'>
-                  {validation.message}
+              <div className='text-center'>
+                <p className='text-6xl font-black text-white mb-2'>
+                  {dailyCalorieTarget?.toLocaleString() || 0}
                 </p>
+                <p className='text-lg font-bold text-white/90'>kcal/day</p>
               </div>
-
-              <p className='text-xs text-gray-600 text-center'>
-                💡 Drag slider to adjust your pace
-              </p>
             </div>
-          </motion.div>
-        )}
+          </Card>
+        </motion.div>
 
         {/* Macros Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className='bg-white rounded-2xl p-6 border-2 border-gray-200'>
-          <h3 className='font-semibold text-gray-800 mb-4'>
-            Macros (Auto-calculated)
-          </h3>
-          <div className='grid grid-cols-3 gap-4'>
-            <div className='text-center'>
-              <div className='text-3xl font-bold text-blue-600'>
-                {macros?.protein || 0}g
-              </div>
-              <div className='text-sm text-gray-600 mt-1'>Protein</div>
-              <div className='text-xs text-gray-500'>30%</div>
+          transition={{ delay: 0.3 }}>
+          <Card padding='lg' variant='default'>
+            <div className='flex items-center gap-3 mb-6'>
+              <BarChart3 className='w-6 h-6 text-emerald-600' />
+              <h3 className='text-lg font-black text-slate-900'>
+                Macros (Auto-calculated)
+              </h3>
             </div>
-            <div className='text-center'>
-              <div className='text-3xl font-bold text-green-600'>
-                {macros?.carbs || 0}g
+            <div className='grid grid-cols-3 gap-6'>
+              <div className='text-center'>
+                <div className='w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3'>
+                  <Apple className='w-8 h-8 text-blue-600' />
+                </div>
+                <div className='text-4xl font-black text-blue-600 mb-1'>
+                  {macros?.protein || 0}g
+                </div>
+                <div className='text-sm font-bold text-slate-600'>Protein</div>
+                <div className='text-xs font-medium text-slate-500 mt-1'>
+                  30%
+                </div>
               </div>
-              <div className='text-sm text-gray-600 mt-1'>Carbs</div>
-              <div className='text-xs text-gray-500'>45%</div>
-            </div>
-            <div className='text-center'>
-              <div className='text-3xl font-bold text-yellow-600'>
-                {macros?.fats || 0}g
+              <div className='text-center'>
+                <div className='w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3'>
+                  <Apple className='w-8 h-8 text-emerald-600' />
+                </div>
+                <div className='text-4xl font-black text-emerald-600 mb-1'>
+                  {macros?.carbs || 0}g
+                </div>
+                <div className='text-sm font-bold text-slate-600'>Carbs</div>
+                <div className='text-xs font-medium text-slate-500 mt-1'>
+                  45%
+                </div>
               </div>
-              <div className='text-sm text-gray-600 mt-1'>Fats</div>
-              <div className='text-xs text-gray-500'>25%</div>
+              <div className='text-center'>
+                <div className='w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-3'>
+                  <Apple className='w-8 h-8 text-yellow-600' />
+                </div>
+                <div className='text-4xl font-black text-yellow-600 mb-1'>
+                  {macros?.fats || 0}g
+                </div>
+                <div className='text-sm font-bold text-slate-600'>Fats</div>
+                <div className='text-xs font-medium text-slate-500 mt-1'>
+                  25%
+                </div>
+              </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
 
         {/* Error Message */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className='mb-6 p-4 bg-red-50 border border-red-200 rounded-xl'>
-            <div className='flex items-start gap-3'>
-              <svg
-                className='w-5 h-5 text-red-600 flex-shrink-0 mt-0.5'
-                fill='currentColor'
-                viewBox='0 0 20 20'>
-                <path
-                  fillRule='evenodd'
-                  d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                  clipRule='evenodd'
-                />
-              </svg>
-              <p className='text-sm text-red-800'>{error}</p>
-            </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Card
+              padding='lg'
+              variant='default'
+              className='bg-red-50 border-2 border-red-300'>
+              <div className='flex items-start gap-3'>
+                <div className='w-5 h-5 text-red-600 flex-shrink-0 mt-0.5'>
+                  <svg fill='currentColor' viewBox='0 0 20 20'>
+                    <path
+                      fillRule='evenodd'
+                      d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                </div>
+                <p className='text-sm font-bold text-red-800'>{error}</p>
+              </div>
+            </Card>
           </motion.div>
         )}
 
@@ -280,36 +252,25 @@ const FinalPlanPage = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className='mt-8'>
+          transition={{ delay: 0.4 }}
+          className='mt-12 pt-4'>
           <Button
             variant='primary'
             size='lg'
             fullWidth
             onClick={handleFinish}
-            disabled={loading}
-            icon={
-              <svg
-                className='w-6 h-6'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M5 13l4 4L19 7'
-                />
-              </svg>
-            }>
-            {loading ? 'Saving...' : 'Start Tracking →'}
+            disabled={loading}>
+            <span className='flex items-center justify-center gap-2'>
+              <Check className='w-6 h-6' />
+              {loading ? 'Saving...' : 'Start Tracking →'}
+            </span>
           </Button>
         </motion.div>
 
         {/* Progress indicator - All complete */}
-        <div className='flex justify-center gap-2 mt-8'>
+        <div className='flex justify-center gap-2 mt-12'>
           {[...Array(8)].map((_, i) => (
-            <div key={i} className='h-2 w-8 rounded-full bg-green-500' />
+            <div key={i} className='h-2 w-8 rounded-full bg-emerald-600' />
           ))}
         </div>
       </div>

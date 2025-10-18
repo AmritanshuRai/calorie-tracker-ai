@@ -1,15 +1,12 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addWeeks } from 'date-fns';
+import { AlertTriangle, Calendar, TrendingDown } from 'lucide-react';
 import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
+import Card from '../../components/Card';
 import useUserStore from '../../stores/useUserStore';
-import {
-  calculateWeeksBetween,
-  calculateWeightChangeRate,
-  validateWeightChangeRate,
-} from '../../utils/helpers';
 
 const TimelinePage = () => {
   const navigate = useNavigate();
@@ -18,138 +15,223 @@ const TimelinePage = () => {
     (state) => state.updateOnboardingData
   );
 
-  // Default: 8 weeks from today
-  const defaultDate = format(addWeeks(new Date(), 8), 'yyyy-MM-dd');
-  const [targetDate, setTargetDate] = useState(
-    onboardingData.targetDate || defaultDate
-  );
+  // Default: 0.5 kg/week (recommended)
+  const [weeklyRate, setWeeklyRate] = useState(0.5);
 
-  const weeks = calculateWeeksBetween(new Date(), targetDate);
-  const weeklyRate = calculateWeightChangeRate(
-    onboardingData.currentWeight,
-    onboardingData.targetWeight,
-    weeks
+  const weightDifference = Math.abs(
+    onboardingData.targetWeight - onboardingData.currentWeight
   );
-  const validation = validateWeightChangeRate(weeklyRate);
+  const weeks = Math.ceil(weightDifference / weeklyRate);
+  const targetDate = addWeeks(new Date(), weeks);
+
+  // Only update when weeklyRate changes (not on every render)
+  useEffect(() => {
+    updateOnboardingData({
+      weeklyRate: Number(weeklyRate),
+      targetDate: format(targetDate, 'yyyy-MM-dd'),
+      estimatedWeeks: weeks,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weeklyRate]);
+
+  const getValidation = (rate) => {
+    if (rate > 1) {
+      return {
+        severity: 'warning',
+        message:
+          'This pace is aggressive and may not be sustainable long-term.',
+        color: 'yellow',
+      };
+    } else if (rate >= 0.5 && rate <= 1) {
+      return {
+        severity: 'success',
+        message: 'This is a healthy and sustainable pace for weight change.',
+        color: 'emerald',
+      };
+    } else {
+      return {
+        severity: 'info',
+        message: 'This is a slow and steady pace, great for long-term success.',
+        color: 'blue',
+      };
+    }
+  };
+
+  const validation = getValidation(weeklyRate);
 
   const handleContinue = () => {
-    updateOnboardingData({ targetDate });
-    navigate('/onboarding/activity');
+    navigate('/onboarding/final');
   };
 
   return (
     <PageLayout title='Timeline' showBack={true}>
-      <div className='space-y-6'>
+      <div className='space-y-8 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
-            When do you want to reach {onboardingData.targetWeight}kg?
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+            How fast do you want to reach your goal?
           </h2>
-          <p className='text-gray-600'>
-            Choose a realistic timeline for your goal
+          <p className='text-lg font-medium text-slate-600'>
+            Choose a sustainable pace for{' '}
+            {Math.abs(weightDifference).toFixed(1)} kg change
           </p>
         </motion.div>
 
+        {/* Slider Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className='mt-12'>
-          <div className='bg-white rounded-2xl border-2 border-gray-200 p-6'>
-            <div className='flex items-center justify-center gap-3 mb-2'>
-              <svg
-                className='w-6 h-6 text-green-500'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                />
-              </svg>
-              <span className='text-sm font-medium text-gray-600'>
-                Select Target Date
-              </span>
-            </div>
-            <input
-              type='date'
-              value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
-              min={format(addWeeks(new Date(), 1), 'yyyy-MM-dd')}
-              max={format(addWeeks(new Date(), 52), 'yyyy-MM-dd')}
-              className='w-full text-center text-xl font-semibold text-gray-800 border-none outline-none cursor-pointer'
-            />
-          </div>
-        </motion.div>
-
-        {weeks > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className='space-y-4'>
-            {/* Duration */}
-            <div className='bg-gray-50 rounded-xl p-4'>
-              <div className='flex items-center gap-2'>
-                <svg
-                  className='w-5 h-5 text-gray-600'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'>
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
-                <span className='text-sm text-gray-600'>Duration:</span>
-                <span className='font-bold text-gray-800'>{weeks} weeks</span>
+          <Card padding='lg' variant='default'>
+            <div className='space-y-6'>
+              <div className='flex items-center justify-center gap-3'>
+                <TrendingDown className='w-6 h-6 text-emerald-600' />
+                <span className='text-base font-black text-slate-900'>
+                  Weekly Goal
+                </span>
               </div>
-            </div>
 
-            {/* Weekly Rate */}
-            <div
-              className={`rounded-xl p-4 border-2 ${
-                validation.severity === 'error'
-                  ? 'bg-red-50 border-red-300'
-                  : validation.severity === 'warning'
-                  ? 'bg-yellow-50 border-yellow-300'
-                  : validation.severity === 'success'
-                  ? 'bg-green-50 border-green-300'
-                  : 'bg-blue-50 border-blue-300'
-              }`}>
-              <div className='space-y-2'>
-                <div className='flex items-center gap-2'>
-                  <svg
-                    className='w-5 h-5'
-                    fill='currentColor'
-                    viewBox='0 0 20 20'>
-                    <path
-                      fillRule='evenodd'
-                      d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
-                      clipRule='evenodd'
-                    />
-                  </svg>
-                  <span className='text-sm font-medium'>
-                    Your pace: {weeklyRate.toFixed(2)} kg/week
+              <div className='text-center'>
+                <div className='text-5xl font-black text-emerald-600 mb-2'>
+                  {weeklyRate.toFixed(2)}
+                </div>
+                <div className='text-lg font-bold text-slate-600'>
+                  kg per week
+                </div>
+              </div>
+
+              {/* Slider */}
+              <div className='px-4 py-6'>
+                <div className='relative h-3'>
+                  {/* Background track */}
+                  <div className='absolute top-0 left-0 w-full h-3 bg-slate-200 rounded-lg' />
+
+                  {/* Progress fill */}
+                  <div
+                    className='absolute top-0 left-0 h-3 bg-emerald-600 rounded-lg pointer-events-none transition-all duration-150'
+                    style={{
+                      width: `${((weeklyRate - 0.25) / (3 - 0.25)) * 100}%`,
+                    }}
+                  />
+
+                  {/* Slider input */}
+                  <input
+                    type='range'
+                    min='0.25'
+                    max='3'
+                    step='0.05'
+                    value={weeklyRate}
+                    onChange={(e) => setWeeklyRate(parseFloat(e.target.value))}
+                    className='absolute top-0 left-0 w-full h-3 appearance-none cursor-pointer slider-thumb bg-transparent'
+                  />
+                </div>
+                <div className='relative flex items-center justify-between text-xs font-bold text-slate-500 mt-3'>
+                  <span className='absolute left-0'>0.25 kg</span>
+                  <span
+                    className='absolute'
+                    style={{
+                      left: `${((1.0 - 0.25) / (3 - 0.25)) * 100}%`,
+                      transform: 'translateX(-50%)',
+                    }}>
+                    1.0 kg
+                  </span>
+                  <span
+                    className='absolute'
+                    style={{
+                      left: `${((2.0 - 0.25) / (3 - 0.25)) * 100}%`,
+                      transform: 'translateX(-50%)',
+                    }}>
+                    2.0 kg
+                  </span>
+                  <span className='absolute right-0'>3.0 kg</span>
+                </div>
+              </div>
+
+              {/* Recommendation Badge */}
+              {weeklyRate >= 0.45 && weeklyRate <= 0.55 && (
+                <div className='text-center'>
+                  <span className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-black'>
+                    ✓ Recommended Pace
                   </span>
                 </div>
-                <p className='text-sm font-medium'>{validation.message}</p>
-              </div>
+              )}
             </div>
+          </Card>
+        </motion.div>
+
+        {/* Estimated Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className='space-y-4'>
+          <Card padding='lg' variant='outline'>
+            <div className='flex items-center justify-between gap-4'>
+              <div className='flex items-center gap-3'>
+                <Calendar className='w-5 h-5 text-slate-600' />
+                <span className='text-base font-bold text-slate-600'>
+                  Estimated Duration
+                </span>
+              </div>
+              <span className='text-2xl font-black text-slate-900'>
+                {weeks} {weeks === 1 ? 'week' : 'weeks'}
+              </span>
+            </div>
+          </Card>
+
+          <Card padding='lg' variant='outline'>
+            <div className='flex items-center justify-between gap-4'>
+              <div className='flex items-center gap-3'>
+                <Calendar className='w-5 h-5 text-slate-600' />
+                <span className='text-base font-bold text-slate-600'>
+                  Target Date
+                </span>
+              </div>
+              <span className='text-xl font-black text-slate-900'>
+                {format(targetDate, 'MMM dd, yyyy')}
+              </span>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Validation Message */}
+        {validation && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}>
+            <Card
+              padding='lg'
+              variant='default'
+              className={`border-2 ${
+                validation.color === 'yellow'
+                  ? 'bg-yellow-50 border-yellow-300'
+                  : validation.color === 'emerald'
+                  ? 'bg-emerald-50 border-emerald-300'
+                  : 'bg-blue-50 border-blue-300'
+              }`}>
+              <div className='flex items-start gap-3'>
+                {validation.severity === 'warning' && (
+                  <AlertTriangle className='w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5' />
+                )}
+                <div className='flex-1'>
+                  <p className='text-sm font-bold text-slate-900'>
+                    {validation.message}
+                  </p>
+                </div>
+              </div>
+            </Card>
           </motion.div>
         )}
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className='mt-12'>
+          transition={{ delay: 0.4 }}
+          className='mt-12 pt-4'>
           <Button
             variant='primary'
             size='lg'
@@ -165,7 +247,7 @@ const TimelinePage = () => {
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 5 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
+                i <= 6 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
               }`}
             />
           ))}

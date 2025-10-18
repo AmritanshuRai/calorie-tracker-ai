@@ -64,11 +64,8 @@ const WeightPage = () => {
       });
     }
 
-    if (isImprovedHealth) {
-      navigate('/onboarding/activity');
-    } else {
-      navigate('/onboarding/timeline');
-    }
+    // Always go to activity page next
+    navigate('/onboarding/activity');
   };
 
   const weightDifference =
