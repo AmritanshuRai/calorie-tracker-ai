@@ -54,8 +54,15 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
     setError('');
 
     try {
+      // Normalize the date to UTC midnight to avoid timezone issues
+      // Use UTC methods to ensure the date represents the selected calendar day
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      const normalizedDate = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+
       const foodEntry = {
-        date: selectedDate.toISOString(),
+        date: normalizedDate.toISOString(),
         mealType,
         foodName: parsedData.foodName,
         description: parsedData.description,
@@ -82,6 +89,15 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         source: 'text',
         aiParsed: true,
       };
+
+      console.log('=== FRONTEND: Saving food entry ===');
+      console.log('Selected date object:', selectedDate);
+      console.log('Normalized date (local midnight):', normalizedDate);
+      console.log('Normalized date ISO:', normalizedDate.toISOString());
+      console.log('Food entry date:', foodEntry.date);
+      console.log('Food name:', foodEntry.foodName);
+      console.log('Meal type:', foodEntry.mealType);
+      console.log('=== END DEBUG ===');
 
       await foodService.addFoodEntry(foodEntry);
       setStep(3);
