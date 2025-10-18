@@ -91,13 +91,22 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         'vitaminD',
         'vitaminE',
         'vitaminK',
+        'vitaminB1',
+        'vitaminB2',
+        'vitaminB3',
+        'vitaminB5',
+        'vitaminB6',
         'vitaminB9',
         'vitaminB12',
         'calcium',
         'iron',
         'magnesium',
+        'phosphorus',
         'potassium',
         'zinc',
+        'manganese',
+        'copper',
+        'selenium',
       ];
 
       optionalNutrients.forEach((nutrient) => {

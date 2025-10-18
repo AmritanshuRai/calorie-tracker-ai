@@ -104,15 +104,24 @@ model FoodEntry {
   vitaminD    Float?
   vitaminE    Float?
   vitaminK    Float?
-  vitaminB9   Float?
-  vitaminB12  Float?
+  vitaminB1   Float? // Thiamine
+  vitaminB2   Float? // Riboflavin
+  vitaminB3   Float? // Niacin
+  vitaminB5   Float? // Pantothenic acid
+  vitaminB6   Float? // Pyridoxine
+  vitaminB9   Float? // Folate
+  vitaminB12  Float? // Cobalamin
   
   // Minerals
   calcium     Float?
   iron        Float?
   magnesium   Float?
+  phosphorus  Float?
   potassium   Float?
   zinc        Float?
+  manganese   Float?
+  copper      Float?
+  selenium    Float?
   
   // Metadata
   source      String?  // text, voice, image, barcode, label
