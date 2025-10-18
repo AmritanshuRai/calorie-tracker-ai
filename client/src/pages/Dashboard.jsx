@@ -35,13 +35,19 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const logout = useUserStore((state) => state.logout);
-  const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
+  const setUser = useUserStore((state) => state.setUser);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [foodEntries, setFoodEntries] = useState([]);
   const userMenuRef = useRef(null);
+  const [userTargets, setUserTargets] = useState({
+    dailyCalorieTarget: 0,
+    proteinTarget: 0,
+    carbsTarget: 0,
+    fatsTarget: 0,
+  });
   const [dailyTotals, setDailyTotals] = useState({
     calories: 0,
     protein: 0,
@@ -81,6 +87,38 @@ const Dashboard = () => {
     selenium: 0,
   });
 
+  // Load user profile data on mount
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const profile = await authService.getProfile();
+
+        // Update user store with the full profile data
+        setUser(profile);
+
+        // Set user targets from profile
+        if (profile.dailyCalorieTarget) {
+          setUserTargets({
+            dailyCalorieTarget: profile.dailyCalorieTarget,
+            proteinTarget: profile.proteinTarget || 0,
+            carbsTarget: profile.carbsTarget || 0,
+            fatsTarget: profile.fatsTarget || 0,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        // If profile fetch fails, check if user is still authenticated
+        if (error.response?.status === 401) {
+          logout();
+          navigate('/');
+        }
+      }
+    };
+
+    loadUserProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Fetch food entries when date changes
   useEffect(() => {
     loadFoodEntries();
@@ -103,7 +141,8 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('User data:', user);
     console.log('User picture:', user?.picture);
-  }, [user]);
+    console.log('User targets:', userTargets);
+  }, [user, userTargets]);
 
   const loadFoodEntries = async () => {
     try {
@@ -268,8 +307,8 @@ const Dashboard = () => {
   const handlePrevWeek = () => setSelectedDate(subDays(selectedDate, 7));
   const handleNextWeek = () => setSelectedDate(addDays(selectedDate, 7));
 
-  const calorieProgress = dailyCalorieTarget
-    ? (dailyTotals.calories / dailyCalorieTarget) * 100
+  const calorieProgress = userTargets.dailyCalorieTarget
+    ? (dailyTotals.calories / userTargets.dailyCalorieTarget) * 100
     : 0;
 
   return (
@@ -417,28 +456,28 @@ const Dashboard = () => {
                 {
                   label: 'Calories',
                   value: Math.round(dailyTotals.calories),
-                  target: dailyCalorieTarget,
+                  target: userTargets.dailyCalorieTarget,
                   icon: Flame,
                   color: 'orange',
                 },
                 {
                   label: 'Protein',
                   value: Math.round(dailyTotals.protein),
-                  target: 150,
+                  target: userTargets.proteinTarget,
                   icon: Activity,
                   color: 'blue',
                 },
                 {
                   label: 'Carbs',
                   value: Math.round(dailyTotals.carbs),
-                  target: 200,
+                  target: userTargets.carbsTarget,
                   icon: TrendingUp,
                   color: 'green',
                 },
                 {
                   label: 'Fats',
                   value: Math.round(dailyTotals.fats),
-                  target: 65,
+                  target: userTargets.fatsTarget,
                   icon: Droplet,
                   color: 'yellow',
                 },
@@ -857,7 +896,7 @@ const Dashboard = () => {
                 <div className='flex justify-between text-sm'>
                   <span className='text-white/80'>Target</span>
                   <span className='font-bold text-white'>
-                    {dailyCalorieTarget} cal
+                    {userTargets.dailyCalorieTarget} cal
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
@@ -865,7 +904,8 @@ const Dashboard = () => {
                   <span className='font-bold text-white'>
                     {Math.max(
                       0,
-                      dailyCalorieTarget - Math.round(dailyTotals.calories)
+                      userTargets.dailyCalorieTarget -
+                        Math.round(dailyTotals.calories)
                     )}{' '}
                     cal
                   </span>

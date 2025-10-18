@@ -21,14 +21,17 @@ const SignIn = () => {
         // Send the credential to your backend
         const data = await authService.googleSignIn(response.credential);
 
-        // Store user and token
-        setUser(data.user);
+        // Store token first
         setToken(data.token);
 
-        // Navigate based on profile completion
+        // If profile is completed, fetch full profile data including onboarding info
         if (data.user.profileCompleted) {
+          const fullProfile = await authService.getProfile();
+          setUser(fullProfile);
           navigate('/dashboard');
         } else {
+          // Just store basic user data for onboarding
+          setUser(data.user);
           navigate('/onboarding/gender');
         }
       } catch (err) {
