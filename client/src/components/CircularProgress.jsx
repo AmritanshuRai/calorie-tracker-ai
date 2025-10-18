@@ -37,6 +37,7 @@ const CircularProgress = ({
     emerald: { start: '#059669', end: '#047857', bg: '#e8f5e9' },
     blue: { start: '#2563eb', end: '#1d4ed8', bg: '#e3f2fd' },
     orange: { start: '#ea580c', end: '#c2410c', bg: '#fff3e0' },
+    amber: { start: '#f59e0b', end: '#d97706', bg: '#fef3c7' },
     green: { start: '#16a34a', end: '#15803d', bg: '#e8f5e9' },
     yellow: { start: '#ca8a04', end: '#a16207', bg: '#fffde7' },
     purple: { start: '#9333ea', end: '#7e22ce', bg: '#f3e5f5' },

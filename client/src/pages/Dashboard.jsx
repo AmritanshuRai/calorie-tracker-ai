@@ -586,164 +586,237 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Vitamins & Minerals */}
+            {/* Vitamins */}
             <Card padding='lg' variant='default'>
               <div className='flex items-center gap-2 mb-6'>
                 <div className='p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500'>
                   <Sparkles className='w-5 h-5 text-white' />
                 </div>
-                <h3 className='text-xl font-bold text-slate-800'>
-                  Vitamins & Minerals
-                </h3>
+                <h3 className='text-xl font-bold text-slate-800'>Vitamins</h3>
               </div>
 
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-                {/* Vitamins Section */}
-                <div>
-                  <h4 className='text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4'>
-                    Vitamins
-                  </h4>
-                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
-                    {[
-                      {
-                        label: 'Vitamin A',
-                        value: dailyTotals.vitaminA,
-                        unit: 'mcg',
-                      },
-                      {
-                        label: 'Vitamin C',
-                        value: dailyTotals.vitaminC,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Vitamin D',
-                        value: dailyTotals.vitaminD,
-                        unit: 'mcg',
-                      },
-                      {
-                        label: 'Vitamin E',
-                        value: dailyTotals.vitaminE,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Vitamin K',
-                        value: dailyTotals.vitaminK,
-                        unit: 'mcg',
-                      },
-                      {
-                        label: 'B1 (Thiamine)',
-                        value: dailyTotals.vitaminB1,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'B2 (Riboflavin)',
-                        value: dailyTotals.vitaminB2,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'B3 (Niacin)',
-                        value: dailyTotals.vitaminB3,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'B5 (Pantothenic)',
-                        value: dailyTotals.vitaminB5,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'B6 (Pyridoxine)',
-                        value: dailyTotals.vitaminB6,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'B9 (Folate)',
-                        value: dailyTotals.vitaminB9,
-                        unit: 'mcg',
-                      },
-                      {
-                        label: 'B12 (Cobalamin)',
-                        value: dailyTotals.vitaminB12,
-                        unit: 'mcg',
-                      },
-                    ].map((item) => (
-                      <div
-                        key={item.label}
-                        className='bg-amber-50 rounded-xl p-3 hover-lift'>
-                        <p className='text-xs text-slate-600 mb-1 font-medium'>
-                          {item.label}
-                        </p>
-                        <p className='text-base font-bold text-slate-800'>
-                          {item.value > 0 ? item.value.toFixed(2) : '0'}{' '}
-                          <span className='text-xs text-slate-500 font-normal'>
-                            {item.unit}
-                          </span>
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
+                {[
+                  {
+                    label: 'Vitamin A',
+                    value: dailyTotals.vitaminA,
+                    target: 900,
+                    unit: 'mcg',
+                  },
+                  {
+                    label: 'Vitamin C',
+                    value: dailyTotals.vitaminC,
+                    target: 90,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Vitamin D',
+                    value: dailyTotals.vitaminD,
+                    target: 20,
+                    unit: 'mcg',
+                  },
+                  {
+                    label: 'Vitamin E',
+                    value: dailyTotals.vitaminE,
+                    target: 15,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Vitamin K',
+                    value: dailyTotals.vitaminK,
+                    target: 120,
+                    unit: 'mcg',
+                  },
+                  {
+                    label: 'B1 (Thiamine)',
+                    value: dailyTotals.vitaminB1,
+                    target: 1.2,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'B2 (Riboflavin)',
+                    value: dailyTotals.vitaminB2,
+                    target: 1.3,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'B3 (Niacin)',
+                    value: dailyTotals.vitaminB3,
+                    target: 16,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'B5 (Pantothenic)',
+                    value: dailyTotals.vitaminB5,
+                    target: 5,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'B6 (Pyridoxine)',
+                    value: dailyTotals.vitaminB6,
+                    target: 1.7,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'B9 (Folate)',
+                    value: dailyTotals.vitaminB9,
+                    target: 400,
+                    unit: 'mcg',
+                  },
+                  {
+                    label: 'B12 (Cobalamin)',
+                    value: dailyTotals.vitaminB12,
+                    target: 2.4,
+                    unit: 'mcg',
+                  },
+                ].map((item) => {
+                  const percentage = Math.min(
+                    100,
+                    (item.value / item.target) * 100
+                  );
 
-                {/* Minerals Section */}
-                <div>
-                  <h4 className='text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4'>
-                    Minerals
-                  </h4>
-                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
-                    {[
-                      {
-                        label: 'Calcium',
-                        value: dailyTotals.calcium,
-                        unit: 'mg',
-                      },
-                      { label: 'Iron', value: dailyTotals.iron, unit: 'mg' },
-                      {
-                        label: 'Magnesium',
-                        value: dailyTotals.magnesium,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Phosphorus',
-                        value: dailyTotals.phosphorus,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Potassium',
-                        value: dailyTotals.potassium,
-                        unit: 'mg',
-                      },
-                      { label: 'Zinc', value: dailyTotals.zinc, unit: 'mg' },
-                      {
-                        label: 'Manganese',
-                        value: dailyTotals.manganese,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Copper',
-                        value: dailyTotals.copper,
-                        unit: 'mg',
-                      },
-                      {
-                        label: 'Selenium',
-                        value: dailyTotals.selenium,
-                        unit: 'mcg',
-                      },
-                    ].map((item) => (
-                      <div
-                        key={item.label}
-                        className='bg-orange-50 rounded-xl p-3 hover-lift'>
-                        <p className='text-xs text-slate-600 mb-1 font-medium'>
-                          {item.label}
-                        </p>
-                        <p className='text-base font-bold text-slate-800'>
-                          {item.value > 0 ? item.value.toFixed(2) : '0'}{' '}
-                          <span className='text-xs text-slate-500 font-normal'>
-                            {item.unit}
-                          </span>
-                        </p>
+                  return (
+                    <div
+                      key={item.label}
+                      className='bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 hover-lift border border-amber-100'>
+                      <div className='flex flex-col items-center text-center gap-2'>
+                        <div className='relative w-14 h-14 flex-shrink-0'>
+                          <CircularProgress
+                            value={percentage}
+                            color='amber'
+                            size={56}
+                            strokeWidth={5}
+                            showValue={false}
+                          />
+                          <div className='absolute inset-0 flex items-center justify-center'>
+                            <span className='text-xs font-bold text-amber-700'>
+                              {Math.round(percentage)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className='w-full'>
+                          <p className='text-xs text-slate-600 font-semibold mb-1 truncate'>
+                            {item.label}
+                          </p>
+                          <p className='text-sm font-bold text-slate-800'>
+                            {item.value > 0 ? item.value.toFixed(1) : '0'}
+                          </p>
+                          <p className='text-[10px] text-slate-400 font-medium'>
+                            / {item.target} {item.unit}
+                          </p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* Minerals */}
+            <Card padding='lg' variant='default'>
+              <div className='flex items-center gap-2 mb-6'>
+                <div className='p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-500'>
+                  <Sparkles className='w-5 h-5 text-white' />
                 </div>
+                <h3 className='text-xl font-bold text-slate-800'>Minerals</h3>
+              </div>
+
+              <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
+                {[
+                  {
+                    label: 'Calcium',
+                    value: dailyTotals.calcium,
+                    target: 1000,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Iron',
+                    value: dailyTotals.iron,
+                    target: 18,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Magnesium',
+                    value: dailyTotals.magnesium,
+                    target: 400,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Phosphorus',
+                    value: dailyTotals.phosphorus,
+                    target: 700,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Potassium',
+                    value: dailyTotals.potassium,
+                    target: 3500,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Zinc',
+                    value: dailyTotals.zinc,
+                    target: 11,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Manganese',
+                    value: dailyTotals.manganese,
+                    target: 2.3,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Copper',
+                    value: dailyTotals.copper,
+                    target: 0.9,
+                    unit: 'mg',
+                  },
+                  {
+                    label: 'Selenium',
+                    value: dailyTotals.selenium,
+                    target: 55,
+                    unit: 'mcg',
+                  },
+                ].map((item) => {
+                  const percentage = Math.min(
+                    100,
+                    (item.value / item.target) * 100
+                  );
+
+                  return (
+                    <div
+                      key={item.label}
+                      className='bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-3 hover-lift border border-orange-100'>
+                      <div className='flex flex-col items-center text-center gap-2'>
+                        <div className='relative w-14 h-14 flex-shrink-0'>
+                          <CircularProgress
+                            value={percentage}
+                            color='orange'
+                            size={56}
+                            strokeWidth={5}
+                            showValue={false}
+                          />
+                          <div className='absolute inset-0 flex items-center justify-center'>
+                            <span className='text-xs font-bold text-orange-700'>
+                              {Math.round(percentage)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className='w-full'>
+                          <p className='text-xs text-slate-600 font-semibold mb-1 truncate'>
+                            {item.label}
+                          </p>
+                          <p className='text-sm font-bold text-slate-800'>
+                            {item.value > 0 ? item.value.toFixed(1) : '0'}
+                          </p>
+                          <p className='text-[10px] text-slate-400 font-medium'>
+                            / {item.target} {item.unit}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           </div>
