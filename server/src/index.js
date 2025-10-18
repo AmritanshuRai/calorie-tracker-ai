@@ -14,6 +14,7 @@ import authRoutes from './routes/auth.js';
 import foodRoutes from './routes/food.js';
 import userRoutes from './routes/user.js';
 import openaiLogsRoutes from './routes/openai-logs.js';
+import adminRoutes from './routes/admin.js';
 
 // Load environment variables
 dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/openai-logs', openaiLogsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -62,6 +62,7 @@ router.post('/google', async (req, res) => {
         userId: user.id,
         email: user.email,
         profileCompleted: user.profileCompleted,
+        isAdmin: user.isAdmin,
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -75,6 +76,7 @@ router.post('/google', async (req, res) => {
         name: user.name,
         picture: user.picture,
         profileCompleted: user.profileCompleted,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -94,6 +96,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
         name: true,
         picture: true,
         profileCompleted: true,
+        isAdmin: true,
         createdAt: true,
       },
     });
@@ -179,6 +182,7 @@ router.post('/onboarding', authenticateToken, async (req, res) => {
         name: true,
         picture: true,
         profileCompleted: true,
+        isAdmin: true,
         createdAt: true,
       },
     });

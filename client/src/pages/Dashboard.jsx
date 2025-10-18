@@ -387,6 +387,20 @@ const Dashboard = () => {
                         </span>
                       </button>
 
+                      {user?.isAdmin && (
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            navigate('/admin');
+                          }}
+                          className='w-full px-4 py-3 flex items-center gap-3 hover:bg-purple-50 transition-colors text-left'>
+                          <BarChart3 className='w-5 h-5 text-purple-600' />
+                          <span className='font-medium text-purple-600'>
+                            Admin Panel
+                          </span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => {
                           setShowUserMenu(false);

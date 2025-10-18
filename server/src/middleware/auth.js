@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma.js';
 
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -16,6 +17,31 @@ export const authenticateToken = (req, res, next) => {
     req.user = user;
     next();
   });
+};
+
+export const requireAdmin = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { isAdmin: true },
+    });
+
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({
+        error: 'Admin access required. Contact administrator for access.',
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Admin check error:', error);
+    res.status(500).json({ error: 'Failed to verify admin status' });
+  }
 };
 
 export const optionalAuth = (req, res, next) => {

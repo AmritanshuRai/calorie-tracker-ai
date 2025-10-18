@@ -20,6 +20,9 @@ model User {
   // Profile status
   profileCompleted Boolean @default(false)
   
+  // Admin flag
+  isAdmin   Boolean @default(false)
+  
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,6 +34,7 @@ model User {
   
   @@index([email])
   @@index([googleId])
+  @@index([isAdmin])
 }
 
 model UserOnboarding {

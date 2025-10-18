@@ -11,6 +11,7 @@ import useUserStore from './stores/useUserStore';
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
+import Admin from './pages/Admin';
 
 // Onboarding Pages
 import GenderPage from './pages/onboarding/GenderPage';
@@ -141,6 +142,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Account />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/admin'
+            element={
+              <ProtectedRoute>
+                <Admin />
               </ProtectedRoute>
             }
           />

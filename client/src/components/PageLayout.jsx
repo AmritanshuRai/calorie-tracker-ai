@@ -1,14 +1,19 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 
 const PageLayout = ({ children, title, showBack = false, rightAction }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminPage = location.pathname === '/admin';
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/20'>
       {/* Header */}
       <div className='sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200 shadow-sm'>
-        <div className='max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between'>
+        <div
+          className={`${
+            isAdminPage ? 'w-full' : 'max-w-3xl'
+          } mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
@@ -29,7 +34,12 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       </div>
 
       {/* Content */}
-      <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>{children}</div>
+      <div
+        className={`${
+          isAdminPage ? 'w-full' : 'max-w-3xl mx-auto px-4 sm:px-6 py-8'
+        }`}>
+        {children}
+      </div>
     </div>
   );
 };

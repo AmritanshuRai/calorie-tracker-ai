@@ -1,8 +1,39 @@
 import express from 'express';
 import prisma from '../lib/prisma.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Get all OpenAI logs (admin only)
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { limit = 100, offset = 0 } = req.query;
+
+    const logs = await prisma.openAILog.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: parseInt(limit),
+      skip: parseInt(offset),
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const totalCount = await prisma.openAILog.count();
+
+    res.json(logs);
+  } catch (error) {
+    console.error('Get all OpenAI logs error:', error);
+    res.status(500).json({ error: 'Failed to get OpenAI logs' });
+  }
+});
 
 // Get user's OpenAI logs
 router.get('/user', authenticateToken, async (req, res) => {
