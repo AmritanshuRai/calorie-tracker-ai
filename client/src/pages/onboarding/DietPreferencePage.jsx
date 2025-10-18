@@ -1,0 +1,240 @@
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Sparkles,
+  Scale,
+  Waves,
+  Apple,
+  Beef,
+  Salad,
+  Ban,
+  Drumstick,
+  CakeSlice,
+} from 'lucide-react';
+import PageLayout from '../../components/PageLayout';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
+import useUserStore from '../../stores/useUserStore';
+
+const DIET_PREFERENCES = [
+  {
+    id: 'ai_recommended',
+    label: 'AI Recommended',
+    description: 'Let AI suggest the best diet based on your goals',
+    icon: Sparkles,
+    color: 'emerald',
+  },
+  {
+    id: 'balanced',
+    label: 'Balanced',
+    description: 'Mix of all food groups for overall health',
+    icon: Scale,
+    color: 'blue',
+  },
+  {
+    id: 'mediterranean',
+    label: 'Mediterranean',
+    description: 'Rich in fruits, vegetables, fish, and olive oil',
+    icon: Waves,
+    color: 'cyan',
+  },
+  {
+    id: 'keto',
+    label: 'Keto',
+    description: 'Very low carb, high fat for ketosis',
+    icon: Apple,
+    color: 'green',
+  },
+  {
+    id: 'paleo',
+    label: 'Paleo',
+    description: 'Whole foods, no processed items',
+    icon: Beef,
+    color: 'orange',
+  },
+  {
+    id: 'vegetarian',
+    label: 'Vegetarian',
+    description: 'Plant-based with dairy and eggs',
+    icon: Salad,
+    color: 'lime',
+  },
+  {
+    id: 'vegan',
+    label: 'Vegan',
+    description: 'Strictly plant-based, no animal products',
+    icon: Salad,
+    color: 'green',
+  },
+  {
+    id: 'low_carb',
+    label: 'Low Carb',
+    description: 'Reduced carbohydrates, higher protein',
+    icon: Ban,
+    color: 'red',
+  },
+  {
+    id: 'high_protein',
+    label: 'High Protein',
+    description: 'Increased protein for muscle building',
+    icon: Drumstick,
+    color: 'amber',
+  },
+  {
+    id: 'low_fat',
+    label: 'Low Fat',
+    description: 'Reduced fat intake, higher carbs',
+    icon: CakeSlice,
+    color: 'pink',
+  },
+];
+
+const DietPreferencePage = () => {
+  const navigate = useNavigate();
+  const onboardingData = useUserStore((state) => state.onboardingData);
+  const updateOnboardingData = useUserStore(
+    (state) => state.updateOnboardingData
+  );
+
+  const [selectedDiet, setSelectedDiet] = useState(
+    onboardingData.dietPreference || null
+  );
+
+  const handleSelect = (dietId) => {
+    setSelectedDiet(dietId);
+  };
+
+  const handleContinue = () => {
+    if (!selectedDiet) {
+      alert('Please select a diet preference');
+      return;
+    }
+    updateOnboardingData({ dietPreference: selectedDiet });
+    navigate('/onboarding/health-conditions');
+  };
+
+  return (
+    <PageLayout title='Diet Preference' showBack={true}>
+      <div className='space-y-8 max-w-3xl mx-auto'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className='text-center'>
+          <div className='w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl flex items-center justify-center'>
+            <Apple className='w-10 h-10 text-emerald-600' />
+          </div>
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+            What kind of diet do you prefer?
+          </h2>
+          <p className='text-lg font-medium text-slate-600'>
+            Choose a dietary approach that suits your lifestyle
+          </p>
+        </motion.div>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-12'>
+          {DIET_PREFERENCES.map((diet, index) => {
+            const Icon = diet.icon;
+            return (
+              <motion.div
+                key={diet.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}>
+                <button
+                  onClick={() => handleSelect(diet.id)}
+                  className={`w-full text-left transition-all duration-200 ${
+                    selectedDiet === diet.id
+                      ? 'scale-[1.02]'
+                      : 'hover:scale-[1.01]'
+                  }`}>
+                  <Card
+                    padding='lg'
+                    variant='default'
+                    className={`transition-all duration-200 ${
+                      selectedDiet === diet.id
+                        ? 'border-emerald-500 bg-emerald-50 shadow-lg'
+                        : 'hover:border-emerald-300 hover:shadow-md'
+                    }`}>
+                    <div className='flex items-center gap-4'>
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          selectedDiet === diet.id
+                            ? 'bg-emerald-100'
+                            : 'bg-slate-100'
+                        }`}>
+                        <Icon
+                          className={`w-6 h-6 ${
+                            selectedDiet === diet.id
+                              ? 'text-emerald-600'
+                              : 'text-slate-600'
+                          }`}
+                        />
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <h3 className='text-lg font-black text-slate-900 mb-1'>
+                          {diet.label}
+                        </h3>
+                        <p className='text-sm font-medium text-slate-600'>
+                          {diet.description}
+                        </p>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          selectedDiet === diet.id
+                            ? 'border-emerald-600 bg-emerald-600'
+                            : 'border-slate-300'
+                        }`}>
+                        {selectedDiet === diet.id && (
+                          <svg
+                            className='w-4 h-4 text-white'
+                            fill='currentColor'
+                            viewBox='0 0 20 20'>
+                            <path
+                              fillRule='evenodd'
+                              d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                              clipRule='evenodd'
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className='mt-12 pt-4'>
+          <Button
+            variant='primary'
+            size='lg'
+            fullWidth
+            onClick={handleContinue}
+            disabled={!selectedDiet}>
+            Continue →
+          </Button>
+        </motion.div>
+
+        {/* Progress indicator */}
+        <div className='flex justify-center gap-2 mt-12'>
+          {[...Array(10)].map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full transition-all ${
+                i <= 7 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+export default DietPreferencePage;

@@ -48,6 +48,11 @@ model UserOnboarding {
   activityLevel    String?
   activityMultiplier Float?
   
+  // Diet and Health preferences
+  dietPreference          String? // ai_recommended, balanced, mediterranean, keto, etc.
+  healthConditions        String[] @default([]) // Array of condition IDs
+  customHealthConditions  String[] @default([]) // Array of custom condition strings
+  
   // Calculated values at the time
   bmr                    Int?
   tdee                   Int?

@@ -60,7 +60,7 @@ const TimelinePage = () => {
   const validation = getValidation(weeklyRate);
 
   const handleContinue = () => {
-    navigate('/onboarding/final');
+    navigate('/onboarding/diet-preference');
   };
 
   return (
@@ -243,7 +243,7 @@ const TimelinePage = () => {
 
         {/* Progress indicator */}
         <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
+          {[...Array(10)].map((_, i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${

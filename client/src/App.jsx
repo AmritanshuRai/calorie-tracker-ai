@@ -20,6 +20,8 @@ import HeightPage from './pages/onboarding/HeightPage';
 import WeightPage from './pages/onboarding/WeightPage';
 import TimelinePage from './pages/onboarding/TimelinePage';
 import ActivityLevelPage from './pages/onboarding/ActivityLevelPage';
+import DietPreferencePage from './pages/onboarding/DietPreferencePage';
+import HealthConditionsPage from './pages/onboarding/HealthConditionsPage';
 import FinalPlanPage from './pages/onboarding/FinalPlanPage';
 
 // Protected Route Component
@@ -97,6 +99,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <ActivityLevelPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/diet-preference'
+            element={
+              <ProtectedRoute>
+                <DietPreferencePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/health-conditions'
+            element={
+              <ProtectedRoute>
+                <HealthConditionsPage />
               </ProtectedRoute>
             }
           />
