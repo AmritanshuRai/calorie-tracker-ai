@@ -1,26 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays, startOfWeek } from 'date-fns';
-// eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  TrendingUp,
+  Heart,
+  Droplet,
+  Activity,
+  Target,
+  Flame,
+  Apple,
+  UtensilsCrossed,
+  Salad,
+  User,
+  BarChart3,
+  Trash2,
+  Sparkles,
+  LogOut,
+  Settings,
+  ChevronDown,
+} from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import CircularProgress from '../components/CircularProgress';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FoodLogModal from '../components/FoodLogModal';
 import { foodService } from '../services/foodService';
+import { authService } from '../services/authService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
+  const logout = useUserStore((state) => state.logout);
   const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
-  const macros = useUserStore((state) => state.macros);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [activeTab, setActiveTab] = useState('tracker');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [foodEntries, setFoodEntries] = useState([]);
-  const [isLoadingEntries, setIsLoadingEntries] = useState(false);
+  const userMenuRef = useRef(null);
   const [dailyTotals, setDailyTotals] = useState({
     calories: 0,
     protein: 0,
@@ -40,8 +61,25 @@ const Dashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debug: Log user data
+  useEffect(() => {
+    console.log('User data:', user);
+    console.log('User picture:', user?.picture);
+  }, [user]);
+
   const loadFoodEntries = async () => {
-    setIsLoadingEntries(true);
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const entries = await foodService.getFoodLog(dateStr);
@@ -78,16 +116,15 @@ const Dashboard = () => {
       setDailyTotals(totals);
     } catch (error) {
       console.error('Failed to load food entries:', error);
-    } finally {
-      setIsLoadingEntries(false);
     }
   };
 
-  const handleFoodAdded = () => {
+  const handleAddFood = () => {
     loadFoodEntries();
+    setShowModal(false);
   };
 
-  const handleDeleteEntry = async (entryId) => {
+  const handleDeleteFood = async (entryId) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) {
       return;
     }
@@ -102,12 +139,43 @@ const Dashboard = () => {
 
   const getMealIcon = (mealType) => {
     const icons = {
-      breakfast: '🌅',
-      lunch: '☀️',
-      dinner: '🌙',
-      snacks: '🍿',
+      breakfast: Apple,
+      lunch: UtensilsCrossed,
+      dinner: Salad,
+      snacks: Sparkles,
     };
-    return icons[mealType] || '🍽️';
+    return icons[mealType] || Apple;
+  };
+
+  const getMealColor = (mealType) => {
+    const colors = {
+      breakfast: 'from-orange-500 to-red-500',
+      lunch: 'from-blue-500 to-cyan-500',
+      dinner: 'from-purple-500 to-pink-500',
+      snacks: 'from-yellow-500 to-orange-500',
+    };
+    return colors[mealType] || 'from-slate-500 to-slate-600';
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const handleLogout = () => {
+    logout();
+    authService.logout();
+  };
+
+  const getUserInitials = () => {
+    if (!user?.name) return 'U';
+    const names = user.name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return user.name[0].toUpperCase();
   };
 
   // Generate week dates (Sunday to Saturday)
@@ -122,407 +190,496 @@ const Dashboard = () => {
   const handlePrevWeek = () => setSelectedDate(subDays(selectedDate, 7));
   const handleNextWeek = () => setSelectedDate(addDays(selectedDate, 7));
 
-  const nutrients = [
-    {
-      label: 'Calories',
-      current: Math.round(dailyTotals.calories),
-      target: dailyCalorieTarget || 2000,
-      unit: 'kcal',
-      color: 'orange',
-    },
-    {
-      label: 'Protein',
-      current: Math.round(dailyTotals.protein),
-      target: macros?.protein || 150,
-      unit: 'g',
-      color: 'blue',
-    },
-    {
-      label: 'Carbs',
-      current: Math.round(dailyTotals.carbs),
-      target: macros?.carbs || 200,
-      unit: 'g',
-      color: 'green',
-    },
-    {
-      label: 'Fats',
-      current: Math.round(dailyTotals.fats),
-      target: macros?.fats || 65,
-      unit: 'g',
-      color: 'yellow',
-    },
-  ];
-
-  const heartHealth = [
-    {
-      label: 'Cholesterol',
-      current: Math.round(dailyTotals.cholesterol),
-      target: 300,
-      unit: 'mg',
-      color: 'orange',
-    },
-    {
-      label: 'Omega-3',
-      current: Math.round(dailyTotals.omega3 * 1000), // Convert g to mg
-      target: 1600,
-      unit: 'mg',
-      color: 'blue',
-    },
-    {
-      label: 'Fiber',
-      current: Math.round(dailyTotals.fiber),
-      target: 38,
-      unit: 'g',
-      color: 'orange',
-    },
-    {
-      label: 'Water',
-      current: Math.round(dailyTotals.water),
-      target: 3700,
-      unit: 'mL',
-      color: 'blue',
-    },
-    {
-      label: 'Sodium',
-      current: Math.round(dailyTotals.sodium),
-      target: 2300,
-      unit: 'mg',
-      color: 'orange',
-    },
-  ];
-
-  const controlled = [
-    { label: 'Sugar', current: Math.round(dailyTotals.sugar), unit: 'g' },
-    { label: 'Trans Fat', current: 0, unit: 'g' },
-    { label: 'Caffeine', current: 0, unit: 'mg' },
-    { label: 'Alcohol', current: 0, unit: 'mL' },
-  ];
+  const calorieProgress = dailyCalorieTarget
+    ? (dailyTotals.calories / dailyCalorieTarget) * 100
+    : 0;
 
   return (
-    <div className='min-h-screen bg-gradient-to-b from-green-50 to-white pb-24'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/30'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-200 sticky top-0 z-10'>
-        <div className='max-w-md mx-auto px-6 py-4'>
-          <div className='flex items-center justify-between mb-3'>
-            <div>
-              <h1 className='text-xl font-bold text-gray-800'>
-                {new Date().getHours() < 12
-                  ? '☀️'
-                  : new Date().getHours() < 18
-                  ? '🌤️'
-                  : '🌙'}{' '}
-                Good{' '}
-                {new Date().getHours() < 12
-                  ? 'morning'
-                  : new Date().getHours() < 18
-                  ? 'afternoon'
-                  : 'evening'}
-                , {user?.name?.split(' ')[0] || 'there'}!
-              </h1>
+      <header className='sticky top-0 z-50 backdrop-blur-xl bg-white/95 border-b-2 border-slate-300 shadow-lg'>
+        <div className='max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between h-16 sm:h-18 lg:h-20'>
+            <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0'>
+              <div className='w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg flex-shrink-0'>
+                <Apple className='w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white' />
+              </div>
+              <div className='min-w-0'>
+                <h1 className='text-base sm:text-lg lg:text-xl font-black text-slate-900 truncate'>
+                  {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}!
+                </h1>
+                <p className='text-xs sm:text-sm text-slate-600 font-medium truncate'>
+                  Track your nutrition journey
+                </p>
+              </div>
             </div>
-            <div className='flex items-center gap-2'>
-              <button className='p-2 hover:bg-gray-100 rounded-lg'>
-                <svg
-                  className='w-6 h-6 text-gray-600'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'>
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
-                  />
-                </svg>
+            <div className='flex items-center gap-2 sm:gap-3 flex-shrink-0'>
+              <button className='p-2 sm:p-2.5 hover:bg-emerald-50 rounded-xl transition-all active:scale-95 relative bg-slate-100'>
+                <Bell className='w-5 h-5 sm:w-6 sm:h-6 text-slate-700' />
+                <span className='absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white'></span>
               </button>
+
+              {/* User Profile Dropdown */}
+              <div className='relative' ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className='flex items-center gap-2 hover:bg-slate-100 rounded-xl transition-all active:scale-95 p-1 pr-2'>
+                  {user?.picture ? (
+                    <img
+                      src={user.picture}
+                      alt={user?.name || 'User'}
+                      onError={(e) => {
+                        console.error('Image failed to load:', user.picture);
+                        e.target.style.display = 'none';
+                      }}
+                      referrerPolicy='no-referrer'
+                      className='w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-emerald-500 object-cover shadow-md'
+                    />
+                  ) : null}
+                  <div
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm sm:text-base border-2 border-emerald-500 shadow-md ${
+                      user?.picture ? 'hidden' : ''
+                    }`}>
+                    {getUserInitials()}
+                  </div>
+                  <ChevronDown className='w-4 h-4 text-slate-600 hidden sm:block' />
+                </button>
+
+                {/* Dropdown Menu */}
+                {showUserMenu && (
+                  <div className='absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200'>
+                    <div className='p-4 border-b-2 border-slate-100 bg-gradient-to-br from-emerald-50 to-teal-50'>
+                      <p className='font-bold text-slate-900 truncate'>
+                        {user?.name || 'User'}
+                      </p>
+                      <p className='text-xs text-slate-600 truncate mt-0.5'>
+                        {user?.email || ''}
+                      </p>
+                    </div>
+
+                    <div className='py-2'>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          navigate('/account');
+                        }}
+                        className='w-full px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 transition-colors text-left'>
+                        <Settings className='w-5 h-5 text-slate-600' />
+                        <span className='font-medium text-slate-700'>
+                          Account Settings
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          handleLogout();
+                        }}
+                        className='w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 transition-colors text-left'>
+                        <LogOut className='w-5 h-5 text-red-600' />
+                        <span className='font-medium text-red-600'>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className='max-w-md mx-auto px-6 py-6 space-y-6'>
-        {/* Date Slider */}
-        <Card>
-          <div className='flex items-center justify-between mb-4'>
-            <button
-              onClick={handlePrevWeek}
-              className='p-1 hover:bg-gray-100 rounded'>
-              <svg
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
-            </button>
-            <span className='text-sm font-medium text-gray-700'>
-              {format(weekStart, 'MMM yyyy')}
-            </span>
-            <button
-              onClick={handleNextWeek}
-              className='p-1 hover:bg-gray-100 rounded'>
-              <svg
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 5l7 7-7 7'
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className='grid grid-cols-7 gap-2'>
-            {weekDates.map((date) => (
-              <button
-                key={date.toString()}
-                onClick={() => setSelectedDate(date)}
-                className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-                  isSelected(date)
-                    ? 'bg-green-500 text-white'
-                    : isToday(date)
-                    ? 'bg-green-100 text-green-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}>
-                <span className='text-xs font-medium'>
-                  {format(date, 'EEE')}
-                </span>
-                <span className='text-lg font-bold'>{format(date, 'd')}</span>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* Logged Foods - Empty State */}
-        <div>
-          <div className='flex items-center justify-between mb-3'>
-            <h2 className='text-lg font-bold text-gray-800 flex items-center gap-2'>
-              🍽️ Logged Foods
-            </h2>
-            <button className='text-sm text-green-600 font-medium'>
-              View All →
-            </button>
-          </div>
-
-          {isLoadingEntries ? (
-            <Card className='text-center py-8'>
-              <div className='animate-pulse'>
-                <div className='text-4xl mb-2'>⏳</div>
-                <p className='text-gray-500'>Loading...</p>
+      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8'>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
+          {/* Left Column - Main Content */}
+          <div className='lg:col-span-2 space-y-6'>
+            {/* Date Slider */}
+            <Card padding='md' variant='default'>
+              <div className='flex items-center justify-between mb-4'>
+                <button
+                  onClick={handlePrevWeek}
+                  className='p-2 hover:bg-slate-100 rounded-lg transition-colors'>
+                  <ChevronLeft className='w-5 h-5 text-slate-600' />
+                </button>
+                <h2 className='text-base font-semibold text-slate-700'>
+                  {format(weekStart, 'MMM yyyy')}
+                </h2>
+                <button
+                  onClick={handleNextWeek}
+                  className='p-2 hover:bg-slate-100 rounded-lg transition-colors'>
+                  <ChevronRight className='w-5 h-5 text-slate-600' />
+                </button>
               </div>
-            </Card>
-          ) : foodEntries.length === 0 ? (
-            <Card className='text-center py-12'>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}>
-                <div className='text-6xl mb-4'>🍎</div>
-                <p className='text-gray-600 mb-6'>
-                  You haven't logged any foods yet!
-                  <br />
-                  Start logging by clicking the button below.
-                </p>
-                <Button variant='primary' onClick={() => setIsModalOpen(true)}>
-                  + Log Food
-                </Button>
-              </motion.div>
-            </Card>
-          ) : (
-            <>
-              <div className='space-y-3 mb-4'>
-                {foodEntries.slice(0, 3).map((entry, index) => (
-                  <motion.div
-                    key={entry.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}>
-                    <Card className='hover:shadow-md transition-shadow'>
-                      <div className='flex items-start justify-between'>
-                        <div className='flex-1'>
-                          <div className='flex items-center gap-2 mb-1'>
-                            <span className='text-xl'>
-                              {getMealIcon(entry.mealType)}
-                            </span>
-                            <span className='text-xs font-medium text-gray-500 uppercase'>
-                              {entry.mealType}
-                            </span>
-                          </div>
-                          <h3 className='font-semibold text-gray-800 mb-1'>
-                            {entry.foodName}
-                          </h3>
-                          <div className='flex items-center gap-3 text-sm text-gray-600'>
-                            <span>🔥 {Math.round(entry.calories)} kcal</span>
-                            <span>•</span>
-                            <span>P: {Math.round(entry.protein)}g</span>
-                            <span>•</span>
-                            <span>C: {Math.round(entry.carbs)}g</span>
-                            <span>•</span>
-                            <span>F: {Math.round(entry.fats)}g</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteEntry(entry.id)}
-                          className='p-2 hover:bg-red-50 rounded-lg transition-colors'>
-                          <svg
-                            className='w-5 h-5 text-red-500'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'>
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </Card>
-                  </motion.div>
+
+              <div className='grid grid-cols-7 gap-2'>
+                {weekDates.map((date) => (
+                  <button
+                    key={date.toString()}
+                    onClick={() => setSelectedDate(date)}
+                    className={`flex flex-col items-center p-2 lg:p-3 rounded-xl transition-all ${
+                      isSelected(date)
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        : isToday(date)
+                        ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}>
+                    <span className='text-xs font-medium mb-1'>
+                      {format(date, 'EEE')}
+                    </span>
+                    <span className='text-lg lg:text-xl font-bold'>
+                      {format(date, 'd')}
+                    </span>
+                  </button>
                 ))}
               </div>
-              <Button
-                variant='primary'
-                onClick={() => setIsModalOpen(true)}
-                className='w-full'>
-                + Log Another Food
-              </Button>
-            </>
-          )}
-        </div>
+            </Card>
 
-        {/* Nutrient Overview */}
-        <div>
-          <h2 className='text-lg font-bold text-gray-800 mb-3'>
-            📊 Nutrient Overview
-          </h2>
-          <div className='grid grid-cols-2 gap-4'>
-            {nutrients.map((nutrient) => (
-              <Card key={nutrient.label} className='flex justify-center'>
-                <CircularProgress
-                  value={nutrient.current}
-                  max={nutrient.target}
-                  size={100}
-                  color={nutrient.color}
-                  label={nutrient.label}
-                  unit={nutrient.unit}
-                />
-                <div className='text-center mt-3'>
-                  <p className='text-xs text-gray-600'>
-                    {nutrient.target - nutrient.current} {nutrient.unit} left
-                  </p>
+            {/* Quick Stats with Progress */}
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+              {[
+                {
+                  label: 'Calories',
+                  value: Math.round(dailyTotals.calories),
+                  target: dailyCalorieTarget,
+                  icon: Flame,
+                  color: 'orange',
+                },
+                {
+                  label: 'Protein',
+                  value: Math.round(dailyTotals.protein),
+                  target: 150,
+                  icon: Activity,
+                  color: 'blue',
+                },
+                {
+                  label: 'Carbs',
+                  value: Math.round(dailyTotals.carbs),
+                  target: 200,
+                  icon: TrendingUp,
+                  color: 'green',
+                },
+                {
+                  label: 'Fats',
+                  value: Math.round(dailyTotals.fats),
+                  target: 65,
+                  icon: Droplet,
+                  color: 'yellow',
+                },
+              ].map((stat) => {
+                const Icon = stat.icon;
+                const percentage = stat.target
+                  ? Math.min(100, (stat.value / stat.target) * 100)
+                  : 0;
+
+                return (
+                  <Card
+                    key={stat.label}
+                    padding='md'
+                    variant='default'
+                    className='hover-lift'>
+                    <div className='flex flex-col items-center text-center'>
+                      <p className='text-sm font-semibold text-slate-600 mb-3'>
+                        {stat.label}
+                      </p>
+
+                      <div className='relative mb-3'>
+                        <CircularProgress
+                          value={percentage}
+                          color={stat.color}
+                          size='md'
+                          showValue={false}
+                        />
+                        <div className='absolute inset-0 flex items-center justify-center'>
+                          <Icon className='w-8 h-8 text-slate-700' />
+                        </div>
+                      </div>
+
+                      <p className='text-2xl lg:text-3xl font-black text-slate-900'>
+                        {stat.value}
+                        <span className='text-base font-medium text-slate-500'>
+                          g
+                        </span>
+                      </p>
+                      <p className='text-xs text-slate-400 mt-1'>
+                        of {stat.target}
+                        {stat.label === 'Calories' ? '' : 'g'}
+                      </p>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Food Entries */}
+            <Card padding='lg' variant='default'>
+              <div className='flex items-center justify-between mb-6'>
+                <h2 className='text-xl font-bold text-slate-800'>
+                  Today's Meals
+                </h2>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all'>
+                  <Plus className='w-4 h-4' />
+                  <span className='text-sm font-medium'>Add Food</span>
+                </button>
+              </div>
+
+              <div className='space-y-3'>
+                {foodEntries.length === 0 ? (
+                  <div className='text-center py-12'>
+                    <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center'>
+                      <Apple className='w-8 h-8 text-emerald-600' />
+                    </div>
+                    <p className='text-slate-600 font-medium mb-2'>
+                      No meals logged yet
+                    </p>
+                    <p className='text-sm text-slate-400'>
+                      Start tracking your nutrition journey
+                    </p>
+                  </div>
+                ) : (
+                  foodEntries.map((entry) => {
+                    const MealIcon = getMealIcon(entry.mealType);
+                    const mealColor = getMealColor(entry.mealType);
+
+                    return (
+                      <Card
+                        key={entry.id}
+                        padding='md'
+                        variant='glass'
+                        className='hover-lift'>
+                        <div className='flex items-start justify-between'>
+                          <div className='flex items-start gap-3 flex-1'>
+                            <div
+                              className={`p-2 rounded-xl bg-gradient-to-br ${mealColor}`}>
+                              <MealIcon className='w-5 h-5 text-white' />
+                            </div>
+                            <div className='flex-1 min-w-0'>
+                              <div className='flex items-center gap-2 mb-1'>
+                                <span className='text-xs font-semibold text-slate-500 uppercase tracking-wide'>
+                                  {entry.mealType}
+                                </span>
+                                <span className='text-xs text-slate-400'>
+                                  {format(new Date(entry.createdAt), 'h:mm a')}
+                                </span>
+                              </div>
+                              <h3 className='font-semibold text-slate-800 mb-2 truncate'>
+                                {entry.foodName}
+                              </h3>
+
+                              <div className='grid grid-cols-4 gap-3 text-xs'>
+                                <div className='text-center'>
+                                  <p className='text-slate-400 mb-1'>Cal</p>
+                                  <p className='font-bold text-orange-600'>
+                                    {Math.round(entry.calories)}
+                                  </p>
+                                </div>
+                                <div className='text-center'>
+                                  <p className='text-slate-400 mb-1'>Pro</p>
+                                  <p className='font-bold text-blue-600'>
+                                    {Math.round(entry.protein)}g
+                                  </p>
+                                </div>
+                                <div className='text-center'>
+                                  <p className='text-slate-400 mb-1'>Carb</p>
+                                  <p className='font-bold text-green-600'>
+                                    {Math.round(entry.carbs)}g
+                                  </p>
+                                </div>
+                                <div className='text-center'>
+                                  <p className='text-slate-400 mb-1'>Fat</p>
+                                  <p className='font-bold text-yellow-600'>
+                                    {Math.round(entry.fats)}g
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteFood(entry.id)}
+                            className='ml-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors'>
+                            <Trash2 className='w-4 h-4' />
+                          </button>
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Progress Overview */}
+          <div className='lg:col-span-1 space-y-6'>
+            {/* Daily Progress */}
+            <Card padding='lg' variant='gradient'>
+              <div className='text-center mb-6'>
+                <div className='inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full mb-4'>
+                  <Target className='w-4 h-4 text-white' />
+                  <span className='text-xs font-semibold text-white'>
+                    Daily Goal
+                  </span>
                 </div>
-              </Card>
-            ))}
+                <h2 className='text-2xl font-bold text-white mb-1'>
+                  {Math.round(calorieProgress)}%
+                </h2>
+                <p className='text-sm text-white/80'>Progress Today</p>
+              </div>
+
+              <div className='flex justify-center mb-6'>
+                <CircularProgress
+                  value={calorieProgress}
+                  color='white'
+                  size='lg'
+                  showValue={false}
+                />
+              </div>
+
+              <div className='space-y-3'>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-white/80'>Consumed</span>
+                  <span className='font-bold text-white'>
+                    {Math.round(dailyTotals.calories)} cal
+                  </span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-white/80'>Target</span>
+                  <span className='font-bold text-white'>
+                    {dailyCalorieTarget} cal
+                  </span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-white/80'>Remaining</span>
+                  <span className='font-bold text-white'>
+                    {Math.max(
+                      0,
+                      dailyCalorieTarget - Math.round(dailyTotals.calories)
+                    )}{' '}
+                    cal
+                  </span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Heart Health */}
+            <Card padding='lg' variant='glass'>
+              <div className='flex items-center gap-2 mb-6'>
+                <div className='p-2 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500'>
+                  <Heart className='w-5 h-5 text-white' />
+                </div>
+                <h3 className='text-lg font-bold text-slate-800'>
+                  Heart Health
+                </h3>
+              </div>
+
+              <div className='space-y-4'>
+                {[
+                  {
+                    label: 'Sodium',
+                    value: Math.round(dailyTotals.sodium),
+                    max: 2300,
+                    unit: 'mg',
+                    color: 'from-purple-500 to-pink-500',
+                  },
+                  {
+                    label: 'Sugar',
+                    value: Math.round(dailyTotals.sugar),
+                    max: 50,
+                    unit: 'g',
+                    color: 'from-pink-500 to-rose-500',
+                  },
+                  {
+                    label: 'Cholesterol',
+                    value: Math.round(dailyTotals.cholesterol),
+                    max: 300,
+                    unit: 'mg',
+                    color: 'from-rose-500 to-red-500',
+                  },
+                  {
+                    label: 'Fiber',
+                    value: Math.round(dailyTotals.fiber),
+                    max: 30,
+                    unit: 'g',
+                    color: 'from-green-500 to-emerald-500',
+                  },
+                ].map((item) => {
+                  const percentage = Math.min(
+                    100,
+                    (item.value / item.max) * 100
+                  );
+
+                  return (
+                    <div key={item.label}>
+                      <div className='flex justify-between mb-2'>
+                        <span className='text-sm font-medium text-slate-700'>
+                          {item.label}
+                        </span>
+                        <span className='text-sm font-bold text-slate-800'>
+                          {item.value}
+                          <span className='text-slate-400 font-normal'>
+                            /{item.max}
+                          </span>
+                          {item.unit}
+                        </span>
+                      </div>
+                      <div className='relative h-2 bg-slate-100 rounded-full overflow-hidden'>
+                        <div
+                          className={`absolute inset-y-0 left-0 bg-gradient-to-r ${item.color} rounded-full transition-all duration-500`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
           </div>
         </div>
+      </main>
 
-        {/* Heart Health */}
-        <div>
-          <h2 className='text-lg font-bold text-gray-800 mb-3'>
-            ❤️ Heart Health
-          </h2>
-          <Card>
-            <div className='space-y-3'>
-              {heartHealth.map((item) => (
-                <div
-                  key={item.label}
-                  className='flex items-center justify-between'>
-                  <span className='text-sm text-gray-700'>{item.label}</span>
-                  <div className='flex items-center gap-2'>
-                    <div className='w-32 h-2 bg-gray-200 rounded-full overflow-hidden'>
-                      <div
-                        className={`h-full bg-${item.color}-500`}
-                        style={{
-                          width: `${(item.current / item.target) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <span className='text-sm font-medium text-gray-800 w-20 text-right'>
-                      {item.current}/{item.target} {item.unit}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+      {/* Bottom Navigation - Mobile Only */}
+      <nav className='lg:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/80 border-t border-slate-200/50 shadow-2xl'>
+        <div className='flex items-center justify-around h-20 max-w-md mx-auto px-4'>
+          <button className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
+            <Heart className='w-6 h-6' />
+            <span className='text-xs font-medium'>Health</span>
+          </button>
 
-        {/* Controlled Consumption */}
-        <div>
-          <h2 className='text-lg font-bold text-gray-800 mb-3'>
-            🎯 Controlled Consumption
-          </h2>
-          <Card>
-            <div className='grid grid-cols-2 gap-4'>
-              {controlled.map((item) => (
-                <div key={item.label} className='text-center'>
-                  <div className='text-2xl font-bold text-gray-800'>
-                    {item.current}
-                    {item.unit}
-                  </div>
-                  <div className='text-sm text-gray-600'>{item.label}</div>
-                </div>
-              ))}
+          <button className='flex flex-col items-center justify-center gap-1 p-2 text-emerald-600'>
+            <div className='p-1 rounded-lg bg-gradient-to-br from-emerald-500/10 to-teal-500/10'>
+              <Apple className='w-6 h-6' />
             </div>
-          </Card>
+            <span className='text-xs font-semibold'>Home</span>
+          </button>
+
+          <button className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
+            <BarChart3 className='w-6 h-6' />
+            <span className='text-xs font-medium'>Stats</span>
+          </button>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className='relative -top-4 flex flex-col items-center justify-center'>
+            <div className='w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/50 transition-all'>
+              <Plus className='w-7 h-7 text-white' />
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/account')}
+            className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
+            <User className='w-6 h-6' />
+            <span className='text-xs font-medium'>Profile</span>
+          </button>
         </div>
-      </div>
+      </nav>
 
       {/* Food Log Modal */}
       <FoodLogModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        selectedDate={selectedDate}
-        onFoodAdded={handleFoodAdded}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAddFood}
       />
-
-      {/* Bottom Navigation */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe'>
-        <div className='max-w-md mx-auto px-6 py-3'>
-          <div className='flex items-center justify-around'>
-            {[
-              {
-                id: 'dietitian',
-                label: 'Dietitian',
-                icon: '👨‍⚕️',
-                path: '/dietitian',
-              },
-              { id: 'diet', label: 'Diet', icon: '🥗', path: '/diet' },
-              {
-                id: 'tracker',
-                label: 'Tracker',
-                icon: '📊',
-                path: '/dashboard',
-              },
-              { id: 'logging', label: 'Logging', icon: '✍️', path: '/logging' },
-              { id: 'account', label: 'Account', icon: '👤', path: '/account' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  if (tab.path) navigate(tab.path);
-                }}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
-                  activeTab === tab.id ? 'text-green-600' : 'text-gray-500'
-                }`}>
-                <span className='text-2xl'>{tab.icon}</span>
-                <span className='text-xs font-medium'>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

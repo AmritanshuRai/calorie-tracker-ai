@@ -1,38 +1,27 @@
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 
 const PageLayout = ({ children, title, showBack = false, rightAction }) => {
   const navigate = useNavigate();
 
   return (
-    <div className='min-h-screen bg-gradient-to-b from-green-50 to-white'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/20'>
       {/* Header */}
-      <div className='sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200'>
-        <div className='max-w-md mx-auto px-6 py-4 flex items-center justify-between'>
+      <div className='sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200 shadow-sm'>
+        <div className='max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between'>
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
-              className='flex items-center gap-2 text-gray-600 hover:text-gray-800'>
-              <svg
-                className='w-6 h-6'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
-              <span>Back</span>
+              className='flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors p-2 hover:bg-slate-100 rounded-lg'>
+              <ChevronLeft className='w-5 h-5' />
+              <span className='font-medium'>Back</span>
             </button>
           ) : (
             <div />
           )}
 
           {title && (
-            <h1 className='text-lg font-semibold text-gray-800'>{title}</h1>
+            <h1 className='text-lg font-bold text-slate-800'>{title}</h1>
           )}
 
           {rightAction || <div />}
@@ -40,13 +29,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       </div>
 
       {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className='max-w-md mx-auto px-6 py-8'>
-        {children}
-      </motion.div>
+      <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>{children}</div>
     </div>
   );
 };

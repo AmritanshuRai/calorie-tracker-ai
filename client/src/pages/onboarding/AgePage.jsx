@@ -40,10 +40,10 @@ const AgePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
+          <h2 className='text-3xl font-black text-slate-900 mb-2'>
             How old are you?
           </h2>
-          <p className='text-gray-600'>
+          <p className='text-lg font-medium text-slate-600'>
             Age helps us calculate your metabolism rate
           </p>
         </motion.div>
@@ -89,7 +89,7 @@ const AgePage = () => {
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 1 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
+                i <= 1 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
               }`}
             />
           ))}

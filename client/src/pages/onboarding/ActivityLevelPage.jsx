@@ -61,123 +61,129 @@ const ActivityLevelPage = () => {
 
   return (
     <PageLayout title='Activity Level' showBack={true}>
-      <div className='space-y-6'>
+      <div className='space-y-8 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
             What's your activity level?
           </h2>
-          <p className='text-gray-600'>This affects your daily calorie needs</p>
+          <p className='text-lg font-medium text-slate-600'>
+            This affects your daily calorie needs
+          </p>
         </motion.div>
 
-        <div className='space-y-3 mt-8'>
+        <div className='space-y-4 mt-12'>
           {ACTIVITY_LEVELS.map((level, index) => (
             <motion.div
               key={level.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}>
-              <Card
-                hoverable
+              <button
                 onClick={() => handleSelect(level.id)}
-                className={`cursor-pointer transition-all ${
+                className={`w-full text-left transition-all duration-200 ${
                   selectedActivity === level.id
-                    ? 'border-2 border-green-500 bg-green-50'
-                    : 'border-2 border-transparent hover:border-green-300'
-                }`}
-                padding='p-4'>
-                <div className='flex items-center gap-3'>
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      selectedActivity === level.id
-                        ? 'border-green-500 bg-green-500'
-                        : 'border-gray-300'
-                    }`}>
-                    {selectedActivity === level.id && (
-                      <svg
-                        className='w-4 h-4 text-white'
-                        fill='currentColor'
-                        viewBox='0 0 20 20'>
-                        <path
-                          fillRule='evenodd'
-                          d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                          clipRule='evenodd'
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <div className='flex-1'>
-                    <div className='flex items-center justify-between'>
-                      <h3 className='font-semibold text-gray-800'>
-                        {level.label}
-                      </h3>
-                      <span className='text-sm text-gray-500 font-mono'>
+                    ? 'scale-[1.02]'
+                    : 'hover:scale-[1.01]'
+                }`}>
+                <Card
+                  padding='lg'
+                  variant='default'
+                  className={`transition-all duration-200 ${
+                    selectedActivity === level.id
+                      ? 'border-emerald-500 bg-emerald-50 shadow-lg'
+                      : 'hover:border-emerald-300 hover:shadow-md'
+                  }`}>
+                  <div className='flex items-center justify-between gap-6'>
+                    <div className='flex items-center gap-4 flex-1'>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          selectedActivity === level.id
+                            ? 'border-emerald-600 bg-emerald-600'
+                            : 'border-slate-300'
+                        }`}>
+                        {selectedActivity === level.id && (
+                          <svg
+                            className='w-4 h-4 text-white'
+                            fill='currentColor'
+                            viewBox='0 0 20 20'>
+                            <path
+                              fillRule='evenodd'
+                              d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                              clipRule='evenodd'
+                            />
+                          </svg>
+                        )}
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <h3 className='text-lg font-black text-slate-900 mb-1'>
+                          {level.label}
+                        </h3>
+                        <p className='text-sm font-medium text-slate-600'>
+                          {level.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className='text-right flex-shrink-0'>
+                      <span className='text-2xl font-black text-slate-900 font-mono'>
                         {level.multiplier}x
                       </span>
                     </div>
-                    <p className='text-sm text-gray-600'>{level.description}</p>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </button>
             </motion.div>
           ))}
         </div>
 
         {/* BMR and TDEE Display */}
-        {bmr && tdee && (
+        {bmr && tdee && selectedActivity && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className='mt-8 bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border-2 border-green-200'>
-            <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-              <svg
-                className='w-5 h-5 text-green-600'
-                fill='currentColor'
-                viewBox='0 0 20 20'>
-                <path
-                  fillRule='evenodd'
-                  d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
-                  clipRule='evenodd'
-                />
-              </svg>
-              Your Calculations
-            </h3>
-            <div className='space-y-3'>
-              <div className='flex justify-between items-center'>
-                <span className='text-gray-700'>
-                  BMR (Basal Metabolic Rate)
-                </span>
-                <span className='text-xl font-bold text-gray-900'>
-                  {bmr.toLocaleString()} kcal
-                </span>
+            className='mt-12'>
+            <Card padding='lg' variant='gradient'>
+              <h3 className='text-lg font-black text-white mb-6'>
+                Your Daily Energy
+              </h3>
+              <div className='space-y-4'>
+                <div className='flex justify-between items-center'>
+                  <span className='text-sm font-bold text-white/80'>
+                    BMR (Basal Metabolic Rate)
+                  </span>
+                  <span className='text-xl font-black text-white'>
+                    {bmr.toLocaleString()} kcal
+                  </span>
+                </div>
+                <div className='flex justify-between items-center'>
+                  <span className='text-sm font-bold text-white/80'>
+                    Activity Multiplier
+                  </span>
+                  <span className='text-xl font-black text-white'>
+                    {
+                      ACTIVITY_LEVELS.find((l) => l.id === selectedActivity)
+                        ?.multiplier
+                    }
+                    x
+                  </span>
+                </div>
+                <div className='h-px bg-white/30 my-2'></div>
+                <div className='flex justify-between items-center pt-2'>
+                  <span className='text-base font-black text-white'>
+                    TDEE (Total Daily Energy)
+                  </span>
+                  <span className='text-3xl font-black text-white'>
+                    {tdee.toLocaleString()}
+                  </span>
+                </div>
+                <p className='text-xs font-medium text-white/70 text-center pt-2'>
+                  kcal/day
+                </p>
               </div>
-              {selectedActivity && (
-                <>
-                  <div className='flex justify-between items-center'>
-                    <span className='text-gray-700'>Activity Multiplier</span>
-                    <span className='text-xl font-bold text-green-600'>
-                      {
-                        ACTIVITY_LEVELS.find((l) => l.id === selectedActivity)
-                          ?.multiplier
-                      }
-                      x
-                    </span>
-                  </div>
-                  <div className='h-px bg-gray-300'></div>
-                  <div className='flex justify-between items-center pt-2'>
-                    <span className='text-gray-800 font-semibold'>
-                      TDEE (Total Daily Energy)
-                    </span>
-                    <span className='text-2xl font-bold text-green-600'>
-                      {tdee.toLocaleString()} kcal/day
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
+            </Card>
           </motion.div>
         )}
 
@@ -185,7 +191,7 @@ const ActivityLevelPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className='mt-8'>
+          className='mt-12 pt-4'>
           <Button
             variant='primary'
             size='lg'
@@ -197,12 +203,12 @@ const ActivityLevelPage = () => {
         </motion.div>
 
         {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-8'>
+        <div className='flex justify-center gap-2 mt-12'>
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 6 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
+                i <= 6 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
               }`}
             />
           ))}

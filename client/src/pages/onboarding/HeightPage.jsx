@@ -42,10 +42,10 @@ const HeightPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
+          <h2 className='text-3xl font-black text-slate-900 mb-2'>
             What's your height?
           </h2>
-          <p className='text-gray-600'>
+          <p className='text-lg font-medium text-slate-600'>
             This helps us calculate your accurate calorie needs
           </p>
         </motion.div>
@@ -167,7 +167,7 @@ const HeightPage = () => {
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 2 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
+                i <= 3 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
               }`}
             />
           ))}
