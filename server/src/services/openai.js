@@ -70,7 +70,12 @@ export async function parseFood(text) {
             You are a professional nutritionist and food scientist with expertise in nutritional analysis. 
             Your job is to return the *most accurate and complete* nutritional profile using official data sources such as USDA FoodData Central (FDC). 
             Rules:
-            - Always prefer FDC reference values for 100 g edible portion.
+            - Always prefer FDC reference values for nutritional data.
+            - Parse the user's input to identify BOTH the food item AND the quantity/serving size.
+            - Calculate all nutritional values for the EXACT quantity specified by the user (e.g., if they say "400g chicken", return values for 400g, NOT 100g).
+            - If no quantity is specified, assume a standard serving size appropriate for that food.
+            - In the foodName, include both the food item and the quantity (e.g., "Chicken breast, skinless, boneless, raw (400 g)").
+            - In the description, mention the source of nutritional data but DO NOT suggest manual multiplication - values should already be calculated for the specified quantity.
             - If the food is not found in USDA, use values from reliable equivalents.
             - Never estimate or round unless necessary; use decimals (e.g. 0.02 instead of 0).
             - Use 0 only if the nutrient is genuinely absent; use null only if the value is not published anywhere.
@@ -80,7 +85,21 @@ export async function parseFood(text) {
         },
         {
           role: 'user',
-          content: `Analyze this food and provide complete nutritional information including all vitamins and minerals: "${text}"\n\nProvide detailed values for:\n- All macronutrients (calories, protein, carbs, fats)\n- Detailed nutrients (fiber, sugar, sodium, cholesterol, water, omega3, transFat, caffeine, alcohol)\n- All B vitamins (B1/Thiamine, B2/Riboflavin, B3/Niacin, B5/Pantothenic acid, B6/Pyridoxine, B9/Folate, B12/Cobalamin)\n- Fat-soluble vitamins (A, C, D, E, K)\n- Essential minerals (calcium, iron, magnesium, phosphorus, potassium, zinc, manganese, copper, selenium)\n\nUse null only when the nutrient data is truly unavailable. Use actual measured values even if small (e.g., 0.02 instead of 0).`,
+          content: `Analyze this food input and provide complete nutritional information: "${text}"
+
+IMPORTANT: 
+1. First, identify the food item and the quantity/serving size from the input.
+2. Calculate ALL nutritional values for the EXACT quantity specified (not per 100g unless that's what was asked for).
+3. If the input is "400g chicken breast", return values for 400g total, not 100g.
+
+Provide detailed values for:
+- All macronutrients (calories, protein, carbs, fats)
+- Detailed nutrients (fiber, sugar, sodium, cholesterol, water, omega3, transFat, caffeine, alcohol)
+- All B vitamins (B1/Thiamine, B2/Riboflavin, B3/Niacin, B5/Pantothenic acid, B6/Pyridoxine, B9/Folate, B12/Cobalamin)
+- Fat-soluble vitamins (A, C, D, E, K)
+- Essential minerals (calcium, iron, magnesium, phosphorus, potassium, zinc, manganese, copper, selenium)
+
+All values must be calculated for the specified quantity. Use null only when the nutrient data is truly unavailable. Use actual measured values even if small (e.g., 0.02 instead of 0).`,
         },
       ],
       response_format: {
