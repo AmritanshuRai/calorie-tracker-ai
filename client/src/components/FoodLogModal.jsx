@@ -90,15 +90,6 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         aiParsed: true,
       };
 
-      console.log('=== FRONTEND: Saving food entry ===');
-      console.log('Selected date object:', selectedDate);
-      console.log('Normalized date (local midnight):', normalizedDate);
-      console.log('Normalized date ISO:', normalizedDate.toISOString());
-      console.log('Food entry date:', foodEntry.date);
-      console.log('Food name:', foodEntry.foodName);
-      console.log('Meal type:', foodEntry.mealType);
-      console.log('=== END DEBUG ===');
-
       await foodService.addFoodEntry(foodEntry);
       setStep(3);
 

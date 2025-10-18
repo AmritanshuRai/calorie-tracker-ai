@@ -36,12 +36,6 @@ router.get('/log', authenticateToken, async (req, res) => {
     const startOfDay = new Date(date + 'T00:00:00.000Z');
     const endOfDay = new Date(date + 'T23:59:59.999Z');
 
-    console.log('=== GET FOOD LOG DEBUG ===');
-    console.log('Requested date string:', date);
-    console.log('Start of day (UTC):', startOfDay.toISOString());
-    console.log('End of day (UTC):', endOfDay.toISOString());
-    console.log('UserId:', req.user.userId);
-
     const entries = await prisma.foodEntry.findMany({
       where: {
         userId: req.user.userId,
@@ -54,16 +48,6 @@ router.get('/log', authenticateToken, async (req, res) => {
         createdAt: 'asc',
       },
     });
-
-    console.log('Entries found:', entries.length);
-    entries.forEach((entry, idx) => {
-      console.log(`Entry ${idx + 1}:`, {
-        foodName: entry.foodName,
-        date: entry.date.toISOString(),
-        mealType: entry.mealType,
-      });
-    });
-    console.log('=== END DEBUG ===\n');
 
     res.json(entries);
   } catch (error) {
@@ -100,20 +84,10 @@ router.post('/entry', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const entryDate = date ? new Date(date) : new Date();
-
-    console.log('=== ADD FOOD ENTRY DEBUG ===');
-    console.log('Date from request body:', date);
-    console.log('Parsed date:', entryDate.toISOString());
-    console.log('Food name:', foodName);
-    console.log('Meal type:', mealType);
-    console.log('UserId:', req.user.userId);
-    console.log('=== END DEBUG ===\n');
-
     const entry = await prisma.foodEntry.create({
       data: {
         userId: req.user.userId,
-        date: entryDate,
+        date: date ? new Date(date) : new Date(),
         mealType,
         foodName,
         description,
@@ -126,8 +100,6 @@ router.post('/entry', authenticateToken, async (req, res) => {
         ...optionalNutrients,
       },
     });
-
-    console.log('Created entry with date:', entry.date.toISOString());
 
     res.status(201).json(entry);
   } catch (error) {

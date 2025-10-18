@@ -44,24 +44,7 @@ const Dashboard = () => {
     setIsLoadingEntries(true);
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      console.log('=== FRONTEND: Loading food entries ===');
-      console.log('Selected date object:', selectedDate);
-      console.log('Selected date string for API:', dateStr);
-      console.log('Selected date ISO:', selectedDate.toISOString());
-      console.log('=== END DEBUG ===');
-
       const entries = await foodService.getFoodLog(dateStr);
-
-      console.log('=== FRONTEND: Received entries ===');
-      console.log('Number of entries:', entries.length);
-      entries.forEach((entry, idx) => {
-        console.log(`Entry ${idx + 1}:`, {
-          foodName: entry.foodName,
-          date: entry.date,
-          mealType: entry.mealType,
-        });
-      });
-      console.log('=== END DEBUG ===');
 
       setFoodEntries(entries);
 
