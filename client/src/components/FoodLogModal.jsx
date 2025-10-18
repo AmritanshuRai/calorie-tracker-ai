@@ -61,6 +61,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
       const day = selectedDate.getDate();
       const normalizedDate = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
 
+      // Build food entry object, filtering out null/undefined values
       const foodEntry = {
         date: normalizedDate.toISOString(),
         mealType,
@@ -70,26 +71,42 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         protein: parsedData.protein,
         carbs: parsedData.carbs,
         fats: parsedData.fats,
-        fiber: parsedData.fiber,
-        sugar: parsedData.sugar,
-        sodium: parsedData.sodium,
-        cholesterol: parsedData.cholesterol,
-        water: parsedData.water,
-        omega3: parsedData.omega3,
-        vitaminA: parsedData.vitaminA,
-        vitaminC: parsedData.vitaminC,
-        vitaminD: parsedData.vitaminD,
-        vitaminE: parsedData.vitaminE,
-        vitaminK: parsedData.vitaminK,
-        calcium: parsedData.calcium,
-        iron: parsedData.iron,
-        magnesium: parsedData.magnesium,
-        potassium: parsedData.potassium,
-        zinc: parsedData.zinc,
         source: 'text',
         aiParsed: true,
       };
 
+      // Add optional nutrients only if they have values
+      const optionalNutrients = [
+        'fiber',
+        'sugar',
+        'sodium',
+        'cholesterol',
+        'water',
+        'omega3',
+        'transFat',
+        'caffeine',
+        'alcohol',
+        'vitaminA',
+        'vitaminC',
+        'vitaminD',
+        'vitaminE',
+        'vitaminK',
+        'vitaminB9',
+        'vitaminB12',
+        'calcium',
+        'iron',
+        'magnesium',
+        'potassium',
+        'zinc',
+      ];
+
+      optionalNutrients.forEach((nutrient) => {
+        if (parsedData[nutrient] != null) {
+          foodEntry[nutrient] = parsedData[nutrient];
+        }
+      });
+
+      console.log('Saving food entry:', foodEntry);
       await foodService.addFoodEntry(foodEntry);
       setStep(3);
 
@@ -103,7 +120,11 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         handleClose();
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save food entry');
+      console.error('Save food entry error:', err);
+      console.error('Error response:', err.response);
+      const errorMessage =
+        err.response?.data?.error || err.message || 'Failed to save food entry';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

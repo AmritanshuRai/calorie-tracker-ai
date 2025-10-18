@@ -678,7 +678,8 @@ const Dashboard = () => {
       <FoodLogModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSubmit={handleAddFood}
+        selectedDate={selectedDate}
+        onFoodAdded={handleAddFood}
       />
     </div>
   );
