@@ -13,11 +13,18 @@ function getOpenAIClient() {
   return openai;
 }
 
+// Default model to use for food parsing
+const DEFAULT_MODEL = 'gpt-5';
+
 // Pricing per 1M tokens (in USD) - Updated as of Oct 2024
 const PRICING = {
   'gpt-5': {
     input: 1.25, // $1.25 per 1M input tokens
     output: 5.0, // $5.00 per 1M output tokens
+  },
+  'gpt-5-mini': {
+    input: 0.25, // $0.250 per 1M input tokens
+    output: 2.0, // $2.000 per 1M output tokens
   },
   'gpt-4o': {
     input: 2.5,
@@ -127,7 +134,7 @@ export async function parseFood(
     // Log the failed attempt
     await logOpenAICall({
       userId,
-      model: 'gpt-5',
+      model: DEFAULT_MODEL,
       requestType: 'text',
       input: text,
       rawOutput: null,
@@ -183,7 +190,7 @@ export async function parseFood(
   }
 
   try {
-    const model = 'gpt-5';
+    const model = DEFAULT_MODEL;
     const reasoningEffort = 'minimal';
 
     // Use Structured Outputs for reliable JSON
@@ -399,7 +406,7 @@ All values must be calculated for the specified quantity. Use null only when the
     // Log the failed API call
     await logOpenAICall({
       userId,
-      model: 'gpt-5',
+      model: DEFAULT_MODEL,
       requestType: 'text',
       input: text,
       rawOutput: null,
