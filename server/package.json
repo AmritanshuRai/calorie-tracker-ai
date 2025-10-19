@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "AI Calorie Tracker - Backend API",
+  "description": "AI Calorie Tracker - Backend API (v2)",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
