@@ -5,6 +5,8 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
+  const isUpgradePage = location.pathname === '/upgrade';
+  const isFullWidth = isAdminPage || isUpgradePage;
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/20'>
@@ -12,7 +14,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       <div className='sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200 shadow-sm'>
         <div
           className={`${
-            isAdminPage ? 'w-full' : 'max-w-3xl'
+            isFullWidth ? 'w-full' : 'max-w-3xl'
           } mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
           {showBack ? (
             <button
@@ -36,7 +38,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       {/* Content */}
       <div
         className={`${
-          isAdminPage ? 'w-full' : 'max-w-3xl mx-auto px-4 sm:px-6 py-8'
+          isFullWidth ? 'w-full' : 'max-w-3xl mx-auto px-4 sm:px-6 py-8'
         }`}>
         {children}
       </div>

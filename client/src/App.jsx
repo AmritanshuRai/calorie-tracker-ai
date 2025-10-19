@@ -12,6 +12,7 @@ import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
 import Admin from './pages/Admin';
+import Upgrade from './pages/Upgrade';
 
 // Onboarding Pages
 import GenderPage from './pages/onboarding/GenderPage';
@@ -142,6 +143,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Account />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/upgrade'
+            element={
+              <ProtectedRoute>
+                <Upgrade />
               </ProtectedRoute>
             }
           />
