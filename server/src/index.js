@@ -35,9 +35,31 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet()); // Security headers
 app.use(morgan('dev')); // Logging
+
+// CORS configuration with multiple allowed origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://localhost',
+  'https://calorie-tracker-ai-delta.vercel.app',
+  'https://calorie-tracker-ai-production.up.railway.app',
+  'https://www.trackall.food',
+  'https://trackall.food',
+  'https://api.trackall.food',
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
