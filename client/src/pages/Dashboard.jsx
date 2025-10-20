@@ -28,6 +28,7 @@ import CircularProgress from '../components/CircularProgress';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FoodLogModal from '../components/FoodLogModal';
+import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
 import { authService } from '../services/authService';
 
@@ -318,9 +319,7 @@ const Dashboard = () => {
         <div className='max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between h-16 sm:h-18 lg:h-20'>
             <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0'>
-              <div className='w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg flex-shrink-0'>
-                <Apple className='w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white' />
-              </div>
+              <LogoIcon className='w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex-shrink-0' />
               <div className='min-w-0'>
                 <h1 className='text-base sm:text-lg lg:text-xl font-black text-slate-900 truncate'>
                   {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}!

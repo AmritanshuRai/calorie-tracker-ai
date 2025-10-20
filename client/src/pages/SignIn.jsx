@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Apple, CheckCircle2, Sparkles } from 'lucide-react';
+import { CheckCircle2, Sparkles } from 'lucide-react';
 import Button from '../components/Button';
+import Logo, { LogoIcon } from '../components/Logo';
 import useUserStore from '../stores/useUserStore';
 import { authService } from '../services/authService';
 
@@ -103,12 +104,10 @@ const SignIn = () => {
       <div className='max-w-md w-full'>
         {/* Logo/Icon */}
         <div className='text-center mb-8'>
-          <div className='inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl shadow-xl shadow-emerald-500/30 mb-6'>
-            <Apple className='w-12 h-12 text-white' />
+          <div className='inline-flex items-center justify-center mb-6'>
+            <LogoIcon className='w-20 h-20' />
           </div>
-          <h1 className='text-4xl sm:text-5xl font-bold text-slate-900 mb-3'>
-            trackall.food
-          </h1>
+          <Logo className='h-16 w-auto mx-auto mb-4' />
           <p className='text-lg text-slate-600'>
             Your personal AI nutrition companion
           </p>

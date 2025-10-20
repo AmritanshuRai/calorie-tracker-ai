@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Apple,
   Sparkles,
   TrendingUp,
   Globe,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import Logo, { LogoIcon } from '../components/Logo';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -135,19 +135,11 @@ export default function LandingPage() {
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between h-16 lg:h-20'>
             {/* Logo */}
-            <div className='flex items-center gap-3'>
-              <div className='w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg'>
-                <Apple className='w-6 h-6 lg:w-7 lg:h-7 text-white' />
-              </div>
-              <div>
-                <h1 className='text-lg lg:text-xl font-bold text-slate-900'>
-                  trackall.food
-                </h1>
-                <p className='text-xs text-slate-500 hidden sm:block'>
-                  Advanced Nutrition Tracking
-                </p>
-              </div>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className='flex items-center hover:opacity-80 transition-opacity'>
+              <Logo className='h-10 lg:h-12 w-auto' />
+            </button>
 
             {/* Desktop Navigation */}
             <div className='hidden lg:flex items-center gap-8'>
@@ -323,9 +315,7 @@ export default function LandingPage() {
                 {/* Main Card */}
                 <Card className='p-6 shadow-2xl border-2 border-slate-200 hover-lift'>
                   <div className='flex items-center gap-3 mb-6'>
-                    <div className='w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center'>
-                      <Apple className='w-7 h-7 text-white' />
-                    </div>
+                    <LogoIcon className='w-12 h-12' />
                     <div>
                       <h3 className='font-bold text-slate-900'>
                         Today's Progress
@@ -963,12 +953,7 @@ export default function LandingPage() {
           <div className='grid md:grid-cols-4 gap-8 mb-8'>
             {/* Brand */}
             <div>
-              <div className='flex items-center gap-3 mb-4'>
-                <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg'>
-                  <Apple className='w-6 h-6 text-white' />
-                </div>
-                <span className='text-xl font-bold'>trackall.food</span>
-              </div>
+              <Logo className='h-12 w-auto mb-4' variant='white' />
               <p className='text-slate-400 text-sm leading-relaxed'>
                 Advanced AI-powered nutrition tracking for a healthier you.
               </p>
