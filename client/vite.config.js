@@ -12,9 +12,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'AI Calorie Tracker',
-        short_name: 'Calorie Tracker',
-        description: 'Track your nutrition with AI-powered insights',
+        name: 'trackall.food',
+        short_name: 'trackall.food',
+        description:
+          'Advanced AI nutrition tracking for 30+ nutrients from foods across 150+ countries',
         theme_color: '#22c55e',
         background_color: '#ffffff',
         display: 'standalone',

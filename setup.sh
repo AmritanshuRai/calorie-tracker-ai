@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# 🍎 AI Calorie Tracker - Quick Setup Script
+# 🍎 trackall.food - Quick Setup Script
 
-echo "🍎 AI Calorie Tracker - Setup Script"
+echo "🍎 trackall.food - Setup Script"
 echo "===================================="
 echo ""
 

@@ -1,6 +1,6 @@
-# 🍎 AI Calorie Tracker - Phase 1 MVP
+# 🍎 trackall.food - Advanced AI Nutrition Tracking
 
-A modern, AI-powered Progressive Web App (PWA) for tracking calories and nutrition with a frictionless onboarding experience.
+A modern, AI-powered Progressive Web App (PWA) for tracking calories and nutrition with hospital-grade accuracy for 30+ nutrients from foods across 150+ countries.
 
 ## ✨ What's Implemented
 

@@ -141,7 +141,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <h1 className='text-lg lg:text-xl font-bold text-slate-900'>
-                  NutriTrack AI
+                  trackall.food
                 </h1>
                 <p className='text-xs text-slate-500 hidden sm:block'>
                   Advanced Nutrition Tracking
@@ -257,7 +257,7 @@ export default function LandingPage() {
             <div className='text-center lg:text-left space-y-8'>
               <div className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-700 rounded-full text-sm font-semibold'>
                 <Sparkles className='w-4 h-4' />
-                #1 AI-Powered Nutrition Tracker in India
+                #1 AI-Powered Nutrition Tracker
               </div>
 
               <h1 className='text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-tight'>
@@ -273,8 +273,8 @@ export default function LandingPage() {
 
               <p className='text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0'>
                 Hospital-grade AI analyzes 30+ nutrients from foods across 150+
-                countries. Get accurate, comprehensive nutrition tracking—all
-                for just ₹125/month.
+                countries. Get accurate, comprehensive nutrition tracking for
+                free.
               </p>
 
               <div className='flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4'>
@@ -284,13 +284,6 @@ export default function LandingPage() {
                   className='bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 text-lg px-8 py-4 w-full sm:w-auto'>
                   Start Free Trial
                   <ArrowRight className='w-5 h-5 ml-2' />
-                </Button>
-                <Button
-                  size='xl'
-                  variant='outline'
-                  onClick={() => scrollToSection('pricing')}
-                  className='border-2 text-lg px-8 py-4 w-full sm:w-auto'>
-                  View Pricing
                 </Button>
               </div>
 
@@ -319,13 +312,6 @@ export default function LandingPage() {
                       5,000+ Happy Users
                     </p>
                   </div>
-                </div>
-
-                <div className='h-8 w-px bg-slate-300 hidden sm:block'></div>
-
-                <div className='text-center sm:text-left'>
-                  <p className='text-2xl font-bold text-slate-900'>15 Free</p>
-                  <p className='text-sm text-slate-600'>Food Logs on Signup</p>
                 </div>
               </div>
             </div>
@@ -570,7 +556,7 @@ export default function LandingPage() {
             <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
               Why Choose{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
-                NutriTrack AI?
+                trackall.food?
               </span>
             </h2>
             <p className='text-lg text-slate-600 max-w-2xl mx-auto'>
@@ -588,7 +574,7 @@ export default function LandingPage() {
                       Feature
                     </th>
                     <th className='text-center py-4 px-6 text-white font-bold text-lg'>
-                      NutriTrack AI
+                      trackall.food
                     </th>
                     <th className='text-center py-4 px-6 text-white font-bold text-lg'>
                       Other Apps
@@ -981,7 +967,7 @@ export default function LandingPage() {
                 <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg'>
                   <Apple className='w-6 h-6 text-white' />
                 </div>
-                <span className='text-xl font-bold'>NutriTrack AI</span>
+                <span className='text-xl font-bold'>trackall.food</span>
               </div>
               <p className='text-slate-400 text-sm leading-relaxed'>
                 Advanced AI-powered nutrition tracking for a healthier you.
@@ -1053,7 +1039,7 @@ export default function LandingPage() {
 
           <div className='border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4'>
             <p className='text-slate-400 text-sm text-center sm:text-left'>
-              © 2025 NutriTrack AI. All rights reserved.
+              © 2025 trackall.food. All rights reserved.
             </p>
             <div className='flex gap-6 text-sm'>
               <button className='text-slate-400 hover:text-white transition-colors'>

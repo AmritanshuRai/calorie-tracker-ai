@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "AI Calorie Tracker - Backend API (v2)",
+  "description": "trackall.food - Advanced AI Nutrition Tracking Backend API",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

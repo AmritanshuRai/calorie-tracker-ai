@@ -107,7 +107,7 @@ const SignIn = () => {
             <Apple className='w-12 h-12 text-white' />
           </div>
           <h1 className='text-4xl sm:text-5xl font-bold text-slate-900 mb-3'>
-            NutriTrack AI
+            trackall.food
           </h1>
           <p className='text-lg text-slate-600'>
             Your personal AI nutrition companion
