@@ -8,16 +8,11 @@ import {
   dateRangeToUnixTimestamps,
   isAdminApiKeyConfigured,
 } from '../services/openaiUsage.js';
-import {
-  getUsageSummaryFromDB,
-  getStatsFromDB,
-} from '../services/usageFallback.js';
 
 const router = express.Router();
 
 /**
  * Get usage summary with date range filtering
- * Falls back to database logs if OpenAI Admin API is not available
  * Query params:
  * - startDate: ISO date string (required)
  * - endDate: ISO date string (optional, defaults to now)
@@ -33,33 +28,21 @@ router.get('/summary', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // Try to use OpenAI API first, fall back to database if it fails
-    try {
-      // Convert dates to Unix timestamps
-      const { startTime, endTime } = dateRangeToUnixTimestamps(
-        startDate,
-        endDate
-      );
+    // Convert dates to Unix timestamps
+    const { startTime, endTime } = dateRangeToUnixTimestamps(
+      startDate,
+      endDate
+    );
 
-      // Parse groupBy parameter
-      const groupByFields = groupBy
-        ? groupBy.split(',').map((f) => f.trim())
-        : ['model'];
+    // Parse groupBy parameter
+    const groupByFields = groupBy
+      ? groupBy.split(',').map((f) => f.trim())
+      : ['model'];
 
-      const summary = await getUsageSummary(startTime, endTime, groupByFields);
-      summary.source = 'openai_api';
+    const summary = await getUsageSummary(startTime, endTime, groupByFields);
+    summary.source = 'openai_api';
 
-      res.json(summary);
-    } catch (apiError) {
-      // If it's a permission error or API key issue, use database fallback
-      console.log(
-        'OpenAI API unavailable, using database fallback:',
-        apiError.message
-      );
-
-      const dbSummary = await getUsageSummaryFromDB(startDate, endDate);
-      res.json(dbSummary);
-    }
+    res.json(summary);
   } catch (error) {
     console.error('Get usage summary error:', error);
     res.status(500).json({
@@ -220,49 +203,37 @@ router.get('/embeddings', authenticateToken, requireAdmin, async (req, res) => {
 /**
  * Get quick stats for dashboard
  * Returns aggregated data for common time ranges
- * Falls back to database if OpenAI API is not available
  */
 router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    // Try OpenAI API first, fall back to database
-    try {
-      const now = new Date();
+    const now = new Date();
 
-      // Last 7 days
-      const last7Days = new Date(now);
-      last7Days.setDate(last7Days.getDate() - 7);
+    // Last 7 days
+    const last7Days = new Date(now);
+    last7Days.setDate(last7Days.getDate() - 7);
 
-      // Last 30 days
-      const last30Days = new Date(now);
-      last30Days.setDate(last30Days.getDate() - 30);
+    // Last 30 days
+    const last30Days = new Date(now);
+    last30Days.setDate(last30Days.getDate() - 30);
 
-      const [last7DaysData, last30DaysData] = await Promise.all([
-        getUsageSummary(
-          Math.floor(last7Days.getTime() / 1000),
-          Math.floor(now.getTime() / 1000),
-          ['model']
-        ),
-        getUsageSummary(
-          Math.floor(last30Days.getTime() / 1000),
-          Math.floor(now.getTime() / 1000),
-          ['model']
-        ),
-      ]);
+    const [last7DaysData, last30DaysData] = await Promise.all([
+      getUsageSummary(
+        Math.floor(last7Days.getTime() / 1000),
+        Math.floor(now.getTime() / 1000),
+        ['model']
+      ),
+      getUsageSummary(
+        Math.floor(last30Days.getTime() / 1000),
+        Math.floor(now.getTime() / 1000),
+        ['model']
+      ),
+    ]);
 
-      res.json({
-        source: 'openai_api',
-        last7Days: last7DaysData.aggregated,
-        last30Days: last30DaysData.aggregated,
-      });
-    } catch (apiError) {
-      console.log(
-        'OpenAI API unavailable, using database fallback:',
-        apiError.message
-      );
-
-      const dbStats = await getStatsFromDB();
-      res.json(dbStats);
-    }
+    res.json({
+      source: 'openai_api',
+      last7Days: last7DaysData.aggregated,
+      last30Days: last30DaysData.aggregated,
+    });
   } catch (error) {
     console.error('Get usage stats error:', error);
     res.status(500).json({

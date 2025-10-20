@@ -41,7 +41,6 @@ const COLORS = [
 const UsageDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [usageData, setUsageData] = useState(null);
-  const [dataSource, setDataSource] = useState('database'); // 'openai_api' or 'database'
   const [timeRange, setTimeRange] = useState('7days');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -99,7 +98,6 @@ const UsageDashboard = () => {
         },
       });
       setUsageData(response.data);
-      setDataSource(response.data.source || 'database');
     } catch (error) {
       console.error('Error fetching usage data:', error);
     } finally {
@@ -161,50 +159,6 @@ const UsageDashboard = () => {
 
   return (
     <div className='space-y-6'>
-      {/* Data Source Notice */}
-      {dataSource === 'database' && (
-        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-          <div className='flex items-start gap-3'>
-            <Activity className='w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5' />
-            <div>
-              <h4 className='text-sm font-semibold text-blue-900 mb-1'>
-                Using Database Logs
-              </h4>
-              <p className='text-sm text-blue-700'>
-                Usage data is being fetched from the application database logs.
-                For real-time data directly from OpenAI, add an{' '}
-                <strong>OPENAI_ADMIN_KEY</strong> with "api.usage.read"
-                permissions to your .env file.
-              </p>
-              <a
-                href='https://platform.openai.com/api-keys'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-sm text-blue-600 hover:text-blue-800 underline mt-1 inline-block'>
-                Create Admin API Key →
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {dataSource === 'openai_api' && (
-        <div className='bg-emerald-50 border border-emerald-200 rounded-lg p-4'>
-          <div className='flex items-start gap-3'>
-            <Activity className='w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5' />
-            <div>
-              <h4 className='text-sm font-semibold text-emerald-900 mb-1'>
-                Live Data from OpenAI
-              </h4>
-              <p className='text-sm text-emerald-700'>
-                Usage data is being fetched directly from OpenAI's Usage API in
-                real-time.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header with Filters */}
       <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4'>
         <div>
