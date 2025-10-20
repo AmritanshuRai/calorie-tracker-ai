@@ -13,6 +13,7 @@ import {
   ChevronUp,
   BarChart3,
   Calendar,
+  TrendingUp,
 } from 'lucide-react';
 import {
   LineChart,
@@ -31,6 +32,7 @@ import api from '../services/api';
 import PageLayout from '../components/PageLayout';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import UsageDashboard from '../components/UsageDashboard';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -266,6 +268,16 @@ const Admin = () => {
               <Activity className='w-5 h-5' />
               OpenAI Logs
             </button>
+            <button
+              onClick={() => setActiveTab('usage')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'usage'
+                  ? 'bg-emerald-50 text-emerald-700 font-medium'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}>
+              <TrendingUp className='w-5 h-5' />
+              Usage Analytics
+            </button>
           </nav>
 
           <div className='p-4 border-t border-slate-200'>
@@ -286,11 +298,17 @@ const Admin = () => {
             {/* Header */}
             <div className='mb-8'>
               <h2 className='text-3xl font-bold text-slate-900'>
-                {activeTab === 'users' ? 'Users' : 'OpenAI Logs'}
+                {activeTab === 'users'
+                  ? 'Users'
+                  : activeTab === 'usage'
+                  ? 'Usage Analytics'
+                  : 'OpenAI Logs'}
               </h2>
               <p className='text-slate-600 mt-1'>
                 {activeTab === 'users'
                   ? 'Manage and view all registered users'
+                  : activeTab === 'usage'
+                  ? 'View detailed OpenAI API usage and costs from OpenAI Usage API'
                   : 'View all OpenAI API calls and usage'}
               </p>
             </div>
@@ -362,6 +380,8 @@ const Admin = () => {
               <div className='flex items-center justify-center h-64'>
                 <div className='animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent'></div>
               </div>
+            ) : activeTab === 'usage' ? (
+              <UsageDashboard />
             ) : activeTab === 'users' ? (
               <Card>
                 <div className='overflow-x-auto'>
