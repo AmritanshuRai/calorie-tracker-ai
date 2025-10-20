@@ -8,6 +8,7 @@ import { AnimatePresence } from 'framer-motion';
 import useUserStore from './stores/useUserStore';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
@@ -42,6 +43,12 @@ function App() {
           {/* Public Routes */}
           <Route
             path='/'
+            element={
+              isAuthenticated ? <Navigate to='/dashboard' /> : <LandingPage />
+            }
+          />
+          <Route
+            path='/signin'
             element={
               isAuthenticated ? <Navigate to='/dashboard' /> : <SignIn />
             }
