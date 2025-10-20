@@ -27,6 +27,13 @@ import DietPreferencePage from './pages/onboarding/DietPreferencePage';
 import HealthConditionsPage from './pages/onboarding/HealthConditionsPage';
 import FinalPlanPage from './pages/onboarding/FinalPlanPage';
 
+// Policy Pages
+import PrivacyPolicy from './pages/policies/PrivacyPolicy';
+import TermsAndConditions from './pages/policies/TermsAndConditions';
+import CancellationRefund from './pages/policies/CancellationRefund';
+import Shipping from './pages/policies/Shipping';
+import ContactUs from './pages/policies/ContactUs';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
@@ -169,6 +176,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Policy Routes - Public */}
+          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route
+            path='/terms-and-conditions'
+            element={<TermsAndConditions />}
+          />
+          <Route path='/cancellation-refund' element={<CancellationRefund />} />
+          <Route path='/shipping' element={<Shipping />} />
+          <Route path='/contact' element={<ContactUs />} />
 
           {/* Catch all */}
           <Route path='*' element={<Navigate to='/' />} />

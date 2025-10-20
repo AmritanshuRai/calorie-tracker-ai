@@ -20,6 +20,7 @@ import {
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Logo, { LogoIcon } from '../components/Logo';
+import Footer from '../components/Footer';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -948,98 +949,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className='bg-slate-900 text-white py-12 lg:py-16'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='grid md:grid-cols-4 gap-8 mb-8'>
-            {/* Brand */}
-            <div>
-              <Logo className='h-12 w-auto mb-4' variant='white' />
-              <p className='text-slate-400 text-sm leading-relaxed'>
-                Advanced AI-powered nutrition tracking for a healthier you.
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <h4 className='font-bold mb-4'>Product</h4>
-              <ul className='space-y-2 text-sm'>
-                <li>
-                  <button
-                    onClick={() => scrollToSection('features')}
-                    className='text-slate-400 hover:text-white transition-colors'>
-                    Features
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection('pricing')}
-                    className='text-slate-400 hover:text-white transition-colors'>
-                    Pricing
-                  </button>
-                </li>
-                <li>
-                  <button className='text-slate-400 hover:text-white transition-colors'>
-                    FAQ
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 className='font-bold mb-4'>Company</h4>
-              <ul className='space-y-2 text-sm'>
-                <li>
-                  <button className='text-slate-400 hover:text-white transition-colors'>
-                    About Us
-                  </button>
-                </li>
-                <li>
-                  <button className='text-slate-400 hover:text-white transition-colors'>
-                    Contact
-                  </button>
-                </li>
-                <li>
-                  <button className='text-slate-400 hover:text-white transition-colors'>
-                    Privacy
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Social */}
-            <div>
-              <h4 className='font-bold mb-4'>Connect</h4>
-              <div className='flex gap-3'>
-                {['Twitter', 'Instagram', 'LinkedIn'].map((social, i) => (
-                  <button
-                    key={i}
-                    className='w-10 h-10 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors'>
-                    <span className='text-xs font-bold'>{social[0]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className='border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4'>
-            <p className='text-slate-400 text-sm text-center sm:text-left'>
-              © 2025 trackall.food. All rights reserved.
-            </p>
-            <div className='flex gap-6 text-sm'>
-              <button className='text-slate-400 hover:text-white transition-colors'>
-                Terms
-              </button>
-              <button className='text-slate-400 hover:text-white transition-colors'>
-                Privacy
-              </button>
-              <button className='text-slate-400 hover:text-white transition-colors'>
-                Cookies
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
