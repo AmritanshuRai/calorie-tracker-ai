@@ -365,26 +365,36 @@ const Dashboard = () => {
                 {showUserMenu && (
                   <div className='absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200'>
                     <div className='p-4 border-b-2 border-slate-100 bg-gradient-to-br from-emerald-50 to-teal-50'>
-                      <p className='font-bold text-slate-900 truncate'>
-                        {user?.name || 'User'}
-                      </p>
+                      <div className='flex items-center justify-between gap-2'>
+                        <p className='font-bold text-slate-900 truncate'>
+                          {user?.name || 'User'}
+                        </p>
+                        {user?.isPro && (
+                          <span className='flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-xs font-bold rounded-full shadow-sm'>
+                            <Sparkles className='w-3 h-3' />
+                            PRO
+                          </span>
+                        )}
+                      </div>
                       <p className='text-xs text-slate-600 truncate mt-0.5'>
                         {user?.email || ''}
                       </p>
                     </div>
 
                     <div className='py-2'>
-                      <button
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          navigate('/upgrade');
-                        }}
-                        className='w-full px-4 py-3 flex items-center gap-3 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-colors text-left border-b-2 border-slate-100'>
-                        <Sparkles className='w-5 h-5 text-emerald-600' />
-                        <span className='font-medium text-emerald-600'>
-                          Upgrade to Pro
-                        </span>
-                      </button>
+                      {!user?.isPro && (
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            navigate('/upgrade');
+                          }}
+                          className='w-full px-4 py-3 flex items-center gap-3 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-colors text-left border-b-2 border-slate-100'>
+                          <Sparkles className='w-5 h-5 text-emerald-600' />
+                          <span className='font-medium text-emerald-600'>
+                            Upgrade to Pro
+                          </span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
@@ -475,36 +485,38 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Upgrade Banner */}
-            <Card padding='none' variant='default'>
-              <div className='relative overflow-hidden bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-6 rounded-2xl'>
-                {/* Decorative elements */}
-                <div className='absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32'></div>
-                <div className='absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24'></div>
+            {/* Upgrade Banner - Only show for free users */}
+            {!user?.isPro && (
+              <Card padding='none' variant='default'>
+                <div className='relative overflow-hidden bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-6 rounded-2xl'>
+                  {/* Decorative elements */}
+                  <div className='absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32'></div>
+                  <div className='absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24'></div>
 
-                <div className='relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
-                  <div className='flex items-start gap-4'>
-                    <div className='flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center'>
-                      <Sparkles className='w-6 h-6 text-white' />
+                  <div className='relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+                    <div className='flex items-start gap-4'>
+                      <div className='flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center'>
+                        <Sparkles className='w-6 h-6 text-white' />
+                      </div>
+                      <div>
+                        <h3 className='text-lg font-bold text-white mb-1'>
+                          Unlock Premium AI Accuracy
+                        </h3>
+                        <p className='text-sm text-white/90'>
+                          Track 30+ nutrients with advanced AI • Just ₹125/month
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className='text-lg font-bold text-white mb-1'>
-                        Unlock Premium AI Accuracy
-                      </h3>
-                      <p className='text-sm text-white/90'>
-                        Track 30+ nutrients with advanced AI • Just ₹125/month
-                      </p>
-                    </div>
+                    <Button
+                      onClick={() => navigate('/upgrade')}
+                      className='bg-white text-emerald-600 hover:bg-white/90 shadow-lg whitespace-nowrap flex-shrink-0'>
+                      Upgrade Now
+                      <Sparkles className='w-4 h-4 ml-1' />
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => navigate('/upgrade')}
-                    className='bg-white text-emerald-600 hover:bg-white/90 shadow-lg whitespace-nowrap flex-shrink-0'>
-                    Upgrade Now
-                    <Sparkles className='w-4 h-4 ml-1' />
-                  </Button>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
 
             {/* Quick Stats with Progress */}
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>

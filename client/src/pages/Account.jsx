@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   Award,
   Heart,
+  Sparkles,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -175,9 +176,17 @@ export default function Account() {
               </div>
             )}
             <div className='flex-1 text-center sm:text-left'>
-              <h2 className='text-2xl sm:text-3xl font-black text-white mb-2'>
-                {user?.name || 'User'}
-              </h2>
+              <div className='flex items-center justify-center sm:justify-start gap-3 mb-2'>
+                <h2 className='text-2xl sm:text-3xl font-black text-white'>
+                  {user?.name || 'User'}
+                </h2>
+                {user?.isPro && (
+                  <span className='flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-sm font-bold rounded-full shadow-lg'>
+                    <Sparkles className='w-4 h-4' />
+                    PRO
+                  </span>
+                )}
+              </div>
               <div className='flex items-center justify-center sm:justify-start gap-2 text-white/90 mb-4'>
                 <Mail className='w-4 h-4' />
                 <p className='text-sm font-medium'>
@@ -191,6 +200,59 @@ export default function Account() {
             </div>
           </div>
         </Card>
+
+        {/* Subscription Status - Only show for Pro users */}
+        {user?.isPro && user?.subscription && (
+          <Card variant='default' padding='lg'>
+            <div className='flex items-center gap-3 mb-4'>
+              <div className='p-3 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500'>
+                <Sparkles className='w-6 h-6 text-white' />
+              </div>
+              <div>
+                <h3 className='text-xl font-black text-slate-900'>
+                  Pro Subscription
+                </h3>
+                <p className='text-sm font-medium text-slate-600'>
+                  Active subscription
+                </p>
+              </div>
+            </div>
+            <div className='space-y-3 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200'>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm font-semibold text-slate-700'>
+                  Plan
+                </span>
+                <span className='text-sm font-bold text-slate-900 uppercase'>
+                  {user.subscription.plan || 'Pro'}
+                </span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm font-semibold text-slate-700'>
+                  Status
+                </span>
+                <span className='inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full'>
+                  ● Active
+                </span>
+              </div>
+              {user.subscription.nextBillingDate && (
+                <div className='flex justify-between items-center'>
+                  <span className='text-sm font-semibold text-slate-700'>
+                    Next Billing
+                  </span>
+                  <span className='text-sm font-bold text-slate-900'>
+                    {new Date(
+                      user.subscription.nextBillingDate
+                    ).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Profile Stats */}
         <div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Check,
   Sparkles,
@@ -6,13 +6,25 @@ import {
   Globe,
   Award,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import useUserStore from '../stores/useUserStore';
+import {
+  createOrder,
+  verifyPayment,
+  initializeRazorpayCheckout,
+} from '../services/paymentService';
 
 export default function Upgrade() {
   const [billingCycle, setBillingCycle] = useState('annual'); // 'monthly' or 'annual'
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { user, subscription, setSubscription } = useUserStore();
 
   const pricing = {
     monthly: {
@@ -31,6 +43,91 @@ export default function Upgrade() {
   };
 
   const currentPlan = pricing[billingCycle];
+
+  // Check if user is already subscribed
+  useEffect(() => {
+    if (subscription?.status === 'active') {
+      navigate('/dashboard');
+    }
+  }, [subscription, navigate]);
+
+  // Handle payment initiation
+  const handlePurchase = async () => {
+    if (!user) {
+      navigate('/signin');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // Create subscription on backend
+      const subscriptionData = await createOrder(billingCycle);
+
+      // Initialize Razorpay checkout for subscription
+      initializeRazorpayCheckout(
+        {
+          key: subscriptionData.key,
+          amount: subscriptionData.amount,
+          currency: subscriptionData.currency,
+          subscriptionId: subscriptionData.subscription.id, // Subscription ID instead of order ID
+          description: `TrackAll.Food Pro - ${
+            billingCycle === 'monthly' ? 'Monthly' : 'Annual'
+          } Subscription (Auto-renewing)`,
+          plan: billingCycle,
+          userName: user.name || user.email.split('@')[0],
+          userEmail: user.email,
+        },
+        async (response) => {
+          // Payment successful - verify on backend
+          try {
+            const verificationResult = await verifyPayment(response);
+
+            if (verificationResult.success) {
+              // Update local subscription state
+              setSubscription({
+                status: 'active',
+                plan: billingCycle,
+                endDate: verificationResult.subscription.endDate,
+                nextBillingDate:
+                  verificationResult.subscription.nextBillingDate,
+                recurring: true,
+                freeLogs: 0,
+                canLog: true,
+              });
+
+              // Show success and redirect
+              alert(
+                `🎉 Subscription activated! Your ${billingCycle} plan will auto-renew.`
+              );
+              navigate('/dashboard');
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (err) {
+            console.error('Verification error:', err);
+            setError('Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        (error) => {
+          // Payment failed or cancelled
+          console.error('Payment error:', error);
+          setError(error.message || 'Payment failed. Please try again.');
+          setIsProcessing(false);
+        }
+      );
+    } catch (err) {
+      console.error('Subscription creation error:', err);
+      setError(
+        err.response?.data?.details ||
+          'Failed to initialize payment. Please try again.'
+      );
+      setIsProcessing(false);
+    }
+  };
 
   // Nutrients we track
   const nutrients = {
@@ -188,20 +285,47 @@ export default function Upgrade() {
                     <Sparkles className='w-3 h-3' />
                     Save ₹{currentPlan.savings} per year
                   </div>
+                  <p className='text-xs text-gray-500 mt-2'>
+                    🔄 Auto-renews every year. Cancel anytime.
+                  </p>
                 </div>
               )}
 
               {billingCycle === 'monthly' && (
-                <p className='text-sm text-gray-600'>
-                  Cancel anytime. Full flexibility.
-                </p>
+                <div className='space-y-1'>
+                  <p className='text-sm text-gray-600'>
+                    Billed monthly. Cancel anytime.
+                  </p>
+                  <p className='text-xs text-gray-500'>
+                    🔄 Auto-renews monthly. Full flexibility.
+                  </p>
+                </div>
               )}
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className='p-3 bg-red-50 border border-red-200 rounded-lg'>
+                <p className='text-sm text-red-700'>{error}</p>
+              </div>
+            )}
+
             {/* CTA Button */}
-            <Button className='w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow'>
-              Get Started Now
-              <ChevronRight className='w-5 h-5 ml-1' />
+            <Button
+              onClick={handlePurchase}
+              disabled={isProcessing}
+              className='w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
+              {isProcessing ? (
+                <>
+                  <Loader2 className='w-5 h-5 mr-2 animate-spin' />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Get Started Now
+                  <ChevronRight className='w-5 h-5 ml-1' />
+                </>
+              )}
             </Button>
 
             {/* Benefits List */}
@@ -398,9 +522,21 @@ export default function Upgrade() {
             nutrition data.
           </p>
           <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
-            <Button className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow'>
-              Get Started Now
-              <ChevronRight className='w-5 h-5 ml-1' />
+            <Button
+              onClick={handlePurchase}
+              disabled={isProcessing}
+              className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
+              {isProcessing ? (
+                <>
+                  <Loader2 className='w-5 h-5 mr-2 animate-spin' />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Get Started Now
+                  <ChevronRight className='w-5 h-5 ml-1' />
+                </>
+              )}
             </Button>
             <button className='text-emerald-600 font-medium hover:underline'>
               View sample nutrition report →

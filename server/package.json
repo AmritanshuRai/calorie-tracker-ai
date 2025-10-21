@@ -41,6 +41,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "openai": "^4.104.0",
+    "razorpay": "^2.9.6",
     "zod": "^3.23.8"
   },
   "devDependencies": {

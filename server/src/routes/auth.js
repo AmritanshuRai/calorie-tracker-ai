@@ -97,6 +97,11 @@ router.get('/profile', authenticateToken, async (req, res) => {
         picture: true,
         profileCompleted: true,
         isAdmin: true,
+        subscriptionStatus: true,
+        subscriptionPlan: true,
+        subscriptionStart: true,
+        subscriptionEnd: true,
+        freeLogs: true,
         createdAt: true,
       },
     });
@@ -114,9 +119,34 @@ router.get('/profile', authenticateToken, async (req, res) => {
       });
     }
 
+    // Get active subscription details if user has one
+    let subscriptionDetails = null;
+    if (
+      user.subscriptionStatus === 'active' ||
+      user.subscriptionStatus === 'cancelled'
+    ) {
+      subscriptionDetails = await prisma.subscription.findFirst({
+        where: {
+          userId: req.user.userId,
+          status: { in: ['active', 'cancelled'] },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          plan: true,
+          status: true,
+          endDate: true,
+          nextBillingDate: true,
+          razorpaySubscriptionId: true,
+        },
+      });
+    }
+
     // Combine user and onboarding data
     res.json({
       ...user,
+      subscription: subscriptionDetails,
+      isPro: user.subscriptionStatus === 'active',
       ...(latestOnboarding && {
         gender: latestOnboarding.gender,
         age: latestOnboarding.age,

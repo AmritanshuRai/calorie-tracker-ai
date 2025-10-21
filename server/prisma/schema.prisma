@@ -23,6 +23,14 @@ model User {
   // Admin flag
   isAdmin   Boolean @default(false)
   
+  // Subscription fields
+  subscriptionStatus   String   @default("free") // free, active, cancelled, expired
+  subscriptionPlan     String?  // monthly, annual
+  subscriptionStart    DateTime?
+  subscriptionEnd      DateTime?
+  razorpayCustomerId   String?  @unique
+  freeLogs             Int      @default(15) // Free logs remaining
+  
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,10 +39,14 @@ model User {
   foodEntries       FoodEntry[]
   onboardingHistory UserOnboarding[]
   openaiLogs        OpenAILog[]
+  subscriptions     Subscription[]
+  payments          Payment[]
   
   @@index([email])
   @@index([googleId])
   @@index([isAdmin])
+  @@index([subscriptionStatus])
+  @@index([razorpayCustomerId])
 }
 
 model UserOnboarding {
@@ -188,4 +200,86 @@ model OpenAILog {
   @@index([requestType])
   @@index([status])
   @@index([userId, createdAt])
+}
+
+model Subscription {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Subscription details
+  plan                  String   // monthly, annual
+  status                String   @default("active") // active, cancelled, expired, paused
+  amount                Float    // Amount paid in INR
+  currency              String   @default("INR")
+  
+  // Razorpay details
+  razorpaySubscriptionId String? @unique
+  razorpayPlanId        String?
+  razorpayCustomerId    String?
+  
+  // Subscription period
+  startDate             DateTime @default(now())
+  endDate               DateTime
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  
+  // Billing
+  nextBillingDate       DateTime?
+  cancelledAt           DateTime?
+  cancelReason          String?
+  
+  // Metadata
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([razorpaySubscriptionId])
+  @@index([endDate])
+}
+
+model Payment {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Payment details
+  amount              Float    // Amount in INR
+  currency            String   @default("INR")
+  status              String   // created, authorized, captured, refunded, failed
+  method              String?  // card, netbanking, wallet, upi
+  
+  // Order details
+  orderType           String   // subscription, one-time
+  plan                String?  // monthly, annual (if subscription)
+  description         String?
+  
+  // Razorpay details
+  razorpayOrderId     String   @unique
+  razorpayPaymentId   String?  @unique
+  razorpaySignature   String?
+  
+  // Receipt and invoice
+  receipt             String?
+  notes               Json?    // Additional metadata
+  
+  // Refund details
+  refundedAmount      Float?
+  refundedAt          DateTime?
+  refundReason        String?
+  
+  // Failure details
+  errorCode           String?
+  errorDescription    String?
+  
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
+  @@index([createdAt])
 }
