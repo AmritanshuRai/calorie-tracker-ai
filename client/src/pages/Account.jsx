@@ -412,6 +412,49 @@ export default function Account() {
                     })}
                   </div>
                 </div>
+
+                {/* Update Health Profile */}
+                <div>
+                  <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
+                    <RefreshCw className='w-6 h-6 text-slate-700' />
+                    Update Health Profile
+                  </h3>
+                  <Card padding='lg' variant='default'>
+                    <div className='flex items-start gap-4'>
+                      <div className='p-4 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border-2 border-emerald-200'>
+                        <RefreshCw className='w-8 h-8 text-emerald-600' />
+                      </div>
+                      <div className='flex-1'>
+                        <h4 className='text-lg font-black text-slate-900 mb-2'>
+                          Re-run Onboarding Journey
+                        </h4>
+                        <p className='text-sm font-medium text-slate-600 mb-4 leading-relaxed'>
+                          Update your health profile, goals, dietary
+                          preferences, lifestyle habits, and medical
+                          information. This will recalculate your personalized
+                          nutrition targets and micronutrient requirements.
+                        </p>
+                        <div className='bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-4'>
+                          <p className='text-xs font-semibold text-blue-800 flex items-start gap-2'>
+                            <AlertCircle className='w-4 h-4 mt-0.5 flex-shrink-0' />
+                            <span>
+                              Your current profile data will be replaced with
+                              new information. Make sure to complete all steps
+                              to get accurate nutrition recommendations.
+                            </span>
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => navigate('/onboarding/gender')}
+                          variant='primary'
+                          className='w-full sm:w-auto'>
+                          <RefreshCw className='w-5 h-5' />
+                          Start Onboarding
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
               </>
             )}
 

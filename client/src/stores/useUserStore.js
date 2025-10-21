@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import {
+  calculateDailyMicronutrients,
+  calculateMacrosForDiet,
+} from '../utils/micronutrientCalculator';
 
 const useUserStore = create(
   persist(
@@ -28,6 +32,28 @@ const useUserStore = create(
         targetDate: null,
         activityLevel: null,
         activityMultiplier: null,
+        // New health profile data
+        pregnancyStatus: null,
+        trimester: null,
+        menstrualCycle: null,
+        smokingStatus: null,
+        cigarettesPerDay: null,
+        alcoholFrequency: null,
+        drinksPerOccasion: null,
+        caffeineIntake: null,
+        sunExposure: null,
+        climate: null,
+        skinTone: null,
+        sleepHours: null,
+        stressLevel: null,
+        waterIntake: null,
+        medications: [],
+        previousDeficiencies: [],
+        exerciseTypes: [],
+        exerciseIntensity: null,
+        dietPreference: null,
+        healthConditions: [],
+        customHealthConditions: [],
       },
 
       // Calculated values
@@ -39,6 +65,30 @@ const useUserStore = create(
         protein: null,
         carbs: null,
         fats: null,
+      },
+      micronutrients: {
+        vitaminA: null,
+        vitaminC: null,
+        vitaminD: null,
+        vitaminE: null,
+        vitaminK: null,
+        vitaminB1: null,
+        vitaminB2: null,
+        vitaminB3: null,
+        vitaminB5: null,
+        vitaminB6: null,
+        vitaminB9: null,
+        vitaminB12: null,
+        calcium: null,
+        iron: null,
+        magnesium: null,
+        phosphorus: null,
+        potassium: null,
+        sodium: null,
+        zinc: null,
+        selenium: null,
+        copper: null,
+        manganese: null,
       },
 
       // Actions
@@ -140,7 +190,7 @@ const useUserStore = create(
 
       calculateDailyTarget: (weeklyRate) => {
         const { tdee, onboardingData } = get();
-        const { goal } = onboardingData;
+        const { goal, dietPreference } = onboardingData;
 
         if (!tdee || !goal) return 0;
 
@@ -159,15 +209,29 @@ const useUserStore = create(
         const roundedTarget = Math.round(target);
         set({ dailyCalorieTarget: roundedTarget });
 
-        // Calculate macros (30% protein, 25% fat, 45% carbs)
-        const macros = {
-          protein: Math.round((roundedTarget * 0.3) / 4), // 4 cal per gram
-          fats: Math.round((roundedTarget * 0.25) / 9), // 9 cal per gram
-          carbs: Math.round((roundedTarget * 0.45) / 4), // 4 cal per gram
-        };
+        // Calculate macros based on diet preference
+        const macros = calculateMacrosForDiet(
+          roundedTarget,
+          dietPreference || 'balanced',
+          goal
+        );
 
         set({ macros });
         return roundedTarget;
+      },
+
+      calculateMicronutrients: () => {
+        const { onboardingData, dailyCalorieTarget } = get();
+
+        if (!dailyCalorieTarget) return;
+
+        const micronutrients = calculateDailyMicronutrients({
+          ...onboardingData,
+          dailyCalorieTarget,
+        });
+
+        set({ micronutrients });
+        return micronutrients;
       },
 
       setWeightChangeRate: (rate) => set({ targetWeightChangeRate: rate }),
@@ -185,6 +249,7 @@ const useUserStore = create(
         dailyCalorieTarget: state.dailyCalorieTarget,
         targetWeightChangeRate: state.targetWeightChangeRate,
         macros: state.macros,
+        micronutrients: state.micronutrients,
       }),
     }
   )

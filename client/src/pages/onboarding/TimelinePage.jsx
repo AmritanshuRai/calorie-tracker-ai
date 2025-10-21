@@ -60,7 +60,7 @@ const TimelinePage = () => {
   const validation = getValidation(weeklyRate);
 
   const handleContinue = () => {
-    navigate('/onboarding/diet-preference');
+    navigate('/onboarding/activity');
   };
 
   return (

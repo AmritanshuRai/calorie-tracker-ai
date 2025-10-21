@@ -70,6 +70,36 @@ model UserOnboarding {
   healthConditions        String[] @default([]) // Array of condition IDs
   customHealthConditions  String[] @default([]) // Array of custom condition strings
   
+  // Women-specific health data
+  pregnancyStatus  String? // none, pregnant, lactating, both
+  trimester        String? // first, second, third
+  menstrualCycle   String? // regular, heavy, irregular, none
+  
+  // Lifestyle factors
+  smokingStatus       String? // never, former, current
+  cigarettesPerDay    Int?
+  alcoholFrequency    String? // never, rarely, moderate, regular, daily
+  drinksPerOccasion   Int?
+  caffeineIntake      String? // none, low, moderate, high
+  
+  // Environmental factors
+  sunExposure      String? // minimal, moderate, adequate, high
+  climate          String? // hot_humid, hot_dry, moderate, cold, very_cold
+  skinTone         String? // very_fair, fair, medium, olive, brown, dark_brown, very_dark
+  
+  // Health metrics
+  sleepHours       Float?
+  stressLevel      String? // low, moderate, high, severe
+  waterIntake      Float?  // liters per day
+  
+  // Medical information
+  medications            String[] @default([]) // Array of medication types
+  previousDeficiencies   String[] @default([]) // Array of known deficiencies
+  
+  // Exercise details
+  exerciseTypes     String[] @default([])
+  exerciseIntensity String? // light, moderate, vigorous, very_vigorous
+  
   // Calculated values at the time
   bmr                    Int?
   tdee                   Int?
@@ -78,6 +108,30 @@ model UserOnboarding {
   proteinTarget          Int?
   carbsTarget            Int?
   fatsTarget             Int?
+  
+  // Micronutrient targets
+  vitaminATarget    Float?
+  vitaminCTarget    Float?
+  vitaminDTarget    Float?
+  vitaminETarget    Float?
+  vitaminKTarget    Float?
+  vitaminB1Target   Float?
+  vitaminB2Target   Float?
+  vitaminB3Target   Float?
+  vitaminB5Target   Float?
+  vitaminB6Target   Float?
+  vitaminB9Target   Float?
+  vitaminB12Target  Float?
+  calciumTarget     Float?
+  ironTarget        Float?
+  magnesiumTarget   Float?
+  phosphorusTarget  Float?
+  potassiumTarget   Float?
+  sodiumTarget      Float?
+  zincTarget        Float?
+  seleniumTarget    Float?
+  copperTarget      Float?
+  manganeseTarget   Float?
   
   // Metadata
   completedAt DateTime @default(now())

@@ -64,8 +64,8 @@ const WeightPage = () => {
       });
     }
 
-    // Always go to activity page next
-    navigate('/onboarding/activity');
+    // Always go to timeline page next
+    navigate('/onboarding/timeline');
   };
 
   const weightDifference =

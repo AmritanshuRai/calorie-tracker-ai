@@ -21,9 +21,13 @@ const FinalPlanPage = () => {
   );
   const dailyCalorieTarget = useUserStore((state) => state.dailyCalorieTarget);
   const macros = useUserStore((state) => state.macros);
+  const micronutrients = useUserStore((state) => state.micronutrients);
   const setUser = useUserStore((state) => state.setUser);
   const targetWeightChangeRate = useUserStore(
     (state) => state.targetWeightChangeRate
+  );
+  const calculateMicronutrients = useUserStore(
+    (state) => state.calculateMicronutrients
   );
 
   const [loading, setLoading] = useState(false);
@@ -34,11 +38,32 @@ const FinalPlanPage = () => {
   // Use the weeklyRate from onboarding data (set in TimelinePage)
   const weeklyRate = onboardingData.weeklyRate || 0.5;
 
+  // Calculate actual macro percentages based on calories
+  const macroPercentages = {
+    protein: macros?.protein
+      ? Math.round(((macros.protein * 4) / dailyCalorieTarget) * 100)
+      : 0,
+    carbs: macros?.carbs
+      ? Math.round(((macros.carbs * 4) / dailyCalorieTarget) * 100)
+      : 0,
+    fats: macros?.fats
+      ? Math.round(((macros.fats * 9) / dailyCalorieTarget) * 100)
+      : 0,
+  };
+
   useEffect(() => {
     const rate = isImprovedHealth ? 0 : weeklyRate;
     calculateDailyTarget(rate);
     setWeightChangeRate(rate);
-  }, [weeklyRate, calculateDailyTarget, setWeightChangeRate, isImprovedHealth]);
+    // Calculate micronutrients after calorie target is set
+    calculateMicronutrients();
+  }, [
+    weeklyRate,
+    calculateDailyTarget,
+    setWeightChangeRate,
+    isImprovedHealth,
+    calculateMicronutrients,
+  ]);
 
   const calorieAdjustment = isImprovedHealth ? 0 : tdee - dailyCalorieTarget;
 
@@ -61,6 +86,26 @@ const FinalPlanPage = () => {
         dietPreference: onboardingData.dietPreference,
         healthConditions: onboardingData.healthConditions || [],
         customHealthConditions: onboardingData.customHealthConditions || [],
+        // New health profile data
+        pregnancyStatus: onboardingData.pregnancyStatus,
+        trimester: onboardingData.trimester,
+        menstrualCycle: onboardingData.menstrualCycle,
+        smokingStatus: onboardingData.smokingStatus,
+        cigarettesPerDay: onboardingData.cigarettesPerDay,
+        alcoholFrequency: onboardingData.alcoholFrequency,
+        drinksPerOccasion: onboardingData.drinksPerOccasion,
+        caffeineIntake: onboardingData.caffeineIntake,
+        sunExposure: onboardingData.sunExposure,
+        climate: onboardingData.climate,
+        skinTone: onboardingData.skinTone,
+        sleepHours: onboardingData.sleepHours,
+        stressLevel: onboardingData.stressLevel,
+        waterIntake: onboardingData.waterIntake,
+        medications: onboardingData.medications || [],
+        previousDeficiencies: onboardingData.previousDeficiencies || [],
+        exerciseTypes: onboardingData.exerciseTypes || [],
+        exerciseIntensity: onboardingData.exerciseIntensity,
+        // Calculated values
         bmr,
         tdee,
         dailyCalorieTarget,
@@ -68,6 +113,29 @@ const FinalPlanPage = () => {
         proteinTarget: macros.protein,
         carbsTarget: macros.carbs,
         fatsTarget: macros.fats,
+        // Micronutrient targets
+        vitaminATarget: micronutrients.vitaminA,
+        vitaminCTarget: micronutrients.vitaminC,
+        vitaminDTarget: micronutrients.vitaminD,
+        vitaminETarget: micronutrients.vitaminE,
+        vitaminKTarget: micronutrients.vitaminK,
+        vitaminB1Target: micronutrients.vitaminB1,
+        vitaminB2Target: micronutrients.vitaminB2,
+        vitaminB3Target: micronutrients.vitaminB3,
+        vitaminB5Target: micronutrients.vitaminB5,
+        vitaminB6Target: micronutrients.vitaminB6,
+        vitaminB9Target: micronutrients.vitaminB9,
+        vitaminB12Target: micronutrients.vitaminB12,
+        calciumTarget: micronutrients.calcium,
+        ironTarget: micronutrients.iron,
+        magnesiumTarget: micronutrients.magnesium,
+        phosphorusTarget: micronutrients.phosphorus,
+        potassiumTarget: micronutrients.potassium,
+        sodiumTarget: micronutrients.sodium,
+        zincTarget: micronutrients.zinc,
+        seleniumTarget: micronutrients.selenium,
+        copperTarget: micronutrients.copper,
+        manganeseTarget: micronutrients.manganese,
       };
 
       // Save to backend
@@ -197,7 +265,7 @@ const FinalPlanPage = () => {
                 </div>
                 <div className='text-sm font-bold text-slate-600'>Protein</div>
                 <div className='text-xs font-medium text-slate-500 mt-1'>
-                  30%
+                  {macroPercentages.protein}%
                 </div>
               </div>
               <div className='text-center'>
@@ -209,7 +277,7 @@ const FinalPlanPage = () => {
                 </div>
                 <div className='text-sm font-bold text-slate-600'>Carbs</div>
                 <div className='text-xs font-medium text-slate-500 mt-1'>
-                  45%
+                  {macroPercentages.carbs}%
                 </div>
               </div>
               <div className='text-center'>
@@ -221,7 +289,7 @@ const FinalPlanPage = () => {
                 </div>
                 <div className='text-sm font-bold text-slate-600'>Fats</div>
                 <div className='text-xs font-medium text-slate-500 mt-1'>
-                  25%
+                  {macroPercentages.fats}%
                 </div>
               </div>
             </div>

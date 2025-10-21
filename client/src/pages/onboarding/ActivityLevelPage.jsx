@@ -56,7 +56,13 @@ const ActivityLevelPage = () => {
       alert('Please select an activity level');
       return;
     }
-    navigate('/onboarding/timeline');
+
+    // Route based on gender
+    if (onboardingData.gender === 'female') {
+      navigate('/onboarding/pregnancy-status');
+    } else {
+      navigate('/onboarding/lifestyle-habits');
+    }
   };
 
   return (
@@ -204,11 +210,11 @@ const ActivityLevelPage = () => {
 
         {/* Progress indicator */}
         <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all ${
-                i <= 6 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
+                i <= 5 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
               }`}
             />
           ))}

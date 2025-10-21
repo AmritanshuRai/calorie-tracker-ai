@@ -23,6 +23,12 @@ import HeightPage from './pages/onboarding/HeightPage';
 import WeightPage from './pages/onboarding/WeightPage';
 import TimelinePage from './pages/onboarding/TimelinePage';
 import ActivityLevelPage from './pages/onboarding/ActivityLevelPage';
+import PregnancyStatusPage from './pages/onboarding/PregnancyStatusPage';
+import LifestyleHabitsPage from './pages/onboarding/LifestyleHabitsPage';
+import EnvironmentPage from './pages/onboarding/EnvironmentPage';
+import HealthMetricsPage from './pages/onboarding/HealthMetricsPage';
+import MedicationsPage from './pages/onboarding/MedicationsPage';
+import ExerciseDetailsPage from './pages/onboarding/ExerciseDetailsPage';
 import DietPreferencePage from './pages/onboarding/DietPreferencePage';
 import HealthConditionsPage from './pages/onboarding/HealthConditionsPage';
 import FinalPlanPage from './pages/onboarding/FinalPlanPage';
@@ -115,6 +121,54 @@ function App() {
             element={
               <ProtectedRoute>
                 <ActivityLevelPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/pregnancy-status'
+            element={
+              <ProtectedRoute>
+                <PregnancyStatusPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/lifestyle-habits'
+            element={
+              <ProtectedRoute>
+                <LifestyleHabitsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/environment'
+            element={
+              <ProtectedRoute>
+                <EnvironmentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/health-metrics'
+            element={
+              <ProtectedRoute>
+                <HealthMetricsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/medications'
+            element={
+              <ProtectedRoute>
+                <MedicationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/exercise-details'
+            element={
+              <ProtectedRoute>
+                <ExerciseDetailsPage />
               </ProtectedRoute>
             }
           />
