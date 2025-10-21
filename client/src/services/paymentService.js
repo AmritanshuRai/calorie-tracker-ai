@@ -45,9 +45,18 @@ export const getPaymentHistory = async () => {
 /**
  * Cancel active subscription
  * @param {string} reason - Cancellation reason
+ * @param {boolean} immediate - Cancel immediately or at end of cycle
  */
-export const cancelSubscription = async (reason) => {
-  const response = await api.post('/payment/cancel', { reason });
+export const cancelSubscription = async (reason, immediate = false) => {
+  const response = await api.post('/payment/cancel', { reason, immediate });
+  return response.data;
+};
+
+/**
+ * Reactivate cancelled subscription
+ */
+export const reactivateSubscription = async () => {
+  const response = await api.post('/payment/reactivate');
   return response.data;
 };
 

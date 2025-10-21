@@ -381,7 +381,7 @@ router.get('/history', authenticateToken, async (req, res) => {
 router.post('/cancel', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId; // JWT stores it as userId
-    const { reason } = req.body;
+    const { reason, immediate } = req.body;
 
     // Get active subscription
     const subscription = await prisma.subscription.findFirst({
@@ -398,6 +398,20 @@ router.post('/cancel', authenticateToken, async (req, res) => {
       return res.status(404).json({
         error: 'No active subscription found',
       });
+    }
+
+    // Cancel on Razorpay (will cancel at cycle end by default)
+    try {
+      const { cancelSubscription: cancelRazorpaySubscription } = await import(
+        '../services/razorpay.js'
+      );
+      await cancelRazorpaySubscription(
+        subscription.razorpaySubscriptionId,
+        !immediate // cancelAtCycleEnd
+      );
+    } catch (razorpayError) {
+      console.error('Razorpay cancellation error:', razorpayError);
+      // Continue with local cancellation even if Razorpay fails
     }
 
     // Update subscription status to cancelled
@@ -420,13 +434,78 @@ router.post('/cancel', authenticateToken, async (req, res) => {
 
     res.json({
       success: true,
-      message:
-        'Subscription cancelled. You can continue using Pro features until the end of your billing period.',
+      message: immediate
+        ? 'Subscription cancelled immediately.'
+        : 'Subscription cancelled. You can continue using Pro features until the end of your billing period.',
       endDate: subscription.endDate,
     });
   } catch (error) {
     console.error('Error cancelling subscription:', error);
     res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
+/**
+ * Reactivate cancelled subscription
+ * POST /api/payment/reactivate
+ */
+router.post('/reactivate', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get cancelled subscription that hasn't expired yet
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: 'cancelled',
+        endDate: {
+          gte: new Date(), // End date is in the future
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        error:
+          'No cancelled subscription found or subscription has already expired',
+      });
+    }
+
+    // Reactivate subscription in database
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        status: 'active',
+        cancelledAt: null,
+        cancelReason: null,
+      },
+    });
+
+    // Update user status
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        subscriptionStatus: 'active',
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Subscription reactivated successfully!',
+      subscription: {
+        id: subscription.id,
+        plan: subscription.plan,
+        status: 'active',
+        endDate: subscription.endDate,
+        nextBillingDate: subscription.nextBillingDate,
+      },
+    });
+  } catch (error) {
+    console.error('Error reactivating subscription:', error);
+    res.status(500).json({ error: 'Failed to reactivate subscription' });
   }
 });
 

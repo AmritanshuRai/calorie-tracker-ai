@@ -17,11 +17,18 @@ import {
   Heart,
   Sparkles,
   CreditCard,
+  XCircle,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { authService } from '../services/authService';
+import {
+  cancelSubscription,
+  reactivateSubscription,
+} from '../services/paymentService';
 
 export default function Account() {
   const navigate = useNavigate();
@@ -32,15 +39,61 @@ export default function Account() {
   const macros = useUserStore((state) => state.macros);
   const bmr = useUserStore((state) => state.bmr);
   const tdee = useUserStore((state) => state.tdee);
+  const setUser = useUserStore((state) => state.setUser);
 
   // Tab state - default to 'profile'
   const [activeTab, setActiveTab] = useState('profile');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handleLogout = () => {
     logout();
     authService.logout();
   };
 
+  const handleCancelSubscription = async () => {
+    if (!showCancelConfirm) {
+      setShowCancelConfirm(true);
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      await cancelSubscription('User requested cancellation');
+
+      // Refresh user profile
+      const profile = await authService.getProfile();
+      setUser(profile);
+
+      setShowCancelConfirm(false);
+      alert(
+        'Subscription cancelled successfully. You can continue using Pro features until the end of your billing period.'
+      );
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      alert('Failed to cancel subscription. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReactivateSubscription = async () => {
+    try {
+      setIsProcessing(true);
+      await reactivateSubscription();
+
+      // Refresh user profile
+      const profile = await authService.getProfile();
+      setUser(profile);
+
+      alert('Subscription reactivated successfully!');
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      alert('Failed to reactivate subscription. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
   const getUserInitials = () => {
     if (!user?.name) return 'U';
     const names = user.name.split(' ');
@@ -365,7 +418,8 @@ export default function Account() {
             {/* Subscription Tab */}
             {activeTab === 'subscription' && (
               <>
-                {user?.isPro && user?.subscription ? (
+                {(user?.isPro || user?.subscriptionStatus === 'cancelled') &&
+                user?.subscription ? (
                   <>
                     {/* Subscription Status */}
                     <Card variant='default' padding='lg'>
@@ -378,7 +432,9 @@ export default function Account() {
                             Pro Subscription
                           </h3>
                           <p className='text-sm font-medium text-slate-600'>
-                            Active subscription
+                            {user.subscriptionStatus === 'cancelled'
+                              ? 'Cancelled - Active until end date'
+                              : 'Active subscription'}
                           </p>
                         </div>
                       </div>
@@ -395,14 +451,22 @@ export default function Account() {
                           <span className='text-sm font-semibold text-slate-700'>
                             Status
                           </span>
-                          <span className='inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full'>
-                            ● Active
-                          </span>
+                          {user.subscriptionStatus === 'cancelled' ? (
+                            <span className='inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 text-sm font-bold rounded-full'>
+                              ⚠ Cancelled
+                            </span>
+                          ) : (
+                            <span className='inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full'>
+                              ● Active
+                            </span>
+                          )}
                         </div>
                         {user.subscription.nextBillingDate && (
                           <div className='flex justify-between items-center'>
                             <span className='text-sm font-semibold text-slate-700'>
-                              Next Billing
+                              {user.subscriptionStatus === 'cancelled'
+                                ? 'Access Until'
+                                : 'Next Billing'}
                             </span>
                             <span className='text-base font-bold text-slate-900'>
                               {new Date(
@@ -413,6 +477,95 @@ export default function Account() {
                                 year: 'numeric',
                               })}
                             </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Cancel/Reactivate Section */}
+                      <div className='mt-6 pt-6 border-t-2 border-slate-200'>
+                        {user.subscriptionStatus === 'cancelled' &&
+                        user.subscription.nextBillingDate &&
+                        new Date(user.subscription.nextBillingDate) >
+                          new Date() ? (
+                          // Show reactivate option
+                          <div className='space-y-4'>
+                            <div className='flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200'>
+                              <AlertCircle className='w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5' />
+                              <div className='flex-1'>
+                                <p className='text-sm font-semibold text-blue-900 mb-1'>
+                                  Subscription Cancelled
+                                </p>
+                                <p className='text-xs text-blue-700'>
+                                  Your subscription will remain active until{' '}
+                                  {new Date(
+                                    user.subscription.nextBillingDate
+                                  ).toLocaleDateString('en-IN', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                  })}
+                                  . You can reactivate it anytime before then.
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={handleReactivateSubscription}
+                              disabled={isProcessing}
+                              className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'>
+                              <RefreshCw
+                                className={`w-5 h-5 mr-2 ${
+                                  isProcessing ? 'animate-spin' : ''
+                                }`}
+                              />
+                              {isProcessing
+                                ? 'Reactivating...'
+                                : 'Reactivate Subscription'}
+                            </Button>
+                          </div>
+                        ) : (
+                          // Show cancel option
+                          <div className='space-y-4'>
+                            {!showCancelConfirm ? (
+                              <Button
+                                onClick={handleCancelSubscription}
+                                variant='outline'
+                                className='w-full border-red-300 text-red-600 hover:bg-red-50'>
+                                <XCircle className='w-5 h-5 mr-2' />
+                                Cancel Subscription
+                              </Button>
+                            ) : (
+                              <div className='space-y-3'>
+                                <div className='flex items-start gap-3 p-4 bg-red-50 rounded-xl border border-red-200'>
+                                  <AlertCircle className='w-5 h-5 text-red-600 flex-shrink-0 mt-0.5' />
+                                  <div className='flex-1'>
+                                    <p className='text-sm font-semibold text-red-900 mb-1'>
+                                      Are you sure?
+                                    </p>
+                                    <p className='text-xs text-red-700'>
+                                      Your subscription will be cancelled, but
+                                      you'll retain Pro access until the end of
+                                      your current billing period.
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className='flex gap-3'>
+                                  <Button
+                                    onClick={() => setShowCancelConfirm(false)}
+                                    variant='outline'
+                                    className='flex-1'>
+                                    Keep Subscription
+                                  </Button>
+                                  <Button
+                                    onClick={handleCancelSubscription}
+                                    disabled={isProcessing}
+                                    className='flex-1 bg-red-600 hover:bg-red-700 text-white'>
+                                    {isProcessing
+                                      ? 'Cancelling...'
+                                      : 'Confirm Cancellation'}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
