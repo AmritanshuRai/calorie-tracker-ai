@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -15,6 +16,7 @@ import {
   Award,
   Heart,
   Sparkles,
+  CreditCard,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -30,6 +32,9 @@ export default function Account() {
   const macros = useUserStore((state) => state.macros);
   const bmr = useUserStore((state) => state.bmr);
   const tdee = useUserStore((state) => state.tdee);
+
+  // Tab state - default to 'profile'
+  const [activeTab, setActiveTab] = useState('profile');
 
   const handleLogout = () => {
     logout();
@@ -159,9 +164,9 @@ export default function Account() {
       </header>
 
       {/* Main Content */}
-      <main className='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6'>
+      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
         {/* Profile Card */}
-        <Card variant='gradient' padding='lg'>
+        <Card variant='gradient' padding='lg' className='mb-6'>
           <div className='flex flex-col sm:flex-row items-center sm:items-start gap-6'>
             {user?.picture ? (
               <img
@@ -201,173 +206,274 @@ export default function Account() {
           </div>
         </Card>
 
-        {/* Subscription Status - Only show for Pro users */}
-        {user?.isPro && user?.subscription && (
-          <Card variant='default' padding='lg'>
-            <div className='flex items-center gap-3 mb-4'>
-              <div className='p-3 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500'>
-                <Sparkles className='w-6 h-6 text-white' />
-              </div>
-              <div>
-                <h3 className='text-xl font-black text-slate-900'>
-                  Pro Subscription
-                </h3>
-                <p className='text-sm font-medium text-slate-600'>
-                  Active subscription
-                </p>
-              </div>
-            </div>
-            <div className='space-y-3 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200'>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm font-semibold text-slate-700'>
-                  Plan
-                </span>
-                <span className='text-sm font-bold text-slate-900 uppercase'>
-                  {user.subscription.plan || 'Pro'}
-                </span>
-              </div>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm font-semibold text-slate-700'>
-                  Status
-                </span>
-                <span className='inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full'>
-                  ● Active
-                </span>
-              </div>
-              {user.subscription.nextBillingDate && (
-                <div className='flex justify-between items-center'>
-                  <span className='text-sm font-semibold text-slate-700'>
-                    Next Billing
-                  </span>
-                  <span className='text-sm font-bold text-slate-900'>
-                    {new Date(
-                      user.subscription.nextBillingDate
-                    ).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
+        {/* Sidebar and Content Layout */}
+        <div className='flex flex-col lg:flex-row gap-6'>
+          {/* Sidebar */}
+          <aside className='lg:w-64 flex-shrink-0'>
+            <Card padding='none' variant='default'>
+              <nav className='p-2'>
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    activeTab === 'profile'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}>
+                  <User className='w-5 h-5' />
+                  <span className='font-semibold'>Profile</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('subscription')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all mt-2 ${
+                    activeTab === 'subscription'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}>
+                  <CreditCard className='w-5 h-5' />
+                  <span className='font-semibold'>Subscription</span>
+                </button>
+
+                <div className='border-t-2 border-slate-200 mt-4 pt-4'>
+                  <button
+                    onClick={handleLogout}
+                    className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all'>
+                    <LogOut className='w-5 h-5' />
+                    <span className='font-semibold'>Sign Out</span>
+                  </button>
                 </div>
-              )}
-            </div>
-          </Card>
-        )}
+              </nav>
+            </Card>
+          </aside>
 
-        {/* Profile Stats */}
-        <div>
-          <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
-            <User className='w-6 h-6 text-slate-700' />
-            Profile Information
-          </h3>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            {profileStats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <Card key={index} padding='md' variant='default' hoverable>
-                  <div className='flex items-center gap-4'>
-                    <div className='p-3 rounded-xl bg-slate-100 border-2 border-slate-200'>
-                      <Icon className='w-6 h-6 text-slate-700' />
-                    </div>
-                    <div>
-                      <p className='text-sm font-semibold text-slate-600'>
-                        {stat.label}
-                      </p>
-                      <p className='text-xl font-black text-slate-900'>
-                        {stat.value}
-                      </p>
-                    </div>
+          {/* Content Area */}
+          <div className='flex-1 space-y-6'>
+            {/* Profile Tab */}
+            {activeTab === 'profile' && (
+              <>
+                {/* Profile Stats */}
+                <div>
+                  <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
+                    <User className='w-6 h-6 text-slate-700' />
+                    Profile Information
+                  </h3>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                    {profileStats.map((stat, index) => {
+                      const Icon = stat.icon;
+                      return (
+                        <Card
+                          key={index}
+                          padding='md'
+                          variant='default'
+                          hoverable>
+                          <div className='flex items-center gap-4'>
+                            <div className='p-3 rounded-xl bg-slate-100 border-2 border-slate-200'>
+                              <Icon className='w-6 h-6 text-slate-700' />
+                            </div>
+                            <div>
+                              <p className='text-sm font-semibold text-slate-600'>
+                                {stat.label}
+                              </p>
+                              <p className='text-xl font-black text-slate-900'>
+                                {stat.value}
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
                   </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
+                </div>
 
-        {/* Nutrition Stats */}
-        <div>
-          <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
-            <Flame className='w-6 h-6 text-slate-700' />
-            Nutrition Targets
-          </h3>
-          <Card padding='lg' variant='default'>
-            <div className='space-y-6'>
-              {nutritionStats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={index}>
-                    <div className='flex items-center justify-between'>
-                      <div className='flex items-center gap-4'>
-                        <div className='p-3 rounded-xl bg-slate-100 border-2 border-slate-200'>
-                          <Icon className='w-6 h-6 text-slate-700' />
+                {/* Nutrition Stats */}
+                <div>
+                  <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
+                    <Flame className='w-6 h-6 text-slate-700' />
+                    Nutrition Targets
+                  </h3>
+                  <Card padding='lg' variant='default'>
+                    <div className='space-y-6'>
+                      {nutritionStats.map((stat, index) => {
+                        const Icon = stat.icon;
+                        return (
+                          <div key={index}>
+                            <div className='flex items-center justify-between'>
+                              <div className='flex items-center gap-4'>
+                                <div className='p-3 rounded-xl bg-slate-100 border-2 border-slate-200'>
+                                  <Icon className='w-6 h-6 text-slate-700' />
+                                </div>
+                                <div>
+                                  <p className='font-black text-slate-900 text-lg'>
+                                    {stat.label}
+                                  </p>
+                                  <p className='text-xs font-medium text-slate-500'>
+                                    {stat.description}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className='text-right'>
+                                <p className='text-3xl font-black text-slate-900'>
+                                  {stat.value}
+                                </p>
+                                <p className='text-sm font-bold text-slate-500'>
+                                  {stat.unit}
+                                </p>
+                              </div>
+                            </div>
+                            {index < nutritionStats.length - 1 && (
+                              <div className='h-0.5 bg-slate-200 mt-6'></div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Macros */}
+                <div>
+                  <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
+                    <Activity className='w-6 h-6 text-slate-700' />
+                    Daily Macros
+                  </h3>
+                  <div className='grid grid-cols-3 gap-4'>
+                    {macroStats.map((macro, index) => {
+                      const Icon = macro.icon;
+                      return (
+                        <Card
+                          key={index}
+                          padding='md'
+                          variant='default'
+                          className='text-center'>
+                          <div className='w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center'>
+                            <Icon className='w-6 h-6 text-slate-700' />
+                          </div>
+                          <p className='text-2xl font-black text-slate-900 mb-1'>
+                            {macro.value}
+                          </p>
+                          <p className='text-xs font-bold text-slate-600 uppercase tracking-wide'>
+                            {macro.label}
+                          </p>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Subscription Tab */}
+            {activeTab === 'subscription' && (
+              <>
+                {user?.isPro && user?.subscription ? (
+                  <>
+                    {/* Subscription Status */}
+                    <Card variant='default' padding='lg'>
+                      <div className='flex items-center gap-3 mb-6'>
+                        <div className='p-3 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500'>
+                          <Sparkles className='w-6 h-6 text-white' />
                         </div>
                         <div>
-                          <p className='font-black text-slate-900 text-lg'>
-                            {stat.label}
-                          </p>
-                          <p className='text-xs font-medium text-slate-500'>
-                            {stat.description}
+                          <h3 className='text-xl font-black text-slate-900'>
+                            Pro Subscription
+                          </h3>
+                          <p className='text-sm font-medium text-slate-600'>
+                            Active subscription
                           </p>
                         </div>
                       </div>
-                      <div className='text-right'>
-                        <p className='text-3xl font-black text-slate-900'>
-                          {stat.value}
-                        </p>
-                        <p className='text-sm font-bold text-slate-500'>
-                          {stat.unit}
-                        </p>
+                      <div className='space-y-4 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-6 border border-yellow-200'>
+                        <div className='flex justify-between items-center pb-3 border-b border-yellow-200'>
+                          <span className='text-sm font-semibold text-slate-700'>
+                            Plan
+                          </span>
+                          <span className='text-base font-bold text-slate-900 uppercase'>
+                            {user.subscription.plan || 'Pro'}
+                          </span>
+                        </div>
+                        <div className='flex justify-between items-center pb-3 border-b border-yellow-200'>
+                          <span className='text-sm font-semibold text-slate-700'>
+                            Status
+                          </span>
+                          <span className='inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full'>
+                            ● Active
+                          </span>
+                        </div>
+                        {user.subscription.nextBillingDate && (
+                          <div className='flex justify-between items-center'>
+                            <span className='text-sm font-semibold text-slate-700'>
+                              Next Billing
+                            </span>
+                            <span className='text-base font-bold text-slate-900'>
+                              {new Date(
+                                user.subscription.nextBillingDate
+                              ).toLocaleDateString('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        )}
                       </div>
+                    </Card>
+
+                    {/* Subscription Benefits */}
+                    <Card variant='default' padding='lg'>
+                      <h3 className='text-xl font-black text-slate-900 mb-6 flex items-center gap-2'>
+                        <Sparkles className='w-6 h-6 text-yellow-500' />
+                        Pro Benefits
+                      </h3>
+                      <div className='space-y-4'>
+                        {[
+                          'Unlimited food logging',
+                          'Advanced AI-powered nutrition tracking',
+                          '30+ nutrients tracked per meal',
+                          'Detailed vitamin and mineral analysis',
+                          'Priority customer support',
+                          'Ad-free experience',
+                        ].map((benefit, index) => (
+                          <div
+                            key={index}
+                            className='flex items-start gap-3 p-3 rounded-lg hover:bg-emerald-50 transition-colors'>
+                            <div className='flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center'>
+                              <span className='text-white text-xs font-bold'>
+                                ✓
+                              </span>
+                            </div>
+                            <p className='text-slate-700 font-medium'>
+                              {benefit}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </>
+                ) : (
+                  <Card variant='default' padding='lg'>
+                    <div className='text-center py-12'>
+                      <div className='w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center'>
+                        <CreditCard className='w-10 h-10 text-slate-400' />
+                      </div>
+                      <h3 className='text-2xl font-black text-slate-900 mb-3'>
+                        No Active Subscription
+                      </h3>
+                      <p className='text-slate-600 mb-6 max-w-md mx-auto'>
+                        Upgrade to Pro to unlock unlimited food logging and
+                        advanced nutrition tracking features.
+                      </p>
+                      <Button
+                        onClick={() => navigate('/upgrade')}
+                        className='bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg'>
+                        <Sparkles className='w-5 h-5 mr-2' />
+                        Upgrade to Pro
+                      </Button>
                     </div>
-                    {index < nutritionStats.length - 1 && (
-                      <div className='h-0.5 bg-slate-200 mt-6'></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </div>
-
-        {/* Macros */}
-        <div>
-          <h3 className='text-xl font-black text-slate-900 mb-4 flex items-center gap-2'>
-            <Activity className='w-6 h-6 text-slate-700' />
-            Daily Macros
-          </h3>
-          <div className='grid grid-cols-3 gap-4'>
-            {macroStats.map((macro, index) => {
-              const Icon = macro.icon;
-              return (
-                <Card
-                  key={index}
-                  padding='md'
-                  variant='default'
-                  className='text-center'>
-                  <div className='w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center'>
-                    <Icon className='w-6 h-6 text-slate-700' />
-                  </div>
-                  <p className='text-2xl font-black text-slate-900 mb-1'>
-                    {macro.value}
-                  </p>
-                  <p className='text-xs font-bold text-slate-600 uppercase tracking-wide'>
-                    {macro.label}
-                  </p>
-                </Card>
-              );
-            })}
+                  </Card>
+                )}
+              </>
+            )}
           </div>
-        </div>
-
-        {/* Logout Button */}
-        <div className='pt-4'>
-          <Button
-            variant='danger'
-            onClick={handleLogout}
-            fullWidth
-            icon={<LogOut className='w-5 h-5' />}>
-            Sign Out
-          </Button>
         </div>
       </main>
     </div>
