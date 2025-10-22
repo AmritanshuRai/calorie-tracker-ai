@@ -1,9 +1,11 @@
 import api from './api';
 
 export const authService = {
-  // Google Sign-in
-  googleSignIn: async (googleToken) => {
-    const response = await api.post('/auth/google', { token: googleToken });
+  // Google Sign-in with authorization code
+  googleSignIn: async (authorizationCode) => {
+    const response = await api.post('/auth/google', {
+      code: authorizationCode,
+    });
     return response.data;
   },
 

@@ -5,20 +5,39 @@ import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri:
+    process.env.GOOGLE_REDIRECT_URI ||
+    'http://localhost:3001/api/auth/google/callback',
+});
 
-// Google Sign-in
-router.post('/google', async (req, res) => {
+// Initiate Google OAuth flow
+router.get('/google', (req, res) => {
+  const authUrl = googleClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['openid', 'email', 'profile'],
+    prompt: 'select_account',
+  });
+  res.redirect(authUrl);
+});
+
+// Google OAuth callback
+router.get('/google/callback', async (req, res) => {
   try {
-    const { token } = req.body;
+    const { code } = req.query;
 
-    if (!token) {
-      return res.status(400).json({ error: 'Token is required' });
+    if (!code) {
+      return res.redirect(`${process.env.CLIENT_URL}?error=no_code`);
     }
 
-    // Verify Google token
+    // Exchange authorization code for tokens
+    const { tokens } = await googleClient.getToken(code);
+
+    // Verify the ID token
     const ticket = await googleClient.verifyIdToken({
-      idToken: token,
+      idToken: tokens.id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
@@ -68,20 +87,15 @@ router.post('/google', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.json({
-      token: jwtToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        picture: user.picture,
-        profileCompleted: user.profileCompleted,
-        isAdmin: user.isAdmin,
-      },
-    });
+    // Redirect to frontend with token and user data
+    const redirectUrl = user.profileCompleted
+      ? `${process.env.CLIENT_URL}?token=${jwtToken}&action=signin`
+      : `${process.env.CLIENT_URL}?token=${jwtToken}&action=onboarding`;
+
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google auth error:', error);
-    res.status(500).json({ error: 'Authentication failed' });
+    res.redirect(`${process.env.CLIENT_URL}?error=auth_failed`);
   }
 });
 

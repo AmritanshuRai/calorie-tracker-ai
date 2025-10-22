@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import Button from '../components/Button';
 import Logo, { LogoIcon } from '../components/Logo';
@@ -9,95 +9,79 @@ import { authService } from '../services/authService';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const setUser = useUserStore((state) => state.setUser);
   const setToken = useUserStore((state) => state.setToken);
 
-  const handleGoogleResponse = useCallback(
-    async (response) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Send the credential to your backend
-        const data = await authService.googleSignIn(response.credential);
-
-        // Store token first
-        setToken(data.token);
-
-        // If profile is completed, fetch full profile data including onboarding info
-        if (data.user.profileCompleted) {
-          const fullProfile = await authService.getProfile();
-          setUser(fullProfile);
-          navigate('/dashboard');
-        } else {
-          // Just store basic user data for onboarding
-          setUser(data.user);
-          navigate('/onboarding/gender');
-        }
-      } catch (err) {
-        console.error('Sign-in error:', err);
-        setError(
-          err.response?.data?.error || 'Failed to sign in. Please try again.'
-        );
-        setLoading(false);
-      }
-    },
-    [navigate, setUser, setToken]
-  );
-
+  // Handle OAuth callback
   useEffect(() => {
-    // Load Google Sign-In script
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
+    const handleCallback = async () => {
+      const code = searchParams.get('code');
+      const error = searchParams.get('error');
 
-    script.onload = () => {
-      console.log('Google script loaded');
-      // Initialize Google Sign-In
-      if (window.google) {
-        console.log(
-          'Initializing Google Sign-In with client ID:',
-          import.meta.env.VITE_GOOGLE_CLIENT_ID
-        );
-        window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          callback: handleGoogleResponse,
-        });
-        console.log('Google Sign-In initialized');
-      } else {
-        console.error('window.google not available');
+      if (error) {
+        setError('Google Sign-In was cancelled or failed. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      if (code) {
+        setLoading(true);
+        try {
+          // Exchange authorization code for user data
+          const data = await authService.googleSignIn(code);
+
+          // Store token first
+          setToken(data.token);
+
+          // If profile is completed, fetch full profile data including onboarding info
+          if (data.user.profileCompleted) {
+            const fullProfile = await authService.getProfile();
+            setUser(fullProfile);
+            navigate('/dashboard');
+          } else {
+            // Just store basic user data for onboarding
+            setUser(data.user);
+            navigate('/onboarding/gender');
+          }
+        } catch (err) {
+          console.error('Sign-in error:', err);
+          setError(
+            err.response?.data?.error || 'Failed to sign in. Please try again.'
+          );
+          setLoading(false);
+        }
       }
     };
 
-    script.onerror = () => {
-      console.error('Failed to load Google Sign-In script');
-      setError(
-        'Failed to load Google Sign-In. Please check your internet connection.'
-      );
-    };
-
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [handleGoogleResponse]);
+    handleCallback();
+  }, [searchParams, navigate, setUser, setToken]);
 
   const handleGoogleSignIn = () => {
-    console.log('Sign-in button clicked');
     setError(null);
-    if (window.google) {
-      console.log('Showing Google One Tap prompt');
-      window.google.accounts.id.prompt(); // Show One Tap dialog
-    } else {
-      console.error('window.google not available');
-      setError('Google Sign-In not loaded. Please refresh the page.');
-    }
+    setLoading(true);
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/signin`;
+    const scope = 'openid email profile';
+    const responseType = 'code';
+    const accessType = 'offline';
+    const prompt = 'select_account';
+
+    // Build Google OAuth URL
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&response_type=${responseType}` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&access_type=${accessType}` +
+      `&prompt=${prompt}`;
+
+    // Redirect to Google
+    window.location.href = googleAuthUrl;
   };
 
   return (
