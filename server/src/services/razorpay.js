@@ -12,6 +12,14 @@ const razorpay = new Razorpay({
 
 // Subscription plans configuration
 export const SUBSCRIPTION_PLANS = {
+  test: {
+    amount: 100, // ₹1 in paise for testing
+    period: 'monthly',
+    interval: 1,
+    name: 'Test Plan - ₹1',
+    description: 'Test subscription for live payment testing (₹1)',
+    planId: null,
+  },
   monthly: {
     amount: 19700, // Amount in paise (₹197)
     period: 'monthly',

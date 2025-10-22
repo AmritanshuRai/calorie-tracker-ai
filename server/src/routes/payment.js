@@ -22,6 +22,14 @@ const router = express.Router();
 router.get('/plans', (req, res) => {
   try {
     const plans = {
+      test: {
+        id: 'test',
+        name: SUBSCRIPTION_PLANS.test.name,
+        amount: SUBSCRIPTION_PLANS.test.amount / 100, // Convert paise to rupees
+        period: 'month',
+        description: SUBSCRIPTION_PLANS.test.description,
+        savings: null,
+      },
       monthly: {
         id: 'monthly',
         name: SUBSCRIPTION_PLANS.monthly.name,
@@ -55,7 +63,7 @@ router.get('/plans', (req, res) => {
 router.post('/create-order', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId; // JWT stores it as userId
-    const { plan } = req.body; // 'monthly' or 'annual'
+    const { plan } = req.body; // 'monthly', 'annual', or 'test'
 
     // Validate plan
     if (!plan || !SUBSCRIPTION_PLANS[plan]) {
@@ -70,12 +78,20 @@ router.post('/create-order', authenticateToken, async (req, res) => {
         email: true,
         name: true,
         razorpayCustomerId: true,
+        isAdmin: true,
         subscriptionStatus: true,
       },
     });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if test plan is being used by non-admin
+    if (plan === 'test' && !user.isAdmin) {
+      return res.status(403).json({
+        error: 'Test plan is only available for admin users',
+      });
     }
 
     // Check if user already has an active subscription

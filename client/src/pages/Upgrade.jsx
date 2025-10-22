@@ -28,6 +28,13 @@ export default function Upgrade() {
   const { user, subscription, setSubscription } = useUserStore();
 
   const pricing = {
+    test: {
+      price: 1,
+      period: 'month',
+      total: 1,
+      savings: null,
+      adminOnly: true,
+    },
     monthly: {
       price: 197,
       period: 'month',
@@ -241,7 +248,21 @@ export default function Upgrade() {
         <div className='max-w-md mx-auto'>
           <Card className='p-6 space-y-6 border-2 border-emerald-500 shadow-xl'>
             {/* Billing Toggle */}
-            <div className='flex items-center justify-center gap-4'>
+            <div className='flex items-center justify-center gap-4 flex-wrap'>
+              {user?.isAdmin && (
+                <button
+                  onClick={() => setBillingCycle('test')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all relative ${
+                    billingCycle === 'test'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                  }`}>
+                  Test (₹1)
+                  <span className='absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full'>
+                    Admin
+                  </span>
+                </button>
+              )}
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
@@ -276,6 +297,21 @@ export default function Upgrade() {
                   /{currentPlan.period}
                 </span>
               </div>
+
+              {billingCycle === 'test' && (
+                <div className='space-y-1'>
+                  <p className='text-sm text-purple-600 font-medium'>
+                    ₹1 for testing live payments
+                  </p>
+                  <div className='inline-flex items-center gap-1 px-3 py-1 bg-purple-500/10 text-purple-700 rounded-full text-sm font-medium'>
+                    <Award className='w-3 h-3' />
+                    Admin Test Plan
+                  </div>
+                  <p className='text-xs text-gray-500 mt-2'>
+                    🧪 For testing payment flow with real ₹1
+                  </p>
+                </div>
+              )}
 
               {billingCycle === 'annual' && (
                 <div className='space-y-1'>
