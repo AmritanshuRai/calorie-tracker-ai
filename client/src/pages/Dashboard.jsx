@@ -547,10 +547,9 @@ const Dashboard = () => {
                   value: Math.round(dailyTotals.fats),
                   target: userTargets.fatsTarget,
                   icon: Droplet,
-                  color: 'yellow',
+                  color: 'amber',
                 },
               ].map((stat) => {
-                const Icon = stat.icon;
                 const percentage = stat.target
                   ? Math.min(100, (stat.value / stat.target) * 100)
                   : 0;
@@ -570,11 +569,14 @@ const Dashboard = () => {
                         <CircularProgress
                           value={percentage}
                           color={stat.color}
-                          size='md'
+                          size={80}
+                          strokeWidth={8}
                           showValue={false}
                         />
                         <div className='absolute inset-0 flex items-center justify-center'>
-                          <Icon className='w-8 h-8 text-slate-700' />
+                          <span className='text-lg font-bold text-slate-700'>
+                            {Math.round(percentage)}%
+                          </span>
                         </div>
                       </div>
 

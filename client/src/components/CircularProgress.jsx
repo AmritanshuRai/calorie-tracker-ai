@@ -42,6 +42,7 @@ const CircularProgress = ({
     yellow: { start: '#ca8a04', end: '#a16207', bg: '#fffde7' },
     purple: { start: '#9333ea', end: '#7e22ce', bg: '#f3e5f5' },
     white: { start: '#ffffff', end: '#f1f5f9', bg: 'rgba(255, 255, 255, 0.1)' },
+    slate: { start: '#64748b', end: '#475569', bg: '#f1f5f9' },
   };
 
   const selectedGradient = colorGradients[color] || colorGradients.emerald;

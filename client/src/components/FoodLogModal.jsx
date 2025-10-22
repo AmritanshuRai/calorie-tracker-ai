@@ -1,6 +1,18 @@
 import { useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X,
+  Loader2,
+  CheckCircle2,
+  UtensilsCrossed,
+  Sunrise,
+  Sun,
+  Moon,
+  Candy,
+  ChevronLeft,
+  BarChart3,
+} from 'lucide-react';
 import { foodService } from '../services/foodService';
 import Button from './Button';
 import Input from './Input';
@@ -14,10 +26,10 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
   const [error, setError] = useState('');
 
   const mealTypes = [
-    { value: 'breakfast', label: '🌅 Breakfast', emoji: '🌅' },
-    { value: 'lunch', label: '☀️ Lunch', emoji: '☀️' },
-    { value: 'dinner', label: '🌙 Dinner', emoji: '🌙' },
-    { value: 'snacks', label: '🍿 Snacks', emoji: '🍿' },
+    { value: 'breakfast', label: 'Breakfast', icon: Sunrise },
+    { value: 'lunch', label: 'Lunch', icon: Sun },
+    { value: 'dinner', label: 'Dinner', icon: Moon },
+    { value: 'snacks', label: 'Snacks', icon: Candy },
   ];
 
   const handleParse = async () => {
@@ -178,19 +190,8 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
           {/* Close button */}
           <button
             onClick={handleClose}
-            className='absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10'>
-            <svg
-              className='w-6 h-6 text-gray-600'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
-              />
-            </svg>
+            className='absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full transition-colors z-10'>
+            <X className='w-6 h-6 text-slate-600' />
           </button>
 
           <div className='p-6'>
@@ -198,55 +199,65 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
             {step === 1 && (
               <div className='space-y-6'>
                 <div className='text-center'>
-                  <div className='text-4xl mb-3'>🍽️</div>
-                  <h2 className='text-2xl font-bold text-gray-800'>
+                  <div className='w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center'>
+                    <UtensilsCrossed className='w-7 h-7 text-slate-600' />
+                  </div>
+                  <h2 className='text-2xl font-bold text-slate-800'>
                     Log Your Food
                   </h2>
-                  <p className='text-gray-600 mt-2'>
+                  <p className='text-slate-600 mt-2'>
                     Tell us what you ate, and AI will calculate the nutrition
                   </p>
                 </div>
 
                 {/* Meal Type Selection */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  <label className='block text-sm font-medium text-slate-700 mb-3'>
                     Meal Type
                   </label>
-                  <div className='grid grid-cols-2 gap-2'>
-                    {mealTypes.map((type) => (
-                      <button
-                        key={type.value}
-                        onClick={() => setMealType(type.value)}
-                        className={`p-3 rounded-xl border-2 transition-all ${
-                          mealType === type.value
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}>
-                        <div className='text-2xl mb-1'>{type.emoji}</div>
-                        <div className='text-sm font-medium'>
-                          {type.label.replace(/[^\w\s]/g, '')}
-                        </div>
-                      </button>
-                    ))}
+                  <div className='grid grid-cols-4 gap-2'>
+                    {mealTypes.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <button
+                          key={type.value}
+                          onClick={() => setMealType(type.value)}
+                          className={`p-2.5 rounded-xl border-2 transition-all ${
+                            mealType === type.value
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                              : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                          }`}>
+                          <Icon className='w-5 h-5 mx-auto mb-1' />
+                          <div className='text-xs font-semibold'>
+                            {type.label}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Food Input */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  <label className='block text-sm font-medium text-slate-700 mb-2'>
                     What did you eat?
                   </label>
                   <textarea
                     value={foodText}
                     onChange={(e) => setFoodText(e.target.value)}
                     placeholder='e.g., 2 scrambled eggs with toast and orange juice'
-                    className='w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-0 outline-none resize-none'
+                    className='w-full p-4 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 outline-none resize-none text-slate-800 placeholder:text-slate-400'
                     rows={4}
                     disabled={isLoading}
                   />
-                  <p className='text-xs text-gray-500 mt-2'>
-                    💡 Be specific: include quantities, cooking methods, and
-                    ingredients
+                  <p className='text-xs text-slate-500 mt-2 flex items-start gap-1.5'>
+                    <span className='text-amber-500 text-base leading-none'>
+                      💡
+                    </span>
+                    <span>
+                      Be specific: include quantities, cooking methods, and
+                      ingredients
+                    </span>
                   </p>
                 </div>
 
@@ -259,28 +270,10 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 <Button
                   onClick={handleParse}
                   disabled={isLoading || !foodText.trim()}
-                  className='w-full'>
+                  className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'>
                   {isLoading ? (
                     <>
-                      <svg
-                        className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
-                        xmlns='http://www.w3.org/2000/svg'
-                        fill='none'
-                        viewBox='0 0 24 24'>
-                        <circle
-                          className='opacity-25'
-                          cx='12'
-                          cy='12'
-                          r='10'
-                          stroke='currentColor'
-                          strokeWidth='4'
-                        />
-                        <path
-                          className='opacity-75'
-                          fill='currentColor'
-                          d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                        />
-                      </svg>
+                      <Loader2 className='w-5 h-5 mr-2 animate-spin' />
                       Analyzing with AI...
                     </>
                   ) : (
@@ -294,18 +287,20 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
             {step === 2 && parsedData && (
               <div className='space-y-6'>
                 <div className='text-center'>
-                  <div className='text-4xl mb-3'>✅</div>
-                  <h2 className='text-2xl font-bold text-gray-800'>
+                  <div className='w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center'>
+                    <CheckCircle2 className='w-7 h-7 text-emerald-600' />
+                  </div>
+                  <h2 className='text-2xl font-bold text-slate-800'>
                     Review & Confirm
                   </h2>
-                  <p className='text-gray-600 mt-2'>
+                  <p className='text-slate-600 mt-2'>
                     AI analyzed your food. You can edit values before saving.
                   </p>
                 </div>
 
                 {/* Food Name */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  <label className='block text-sm font-medium text-slate-700 mb-2'>
                     Food Name
                   </label>
                   <Input
@@ -316,12 +311,13 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
 
                 {/* Macros */}
                 <div>
-                  <h3 className='text-sm font-medium text-gray-700 mb-3'>
-                    📊 Macronutrients
+                  <h3 className='text-sm font-medium text-slate-700 mb-3 flex items-center gap-2'>
+                    <BarChart3 className='w-4 h-4 text-slate-600' />
+                    Macronutrients
                   </h3>
                   <div className='grid grid-cols-2 gap-3'>
                     <div>
-                      <label className='block text-xs text-gray-600 mb-1'>
+                      <label className='block text-xs text-slate-600 mb-1'>
                         Calories (kcal)
                       </label>
                       <Input
@@ -336,7 +332,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       />
                     </div>
                     <div>
-                      <label className='block text-xs text-gray-600 mb-1'>
+                      <label className='block text-xs text-slate-600 mb-1'>
                         Protein (g)
                       </label>
                       <Input
@@ -348,7 +344,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       />
                     </div>
                     <div>
-                      <label className='block text-xs text-gray-600 mb-1'>
+                      <label className='block text-xs text-slate-600 mb-1'>
                         Carbs (g)
                       </label>
                       <Input
@@ -360,7 +356,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       />
                     </div>
                     <div>
-                      <label className='block text-xs text-gray-600 mb-1'>
+                      <label className='block text-xs text-slate-600 mb-1'>
                         Fats (g)
                       </label>
                       <Input
@@ -378,31 +374,24 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 {(parsedData.fiber ||
                   parsedData.sugar ||
                   parsedData.sodium) && (
-                  <div className='p-4 bg-gray-50 rounded-xl'>
-                    <h3 className='text-sm font-medium text-gray-700 mb-2'>
-                      💊 Additional Nutrients
+                  <div className='p-4 bg-slate-50 rounded-xl border border-slate-200'>
+                    <h3 className='text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5'>
+                      <span className='text-base'>💊</span>
+                      Additional Nutrients
                     </h3>
-                    <div className='grid grid-cols-3 gap-2 text-xs'>
-                      {parsedData.fiber && (
-                        <div>
-                          <span className='text-gray-600'>Fiber:</span>{' '}
-                          <span className='font-medium'>
-                            {parsedData.fiber}g
-                          </span>
-                        </div>
-                      )}
+                    <div className='grid grid-cols-2 gap-x-4 gap-y-1 text-xs'>
                       {parsedData.sugar && (
                         <div>
-                          <span className='text-gray-600'>Sugar:</span>{' '}
-                          <span className='font-medium'>
+                          <span className='text-slate-600'>Sugar:</span>{' '}
+                          <span className='font-semibold text-slate-800'>
                             {parsedData.sugar}g
                           </span>
                         </div>
                       )}
                       {parsedData.sodium && (
                         <div>
-                          <span className='text-gray-600'>Sodium:</span>{' '}
-                          <span className='font-medium'>
+                          <span className='text-slate-600'>Sodium:</span>{' '}
+                          <span className='font-semibold text-slate-800'>
                             {parsedData.sodium}mg
                           </span>
                         </div>
@@ -420,36 +409,19 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 <div className='flex gap-3'>
                   <Button
                     onClick={() => setStep(1)}
-                    variant='secondary'
-                    className='flex-1'
+                    variant='outline'
+                    className='flex-1 border-2 border-slate-300 text-slate-700 hover:bg-slate-50'
                     disabled={isLoading}>
-                    ← Back
+                    <ChevronLeft className='w-4 h-4 mr-1' />
+                    Back
                   </Button>
                   <Button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className='flex-1'>
+                    className='flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'>
                     {isLoading ? (
                       <>
-                        <svg
-                          className='animate-spin -ml-1 mr-2 h-4 w-4 text-white'
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='none'
-                          viewBox='0 0 24 24'>
-                          <circle
-                            className='opacity-25'
-                            cx='12'
-                            cy='12'
-                            r='10'
-                            stroke='currentColor'
-                            strokeWidth='4'
-                          />
-                          <path
-                            className='opacity-75'
-                            fill='currentColor'
-                            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                          />
-                        </svg>
+                        <Loader2 className='w-4 h-4 mr-2 animate-spin' />
                         Saving...
                       </>
                     ) : (
@@ -467,11 +439,13 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
-                  <div className='text-6xl mb-4'>✅</div>
-                  <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+                  <div className='w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center'>
+                    <CheckCircle2 className='w-10 h-10 text-emerald-600' />
+                  </div>
+                  <h2 className='text-2xl font-bold text-slate-800 mb-2'>
                     Food Logged!
                   </h2>
-                  <p className='text-gray-600'>
+                  <p className='text-slate-600'>
                     Your meal has been added to your food log
                   </p>
                 </motion.div>
