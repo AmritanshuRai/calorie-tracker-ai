@@ -12,8 +12,12 @@ import {
   Candy,
   ChevronLeft,
   BarChart3,
+  AlertCircle,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { foodService } from '../services/foodService';
+import useUserStore from '../stores/useUserStore';
+import { FREE_LOGS_LIMIT } from '../utils/constants';
 import Button from './Button';
 import Input from './Input';
 
@@ -24,6 +28,8 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { subscription, user, setUser } = useUserStore();
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: Sunrise },
@@ -35,6 +41,14 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
   const handleParse = async () => {
     if (!foodText.trim()) {
       setError('Please enter what you ate');
+      return;
+    }
+
+    // Check if user has remaining free logs (for free users)
+    if (subscription.freeLogs === 0) {
+      setError(
+        `You have used all ${FREE_LOGS_LIMIT} free logs. Upgrade to Pro for unlimited access.`
+      );
       return;
     }
 
@@ -50,12 +64,32 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         return;
       }
 
+      // Update user's free logs from response
+      if (data.freeLogs !== undefined && user) {
+        setUser({
+          ...user,
+          freeLogs: data.freeLogs,
+        });
+      }
+
       setParsedData(data);
       setStep(2);
     } catch (err) {
-      setError(
-        err.response?.data?.error || 'Failed to parse food. Please try again.'
-      );
+      // Handle free logs exhausted error
+      if (err.response?.data?.code === 'FREE_LOGS_EXHAUSTED') {
+        setError(err.response.data.message);
+        // Update free logs to 0
+        if (user) {
+          setUser({
+            ...user,
+            freeLogs: 0,
+          });
+        }
+      } else {
+        setError(
+          err.response?.data?.error || 'Failed to parse food. Please try again.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -262,15 +296,74 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 </div>
 
                 {error && (
-                  <div className='p-4 bg-red-50 border border-red-200 rounded-xl'>
-                    <p className='text-sm text-red-600'>{error}</p>
+                  <div className='p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3'>
+                    <AlertCircle className='w-5 h-5 text-red-600 flex-shrink-0 mt-0.5' />
+                    <div>
+                      <p className='text-sm text-red-600'>{error}</p>
+                      {subscription.freeLogs === 0 && (
+                        <button
+                          onClick={() => navigate('/upgrade')}
+                          className='text-sm text-red-700 font-semibold underline mt-2 hover:text-red-800'>
+                          Upgrade to Pro →
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
 
+                {/* Free logs remaining notice for free users */}
+                {subscription.status === 'free' &&
+                  subscription.freeLogs >= 0 && (
+                    <div
+                      className={`p-4 rounded-xl border-2 ${
+                        subscription.freeLogs <= 3
+                          ? 'bg-amber-50 border-amber-200'
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
+                      <div className='flex items-start justify-between gap-3'>
+                        <div>
+                          <p
+                            className={`text-sm font-semibold ${
+                              subscription.freeLogs <= 3
+                                ? 'text-amber-800'
+                                : 'text-blue-800'
+                            }`}>
+                            {subscription.freeLogs} free{' '}
+                            {subscription.freeLogs === 1 ? 'log' : 'logs'}{' '}
+                            remaining
+                          </p>
+                          {subscription.freeLogs === 0 && (
+                            <p
+                              className={`text-xs mt-1 ${
+                                subscription.freeLogs <= 3
+                                  ? 'text-amber-600'
+                                  : 'text-blue-600'
+                              }`}>
+                              Upgrade for unlimited logs
+                            </p>
+                          )}
+                        </div>
+                        {subscription.freeLogs <= 5 && (
+                          <button
+                            onClick={() => navigate('/upgrade')}
+                            className={`text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap ${
+                              subscription.freeLogs <= 3
+                                ? 'bg-amber-600 text-white hover:bg-amber-700'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}>
+                            Upgrade
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                 <Button
                   onClick={handleParse}
-                  disabled={isLoading || !foodText.trim()}
-                  className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'>
+                  disabled={
+                    isLoading || !foodText.trim() || subscription.freeLogs === 0
+                  }
+                  className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed'>
                   {isLoading ? (
                     <>
                       <Loader2 className='w-5 h-5 mr-2 animate-spin' />

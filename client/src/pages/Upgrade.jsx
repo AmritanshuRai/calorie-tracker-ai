@@ -13,6 +13,7 @@ import PageLayout from '../components/PageLayout';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import useUserStore from '../stores/useUserStore';
+import { FREE_LOGS_LIMIT } from '../utils/constants';
 import {
   createOrder,
   verifyPayment,
@@ -545,7 +546,7 @@ export default function Upgrade() {
           <div className='flex items-center justify-center gap-8 text-sm text-gray-500'>
             <div className='flex items-center gap-2'>
               <Check className='w-4 h-4 text-emerald-600' />
-              15 free logs on signup
+              {FREE_LOGS_LIMIT} free logs on signup
             </div>
             <div className='flex items-center gap-2'>
               <Check className='w-4 h-4 text-emerald-600' />

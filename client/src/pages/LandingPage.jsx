@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import { FREE_LOGS_LIMIT } from '../utils/constants';
 import Logo, { LogoIcon } from '../components/Logo';
 import Footer from '../components/Footer';
 
@@ -835,7 +836,9 @@ export default function LandingPage() {
             </div>
             <div className='flex items-center gap-2'>
               <Check className='w-5 h-5' />
-              <span className='text-sm font-medium'>15 Free Logs</span>
+              <span className='text-sm font-medium'>
+                {FREE_LOGS_LIMIT} Free Logs
+              </span>
             </div>
             <div className='flex items-center gap-2'>
               <Check className='w-5 h-5' />
@@ -934,7 +937,7 @@ export default function LandingPage() {
           <div className='flex flex-wrap items-center justify-center gap-6 text-white/90 text-sm'>
             <div className='flex items-center gap-2'>
               <Check className='w-5 h-5' />
-              <span>15 free logs on signup</span>
+              <span>{FREE_LOGS_LIMIT} free logs on signup</span>
             </div>
             <div className='flex items-center gap-2'>
               <Check className='w-5 h-5' />

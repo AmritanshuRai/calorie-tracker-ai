@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import Button from '../components/Button';
 import Logo, { LogoIcon } from '../components/Logo';
+import Footer from '../components/Footer';
 import useUserStore from '../stores/useUserStore';
 import { authService } from '../services/authService';
 
@@ -188,7 +189,7 @@ const SignIn = () => {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer Note */}
         <p className='text-center text-sm text-slate-500 mt-6 px-4'>
           By continuing, you agree to our{' '}
           <button className='text-emerald-600 hover:text-emerald-700 font-medium'>
@@ -200,6 +201,9 @@ const SignIn = () => {
           </button>
         </p>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

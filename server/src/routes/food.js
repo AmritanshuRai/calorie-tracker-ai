@@ -2,6 +2,7 @@ import express from 'express';
 import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { parseFood } from '../services/openai.js';
+import { FREE_LOGS_LIMIT } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -14,13 +15,61 @@ router.post('/parse', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Text is required' });
     }
 
+    // Check user's subscription status and free logs
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        subscriptionStatus: true,
+        subscriptionEnd: true,
+        freeLogs: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if user has Pro access
+    const isPro =
+      user.subscriptionStatus === 'active' ||
+      (user.subscriptionStatus === 'cancelled' &&
+        user.subscriptionEnd &&
+        new Date(user.subscriptionEnd) > new Date());
+
+    // If not Pro and no free logs remaining, deny access
+    if (!isPro && user.freeLogs <= 0) {
+      return res.status(403).json({
+        error: 'No free logs remaining',
+        code: 'FREE_LOGS_EXHAUSTED',
+        message: `You have used all ${FREE_LOGS_LIMIT} free logs. Upgrade to Pro for unlimited access.`,
+        freeLogs: 0,
+      });
+    }
+
     // Pass userId and endpoint for logging
     const nutritionData = await parseFood(
       text,
       req.user.userId,
       '/api/food/parse'
     );
-    res.json(nutritionData);
+
+    // If not Pro, decrement free logs after successful parse
+    let remainingLogs = user.freeLogs;
+    if (!isPro) {
+      const updatedUser = await prisma.user.update({
+        where: { id: req.user.userId },
+        data: { freeLogs: { decrement: 1 } },
+        select: { freeLogs: true },
+      });
+      remainingLogs = updatedUser.freeLogs;
+    }
+
+    // Include remaining logs in response
+    res.json({
+      ...nutritionData,
+      freeLogs: isPro ? -1 : remainingLogs, // -1 indicates unlimited (Pro)
+      isPro,
+    });
   } catch (error) {
     console.error('Parse food error:', error);
     res.status(500).json({ error: 'Failed to parse food' });

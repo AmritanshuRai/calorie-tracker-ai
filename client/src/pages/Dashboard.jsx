@@ -28,6 +28,7 @@ import CircularProgress from '../components/CircularProgress';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FoodLogModal from '../components/FoodLogModal';
+import Footer from '../components/Footer';
 import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
 import { authService } from '../services/authService';
@@ -35,6 +36,7 @@ import { authService } from '../services/authService';
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
+  const subscription = useUserStore((state) => state.subscription);
   const logout = useUserStore((state) => state.logout);
   const setUser = useUserStore((state) => state.setUser);
 
@@ -505,6 +507,14 @@ const Dashboard = () => {
                         <p className='text-sm text-white/90'>
                           Track 30+ nutrients with advanced AI • Just ₹125/month
                         </p>
+                        {/* Free logs counter */}
+                        {subscription?.freeLogs >= 0 && (
+                          <p className='text-xs text-white/80 mt-1.5 font-medium'>
+                            {subscription.freeLogs} free{' '}
+                            {subscription.freeLogs === 1 ? 'log' : 'logs'}{' '}
+                            remaining
+                          </p>
+                        )}
                       </div>
                     </div>
                     <Button
@@ -1103,6 +1113,9 @@ const Dashboard = () => {
         selectedDate={selectedDate}
         onFoodAdded={handleAddFood}
       />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

@@ -65,3 +65,6 @@ export const MEAL_TYPES = [
   { id: 'dinner', label: 'Dinner', emoji: '🌙' },
   { id: 'snacks', label: 'Snacks', emoji: '🍪' },
 ];
+
+// Free logs limit for new users
+export const FREE_LOGS_LIMIT = 15;

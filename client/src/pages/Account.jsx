@@ -24,6 +24,7 @@ import {
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import Footer from '../components/Footer';
 import { authService } from '../services/authService';
 import {
   cancelSubscription,
@@ -672,6 +673,9 @@ export default function Account() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   calculateDailyMicronutrients,
   calculateMacrosForDiet,
 } from '../utils/micronutrientCalculator';
+import { FREE_LOGS_LIMIT } from '../utils/constants';
 
 const useUserStore = create(
   persist(
@@ -18,7 +19,7 @@ const useUserStore = create(
         status: 'free', // free, active, cancelled, expired
         plan: null, // monthly, annual
         endDate: null,
-        freeLogs: 15,
+        freeLogs: FREE_LOGS_LIMIT,
         canLog: true,
       },
 
@@ -93,13 +94,20 @@ const useUserStore = create(
 
       // Actions
       setUser: (user) => {
+        // Check if user has Pro access
+        const isPro =
+          user.subscriptionStatus === 'active' ||
+          (user.subscriptionStatus === 'cancelled' &&
+            user.subscriptionEnd &&
+            new Date(user.subscriptionEnd) > new Date());
+
         // Extract subscription data from user
         const subscriptionData = {
           status: user.subscriptionStatus || 'free',
           plan: user.subscriptionPlan || null,
           endDate: user.subscriptionEnd || null,
-          freeLogs: user.freeLogs || 15,
-          canLog: true,
+          freeLogs: isPro ? -1 : user.freeLogs ?? FREE_LOGS_LIMIT, // -1 for unlimited (Pro)
+          canLog: isPro || (user.freeLogs ?? FREE_LOGS_LIMIT) > 0,
         };
 
         set({
@@ -118,6 +126,21 @@ const useUserStore = create(
         }
       },
       setSubscription: (subscription) => set({ subscription }),
+      decrementFreeLogs: () =>
+        set((state) => {
+          // Only decrement if not unlimited
+          if (state.subscription.freeLogs >= 0) {
+            const newFreeLogs = Math.max(0, state.subscription.freeLogs - 1);
+            return {
+              subscription: {
+                ...state.subscription,
+                freeLogs: newFreeLogs,
+                canLog: newFreeLogs > 0,
+              },
+            };
+          }
+          return state;
+        }),
       updateSubscriptionStatus: (status) =>
         set((state) => ({
           subscription: { ...state.subscription, status },
@@ -131,7 +154,7 @@ const useUserStore = create(
             status: 'free',
             plan: null,
             endDate: null,
-            freeLogs: 15,
+            freeLogs: FREE_LOGS_LIMIT,
             canLog: true,
           },
           onboardingData: {
