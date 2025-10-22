@@ -142,11 +142,21 @@ router.get('/profile', authenticateToken, async (req, res) => {
       });
     }
 
+    // Determine if user has Pro access
+    // User has Pro access if:
+    // 1. Subscription is active, OR
+    // 2. Subscription is cancelled but still within the valid period (before subscriptionEnd)
+    const isPro =
+      user.subscriptionStatus === 'active' ||
+      (user.subscriptionStatus === 'cancelled' &&
+        user.subscriptionEnd &&
+        new Date(user.subscriptionEnd) > new Date());
+
     // Combine user and onboarding data
     res.json({
       ...user,
       subscription: subscriptionDetails,
-      isPro: user.subscriptionStatus === 'active',
+      isPro,
       ...(latestOnboarding && {
         gender: latestOnboarding.gender,
         age: latestOnboarding.age,
