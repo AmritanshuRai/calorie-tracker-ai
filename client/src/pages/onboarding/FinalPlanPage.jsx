@@ -337,13 +337,6 @@ const FinalPlanPage = () => {
             </span>
           </Button>
         </motion.div>
-
-        {/* Progress indicator - All complete */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className='h-2 w-8 rounded-full bg-emerald-600' />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

@@ -283,18 +283,6 @@ const LifestyleHabitsPage = () => {
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 7 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

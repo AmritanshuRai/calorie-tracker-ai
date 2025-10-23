@@ -37,20 +37,20 @@ const HeightPage = () => {
 
   return (
     <PageLayout title='Your Height' showBack={true}>
-      <div className='space-y-6'>
+      <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-black text-slate-900 mb-2'>
+          <h2 className='text-2xl font-black text-slate-900 mb-1.5'>
             What's your height?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             This helps us calculate your accurate calorie needs
           </p>
         </motion.div>
 
-        <div className='space-y-6 mt-12'>
+        <div className='space-y-3 mt-4'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -75,10 +75,10 @@ const HeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-green-50 border border-green-200 rounded-xl p-4'>
+              className='bg-green-50 border border-green-200 rounded-lg p-3'>
               <div className='flex items-center gap-2 text-green-800'>
                 <svg
-                  className='w-5 h-5'
+                  className='w-4 h-4'
                   fill='currentColor'
                   viewBox='0 0 20 20'>
                   <path
@@ -87,7 +87,7 @@ const HeightPage = () => {
                     clipRule='evenodd'
                   />
                 </svg>
-                <span className='font-semibold'>
+                <span className='text-sm font-semibold'>
                   That's approximately {heightInFeet} feet
                 </span>
               </div>
@@ -98,7 +98,7 @@ const HeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm'>
+              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm'>
               {error}
             </motion.div>
           )}
@@ -108,40 +108,40 @@ const HeightPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className='bg-gray-50 rounded-xl p-4'>
-            <p className='text-sm text-gray-600 mb-3 font-medium'>
+            className='bg-gray-50 rounded-lg p-3'>
+            <p className='text-xs text-gray-600 mb-2 font-medium'>
               Quick reference:
             </p>
-            <div className='grid grid-cols-2 gap-3 text-sm'>
+            <div className='grid grid-cols-3 gap-2 text-xs'>
               <button
                 onClick={() => setHeight('150')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                4'11" ≈ 150 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                4'11" ≈ 150
               </button>
               <button
                 onClick={() => setHeight('160')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                5'3" ≈ 160 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                5'3" ≈ 160
               </button>
               <button
                 onClick={() => setHeight('170')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                5'7" ≈ 170 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                5'7" ≈ 170
               </button>
               <button
                 onClick={() => setHeight('180')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                5'11" ≈ 180 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                5'11" ≈ 180
               </button>
               <button
                 onClick={() => setHeight('190')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                6'3" ≈ 190 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                6'3" ≈ 190
               </button>
               <button
                 onClick={() => setHeight('200')}
-                className='text-left text-gray-700 hover:text-green-600 transition-colors'>
-                6'7" ≈ 200 cm
+                className='text-left text-gray-700 hover:text-green-600 transition-colors p-1'>
+                6'7" ≈ 200
               </button>
             </div>
           </motion.div>
@@ -151,27 +151,15 @@ const HeightPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className='mt-12'>
+          className='mt-4'>
           <Button
             variant='primary'
-            size='lg'
+            size='md'
             fullWidth
             onClick={handleContinue}>
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 3 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

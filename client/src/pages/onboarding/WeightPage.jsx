@@ -77,24 +77,24 @@ const WeightPage = () => {
 
   return (
     <PageLayout title='Target Weight' showBack={true}>
-      <div className='space-y-6'>
+      <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-2'>
+          <h2 className='text-2xl font-bold text-gray-800 mb-1.5'>
             {isImprovedHealth
               ? "What's your current weight?"
               : "What's your target weight?"}
           </h2>
-          <p className='text-gray-600'>
+          <p className='text-base text-gray-600'>
             {isImprovedHealth
               ? "We'll help you maintain a healthy weight"
               : 'Set a realistic target for your goal'}
           </p>
         </motion.div>
 
-        <div className='space-y-6 mt-12'>
+        <div className='space-y-3 mt-4'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,10 +139,10 @@ const WeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-green-50 border border-green-200 rounded-xl p-4'>
+              className='bg-green-50 border border-green-200 rounded-lg p-3'>
               <div className='flex items-center gap-2 text-green-800'>
                 <svg
-                  className='w-5 h-5'
+                  className='w-4 h-4'
                   fill='currentColor'
                   viewBox='0 0 20 20'>
                   <path
@@ -151,7 +151,7 @@ const WeightPage = () => {
                     clipRule='evenodd'
                   />
                 </svg>
-                <span className='font-semibold'>
+                <span className='text-sm font-semibold'>
                   Change needed:{' '}
                   {onboardingData.goal === 'weight_gain' ? '+' : '-'}
                   {weightDifference} kg
@@ -164,7 +164,7 @@ const WeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm'>
+              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm'>
               {error}
             </motion.div>
           )}
@@ -174,27 +174,15 @@ const WeightPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className='mt-12'>
+          className='mt-4'>
           <Button
             variant='primary'
-            size='lg'
+            size='md'
             fullWidth
             onClick={handleContinue}>
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 4 ? 'w-8 bg-green-500' : 'w-2 bg-gray-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

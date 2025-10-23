@@ -116,23 +116,23 @@ const DietPreferencePage = () => {
 
   return (
     <PageLayout title='Diet Preference' showBack={true}>
-      <div className='space-y-8 max-w-3xl mx-auto'>
+      <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto overflow-y-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className='text-center'>
-          <div className='w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl flex items-center justify-center'>
-            <Apple className='w-10 h-10 text-emerald-600' />
+          className='text-center flex-shrink-0'>
+          <div className='w-14 h-14 mx-auto mb-2 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center'>
+            <Apple className='w-7 h-7 text-emerald-600' />
           </div>
-          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
             What kind of diet do you prefer?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             Choose a dietary approach that suits your lifestyle
           </p>
         </motion.div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-12'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 flex-1 overflow-y-auto'>
           {DIET_PREFERENCES.map((diet, index) => {
             const Icon = diet.icon;
             return (
@@ -149,22 +149,22 @@ const DietPreferencePage = () => {
                       : 'hover:scale-[1.01]'
                   }`}>
                   <Card
-                    padding='lg'
+                    padding='sm'
                     variant='default'
                     className={`transition-all duration-200 ${
                       selectedDiet === diet.id
                         ? 'border-emerald-500 bg-emerald-50 shadow-lg'
                         : 'hover:border-emerald-300 hover:shadow-md'
                     }`}>
-                    <div className='flex items-center gap-4'>
+                    <div className='flex items-center gap-2'>
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           selectedDiet === diet.id
                             ? 'bg-emerald-100'
                             : 'bg-slate-100'
                         }`}>
                         <Icon
-                          className={`w-6 h-6 ${
+                          className={`w-5 h-5 ${
                             selectedDiet === diet.id
                               ? 'text-emerald-600'
                               : 'text-slate-600'
@@ -172,22 +172,22 @@ const DietPreferencePage = () => {
                         />
                       </div>
                       <div className='flex-1 min-w-0'>
-                        <h3 className='text-lg font-black text-slate-900 mb-1'>
+                        <h3 className='text-base font-black text-slate-900 mb-0.5'>
                           {diet.label}
                         </h3>
-                        <p className='text-sm font-medium text-slate-600'>
+                        <p className='text-xs font-medium text-slate-600'>
                           {diet.description}
                         </p>
                       </div>
                       <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                           selectedDiet === diet.id
                             ? 'border-emerald-600 bg-emerald-600'
                             : 'border-slate-300'
                         }`}>
                         {selectedDiet === diet.id && (
                           <svg
-                            className='w-4 h-4 text-white'
+                            className='w-3 h-3 text-white'
                             fill='currentColor'
                             viewBox='0 0 20 20'>
                             <path
@@ -210,28 +210,16 @@ const DietPreferencePage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className='mt-12 pt-4'>
+          className='mt-3 pt-2 flex-shrink-0'>
           <Button
             variant='primary'
-            size='lg'
+            size='md'
             fullWidth
             onClick={handleContinue}
             disabled={!selectedDiet}>
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 7 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

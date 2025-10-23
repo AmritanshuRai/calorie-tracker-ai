@@ -25,20 +25,20 @@ const GoalPage = () => {
 
   return (
     <PageLayout title='Your Goal' showBack={true}>
-      <div className='space-y-6'>
+      <div className='h-full flex flex-col justify-center space-y-4'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-black text-slate-900 mb-2'>
+          <h2 className='text-2xl font-black text-slate-900 mb-1.5'>
             What's your main goal?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             We'll personalize your calorie target based on this
           </p>
         </motion.div>
 
-        <div className='space-y-4 mt-12'>
+        <div className='space-y-3 mt-4'>
           {GOALS.map((goal, index) => {
             const Icon = goalIcons[goal.id];
             return (
@@ -50,40 +50,28 @@ const GoalPage = () => {
                 <Card
                   hoverable
                   onClick={() => handleSelect(goal.id)}
-                  padding='md'
+                  padding='sm'
                   variant='default'>
                   <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-4'>
-                      <div className='w-14 h-14 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center'>
-                        <Icon className='w-7 h-7 text-slate-700' />
+                    <div className='flex items-center gap-3'>
+                      <div className='w-12 h-12 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center'>
+                        <Icon className='w-6 h-6 text-slate-700' />
                       </div>
                       <div className='text-left'>
-                        <h3 className='text-xl font-black text-slate-900'>
+                        <h3 className='text-lg font-black text-slate-900'>
                           {goal.label}
                         </h3>
-                        <p className='text-sm font-medium text-slate-600'>
+                        <p className='text-xs font-medium text-slate-600'>
                           {goal.description}
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className='w-6 h-6 text-slate-400' />
+                    <ChevronRight className='w-5 h-5 text-slate-400' />
                   </div>
                 </Card>
               </motion.div>
             );
           })}
-        </div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 2 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
         </div>
       </div>
     </PageLayout>

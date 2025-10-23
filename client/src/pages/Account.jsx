@@ -41,6 +41,9 @@ export default function Account() {
   const bmr = useUserStore((state) => state.bmr);
   const tdee = useUserStore((state) => state.tdee);
   const setUser = useUserStore((state) => state.setUser);
+  const clearOnboardingData = useUserStore(
+    (state) => state.clearOnboardingData
+  );
 
   // Tab state - default to 'profile'
   const [activeTab, setActiveTab] = useState('profile');
@@ -50,6 +53,11 @@ export default function Account() {
   const handleLogout = () => {
     logout();
     authService.logout();
+  };
+
+  const handleStartOnboarding = () => {
+    clearOnboardingData();
+    navigate('/onboarding/gender');
   };
 
   const handleCancelSubscription = async () => {
@@ -446,7 +454,7 @@ export default function Account() {
                           </p>
                         </div>
                         <Button
-                          onClick={() => navigate('/onboarding/gender')}
+                          onClick={handleStartOnboarding}
                           variant='primary'
                           className='w-full sm:w-auto'>
                           <RefreshCw className='w-5 h-5' />

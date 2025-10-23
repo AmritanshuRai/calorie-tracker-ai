@@ -23,11 +23,19 @@ import WeightPage from './pages/onboarding/WeightPage';
 import TimelinePage from './pages/onboarding/TimelinePage';
 import ActivityLevelPage from './pages/onboarding/ActivityLevelPage';
 import PregnancyStatusPage from './pages/onboarding/PregnancyStatusPage';
-import LifestyleHabitsPage from './pages/onboarding/LifestyleHabitsPage';
-import EnvironmentPage from './pages/onboarding/EnvironmentPage';
-import HealthMetricsPage from './pages/onboarding/HealthMetricsPage';
-import MedicationsPage from './pages/onboarding/MedicationsPage';
-import ExerciseDetailsPage from './pages/onboarding/ExerciseDetailsPage';
+import SmokingStatusPage from './pages/onboarding/SmokingStatusPage';
+import AlcoholConsumptionPage from './pages/onboarding/AlcoholConsumptionPage';
+import CaffeineIntakePage from './pages/onboarding/CaffeineIntakePage';
+import SunExposurePage from './pages/onboarding/SunExposurePage';
+import ClimatePage from './pages/onboarding/ClimatePage';
+import SkinTonePage from './pages/onboarding/SkinTonePage';
+import SleepHoursPage from './pages/onboarding/SleepHoursPage';
+import StressLevelPage from './pages/onboarding/StressLevelPage';
+import WaterIntakePage from './pages/onboarding/WaterIntakePage';
+import MedicationsListPage from './pages/onboarding/MedicationsListPage';
+import DeficienciesPage from './pages/onboarding/DeficienciesPage';
+import ExerciseTypesPage from './pages/onboarding/ExerciseTypesPage';
+import ExerciseIntensityPage from './pages/onboarding/ExerciseIntensityPage';
 import DietPreferencePage from './pages/onboarding/DietPreferencePage';
 import HealthConditionsPage from './pages/onboarding/HealthConditionsPage';
 import FinalPlanPage from './pages/onboarding/FinalPlanPage';
@@ -126,42 +134,106 @@ function App() {
             }
           />
           <Route
-            path='/onboarding/lifestyle-habits'
+            path='/onboarding/smoking-status'
             element={
               <ProtectedRoute>
-                <LifestyleHabitsPage />
+                <SmokingStatusPage />
               </ProtectedRoute>
             }
           />
           <Route
-            path='/onboarding/environment'
+            path='/onboarding/alcohol-consumption'
             element={
               <ProtectedRoute>
-                <EnvironmentPage />
+                <AlcoholConsumptionPage />
               </ProtectedRoute>
             }
           />
           <Route
-            path='/onboarding/health-metrics'
+            path='/onboarding/caffeine-intake'
             element={
               <ProtectedRoute>
-                <HealthMetricsPage />
+                <CaffeineIntakePage />
               </ProtectedRoute>
             }
           />
           <Route
-            path='/onboarding/medications'
+            path='/onboarding/sun-exposure'
             element={
               <ProtectedRoute>
-                <MedicationsPage />
+                <SunExposurePage />
               </ProtectedRoute>
             }
           />
           <Route
-            path='/onboarding/exercise-details'
+            path='/onboarding/climate'
             element={
               <ProtectedRoute>
-                <ExerciseDetailsPage />
+                <ClimatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/skin-tone'
+            element={
+              <ProtectedRoute>
+                <SkinTonePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/sleep-hours'
+            element={
+              <ProtectedRoute>
+                <SleepHoursPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/stress-level'
+            element={
+              <ProtectedRoute>
+                <StressLevelPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/water-intake'
+            element={
+              <ProtectedRoute>
+                <WaterIntakePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/medications-list'
+            element={
+              <ProtectedRoute>
+                <MedicationsListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/deficiencies'
+            element={
+              <ProtectedRoute>
+                <DeficienciesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/exercise-types'
+            element={
+              <ProtectedRoute>
+                <ExerciseTypesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/onboarding/exercise-intensity'
+            element={
+              <ProtectedRoute>
+                <ExerciseIntensityPage />
               </ProtectedRoute>
             }
           />

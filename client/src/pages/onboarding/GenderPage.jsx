@@ -30,17 +30,17 @@ const GenderPage = () => {
 
   return (
     <PageLayout title='Welcome!' showBack={false}>
-      <div className='space-y-8 max-w-2xl mx-auto'>
+      <div className='h-full flex flex-col justify-center space-y-4 max-w-3xl mx-auto'>
         <div className='text-center'>
-          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-2'>
             What's your gender?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             This helps us calculate your personalized calorie needs
           </p>
         </div>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6'>
           {options.map((option) => {
             const Icon = option.icon;
             return (
@@ -48,32 +48,20 @@ const GenderPage = () => {
                 key={option.value}
                 hoverable
                 onClick={() => handleSelect(option.value)}
-                padding='lg'
+                padding='md'
                 variant='default'
                 className='group'>
-                <div className='flex flex-col items-center text-center gap-4 py-6'>
-                  <div className='w-20 h-20 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center group-hover:bg-emerald-50 group-hover:border-emerald-400 transition-all duration-300'>
-                    <Icon className='w-10 h-10 text-slate-700 group-hover:text-emerald-600 transition-colors' />
+                <div className='flex flex-col items-center text-center gap-3 py-4'>
+                  <div className='w-16 h-16 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center group-hover:bg-emerald-50 group-hover:border-emerald-400 transition-all duration-300'>
+                    <Icon className='w-8 h-8 text-slate-700 group-hover:text-emerald-600 transition-colors' />
                   </div>
-                  <span className='text-2xl font-black text-slate-900'>
+                  <span className='text-xl font-black text-slate-900'>
                     {option.label}
                   </span>
                 </div>
               </Card>
             );
           })}
-        </div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === 0 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
         </div>
       </div>
     </PageLayout>

@@ -65,15 +65,15 @@ const TimelinePage = () => {
 
   return (
     <PageLayout title='Timeline' showBack={true}>
-      <div className='space-y-8 max-w-3xl mx-auto'>
+      <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
             How fast do you want to reach your goal?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             Choose a sustainable pace for{' '}
             {Math.abs(weightDifference).toFixed(1)} kg change
           </p>
@@ -84,27 +84,27 @@ const TimelinePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className='mt-12'>
-          <Card padding='lg' variant='default'>
-            <div className='space-y-6'>
-              <div className='flex items-center justify-center gap-3'>
-                <TrendingDown className='w-6 h-6 text-emerald-600' />
-                <span className='text-base font-black text-slate-900'>
+          className='mt-3'>
+          <Card padding='md' variant='default'>
+            <div className='space-y-3'>
+              <div className='flex items-center justify-center gap-2'>
+                <TrendingDown className='w-5 h-5 text-emerald-600' />
+                <span className='text-sm font-black text-slate-900'>
                   Weekly Goal
                 </span>
               </div>
 
               <div className='text-center'>
-                <div className='text-5xl font-black text-emerald-600 mb-2'>
+                <div className='text-4xl font-black text-emerald-600 mb-1'>
                   {weeklyRate.toFixed(2)}
                 </div>
-                <div className='text-lg font-bold text-slate-600'>
+                <div className='text-base font-bold text-slate-600'>
                   kg per week
                 </div>
               </div>
 
               {/* Slider */}
-              <div className='px-4 py-6'>
+              <div className='px-4 py-4'>
                 <div className='relative h-3'>
                   {/* Background track */}
                   <div className='absolute top-0 left-0 w-full h-3 bg-slate-200 rounded-lg' />
@@ -128,15 +128,15 @@ const TimelinePage = () => {
                     className='absolute top-0 left-0 w-full h-3 appearance-none cursor-pointer slider-thumb bg-transparent'
                   />
                 </div>
-                <div className='relative flex items-center justify-between text-xs font-bold text-slate-500 mt-3'>
-                  <span className='absolute left-0'>0.25 kg</span>
+                <div className='relative flex items-center justify-between text-xs font-bold text-slate-500 mt-2'>
+                  <span className='absolute left-0'>0.25</span>
                   <span
                     className='absolute'
                     style={{
                       left: `${((1.0 - 0.25) / (3 - 0.25)) * 100}%`,
                       transform: 'translateX(-50%)',
                     }}>
-                    1.0 kg
+                    1.0
                   </span>
                   <span
                     className='absolute'
@@ -144,16 +144,16 @@ const TimelinePage = () => {
                       left: `${((2.0 - 0.25) / (3 - 0.25)) * 100}%`,
                       transform: 'translateX(-50%)',
                     }}>
-                    2.0 kg
+                    2.0
                   </span>
-                  <span className='absolute right-0'>3.0 kg</span>
+                  <span className='absolute right-0'>3.0</span>
                 </div>
               </div>
 
               {/* Recommendation Badge */}
               {weeklyRate >= 0.45 && weeklyRate <= 0.55 && (
                 <div className='text-center'>
-                  <span className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-black'>
+                  <span className='inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black'>
                     ✓ Recommended Pace
                   </span>
                 </div>
@@ -167,34 +167,26 @@ const TimelinePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className='space-y-4'>
-          <Card padding='lg' variant='outline'>
-            <div className='flex items-center justify-between gap-4'>
-              <div className='flex items-center gap-3'>
-                <Calendar className='w-5 h-5 text-slate-600' />
-                <span className='text-base font-bold text-slate-600'>
-                  Estimated Duration
-                </span>
-              </div>
-              <span className='text-2xl font-black text-slate-900'>
-                {weeks} {weeks === 1 ? 'week' : 'weeks'}
-              </span>
-            </div>
-          </Card>
+          className='space-y-1.5 text-center'>
+          <div className='flex items-center justify-center gap-2'>
+            <Calendar className='w-3.5 h-3.5 text-slate-500' />
+            <span className='text-xs font-medium text-slate-600'>
+              Estimated Duration
+            </span>
+            <span className='text-base font-bold text-slate-900'>
+              {weeks} {weeks === 1 ? 'week' : 'weeks'}
+            </span>
+          </div>
 
-          <Card padding='lg' variant='outline'>
-            <div className='flex items-center justify-between gap-4'>
-              <div className='flex items-center gap-3'>
-                <Calendar className='w-5 h-5 text-slate-600' />
-                <span className='text-base font-bold text-slate-600'>
-                  Target Date
-                </span>
-              </div>
-              <span className='text-xl font-black text-slate-900'>
-                {format(targetDate, 'MMM dd, yyyy')}
-              </span>
-            </div>
-          </Card>
+          <div className='flex items-center justify-center gap-2'>
+            <Calendar className='w-3.5 h-3.5 text-slate-500' />
+            <span className='text-xs font-medium text-slate-600'>
+              Target Date
+            </span>
+            <span className='text-base font-bold text-slate-900'>
+              {format(targetDate, 'MMM dd, yyyy')}
+            </span>
+          </div>
         </motion.div>
 
         {/* Validation Message */}
@@ -202,28 +194,21 @@ const TimelinePage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}>
-            <Card
-              padding='lg'
-              variant='default'
-              className={`border-2 ${
+            transition={{ delay: 0.3 }}
+            className='text-center'>
+            <p
+              className={`text-xs font-medium inline-flex items-center gap-1.5 ${
                 validation.color === 'yellow'
-                  ? 'bg-yellow-50 border-yellow-300'
+                  ? 'text-yellow-700'
                   : validation.color === 'emerald'
-                  ? 'bg-emerald-50 border-emerald-300'
-                  : 'bg-blue-50 border-blue-300'
+                  ? 'text-emerald-700'
+                  : 'text-blue-700'
               }`}>
-              <div className='flex items-start gap-3'>
-                {validation.severity === 'warning' && (
-                  <AlertTriangle className='w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5' />
-                )}
-                <div className='flex-1'>
-                  <p className='text-sm font-bold text-slate-900'>
-                    {validation.message}
-                  </p>
-                </div>
-              </div>
-            </Card>
+              {validation.severity === 'warning' && (
+                <AlertTriangle className='w-3.5 h-3.5' />
+              )}
+              {validation.message}
+            </p>
           </motion.div>
         )}
 
@@ -231,27 +216,15 @@ const TimelinePage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className='mt-12 pt-4'>
+          className='mt-3 pt-2'>
           <Button
             variant='primary'
-            size='lg'
+            size='md'
             fullWidth
             onClick={handleContinue}>
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 6 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );

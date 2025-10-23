@@ -35,15 +35,15 @@ const AgePage = () => {
 
   return (
     <PageLayout title='Personal Info' showBack={true}>
-      <div className='space-y-6'>
+      <div className='h-full flex flex-col justify-center space-y-4'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl font-black text-slate-900 mb-2'>
+          <h2 className='text-2xl font-black text-slate-900 mb-1.5'>
             How old are you?
           </h2>
-          <p className='text-lg font-medium text-slate-600'>
+          <p className='text-base font-medium text-slate-600'>
             Age helps us calculate your metabolism rate
           </p>
         </motion.div>
@@ -52,7 +52,7 @@ const AgePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className='mt-12'>
+          className='mt-6'>
           <Input
             type='number'
             value={age}
@@ -65,7 +65,7 @@ const AgePage = () => {
             min='13'
             max='100'
             error={error}
-            className='text-center text-2xl'
+            className='text-center text-xl'
           />
         </motion.div>
 
@@ -73,27 +73,15 @@ const AgePage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className='mt-12'>
+          className='mt-6'>
           <Button
             variant='primary'
-            size='lg'
+            size='md'
             fullWidth
             onClick={handleContinue}>
             Continue →
           </Button>
         </motion.div>
-
-        {/* Progress indicator */}
-        <div className='flex justify-center gap-2 mt-12'>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i <= 1 ? 'w-8 bg-emerald-600' : 'w-2 bg-slate-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </PageLayout>
   );
