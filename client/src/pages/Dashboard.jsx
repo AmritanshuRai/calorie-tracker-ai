@@ -446,43 +446,45 @@ const Dashboard = () => {
           {/* Left Column - Main Content */}
           <div className='lg:col-span-2 space-y-6'>
             {/* Date Slider */}
-            <Card padding='md' variant='default'>
-              <div className='flex items-center justify-between mb-4'>
+            <Card padding='sm' variant='default'>
+              <div className='flex items-center justify-between mb-3'>
                 <button
                   onClick={handlePrevWeek}
-                  className='p-2 hover:bg-slate-100 rounded-lg transition-colors'>
-                  <ChevronLeft className='w-5 h-5 text-slate-600' />
+                  className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0'>
+                  <ChevronLeft className='w-4 h-4 text-slate-600' />
                 </button>
-                <h2 className='text-base font-semibold text-slate-700'>
+                <h2 className='text-sm font-semibold text-slate-700'>
                   {format(weekStart, 'MMM yyyy')}
                 </h2>
                 <button
                   onClick={handleNextWeek}
-                  className='p-2 hover:bg-slate-100 rounded-lg transition-colors'>
-                  <ChevronRight className='w-5 h-5 text-slate-600' />
+                  className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0'>
+                  <ChevronRight className='w-4 h-4 text-slate-600' />
                 </button>
               </div>
 
-              <div className='grid grid-cols-7 gap-2'>
-                {weekDates.map((date) => (
-                  <button
-                    key={date.toString()}
-                    onClick={() => setSelectedDate(date)}
-                    className={`flex flex-col items-center p-2 lg:p-3 rounded-xl transition-all ${
-                      isSelected(date)
-                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-                        : isToday(date)
-                        ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}>
-                    <span className='text-xs font-medium mb-1'>
-                      {format(date, 'EEE')}
-                    </span>
-                    <span className='text-lg lg:text-xl font-bold'>
-                      {format(date, 'd')}
-                    </span>
-                  </button>
-                ))}
+              <div className='overflow-x-auto scrollbar-hide -mx-1'>
+                <div className='flex gap-2 px-1 min-w-max'>
+                  {weekDates.map((date) => (
+                    <button
+                      key={date.toString()}
+                      onClick={() => setSelectedDate(date)}
+                      className={`flex flex-col items-center px-3 py-2 rounded-lg transition-all flex-shrink-0 ${
+                        isSelected(date)
+                          ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md'
+                          : isToday(date)
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <span className='text-[10px] font-medium mb-0.5'>
+                        {format(date, 'EEE')}
+                      </span>
+                      <span className='text-base font-bold'>
+                        {format(date, 'd')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </Card>
 
