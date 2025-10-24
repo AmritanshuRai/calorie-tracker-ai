@@ -435,7 +435,7 @@ const Dashboard = () => {
           <div className='lg:col-span-2 space-y-6'>
             {/* Date Carousel */}
             <Card padding='lg' variant='default'>
-              <Calendar 
+              <Calendar
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
               />

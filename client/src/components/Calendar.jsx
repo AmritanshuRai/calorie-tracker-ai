@@ -1,5 +1,12 @@
 import { useEffect, useCallback } from 'react';
-import { format, addDays, subMonths, addMonths, startOfMonth, endOfMonth } from 'date-fns';
+import {
+  format,
+  addDays,
+  subMonths,
+  addMonths,
+  startOfMonth,
+  endOfMonth,
+} from 'date-fns';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -7,7 +14,7 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
   // Generate dates for previous, current, and next month
   const generateDates = useCallback(() => {
     const dates = [];
-    
+
     // Previous month
     const prevMonth = subMonths(selectedDate, 1);
     const prevMonthStart = startOfMonth(prevMonth);
@@ -17,7 +24,7 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
       dates.push(currentDate);
       currentDate = addDays(currentDate, 1);
     }
-    
+
     // Current month
     const currentMonthStart = startOfMonth(selectedDate);
     const currentMonthEnd = endOfMonth(selectedDate);
@@ -26,7 +33,7 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
       dates.push(currentDate);
       currentDate = addDays(currentDate, 1);
     }
-    
+
     // Next month
     const nextMonth = addMonths(selectedDate, 1);
     const nextMonthStart = startOfMonth(nextMonth);
@@ -36,7 +43,7 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
       dates.push(currentDate);
       currentDate = addDays(currentDate, 1);
     }
-    
+
     return dates;
   }, [selectedDate]);
 
@@ -51,16 +58,16 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
 
   const isToday = (date) =>
     format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-  
-  const isSelected = useCallback((date) =>
-    format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'),
+
+  const isSelected = useCallback(
+    (date) => format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'),
     [selectedDate]
   );
 
   // Scroll to selected date when it changes (only on initial load)
   useEffect(() => {
     if (emblaApi) {
-      const selectedIndex = dates.findIndex(date => isSelected(date));
+      const selectedIndex = dates.findIndex((date) => isSelected(date));
       if (selectedIndex !== -1) {
         // Only scroll if the selected date is not visible
         const slidesInView = emblaApi.slidesInView();
@@ -84,29 +91,29 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
   }, [selectedDate, onDateSelect]);
 
   return (
-    <div className="calendar-carousel">
+    <div className='calendar-carousel'>
       {/* Header with navigation */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold text-slate-800">
+      <div className='flex items-center justify-between mb-4'>
+        <h2 className='text-base font-bold text-slate-800'>
           {format(selectedDate, 'MMMM yyyy')}
         </h2>
-        <div className="flex gap-1">
+        <div className='flex gap-1'>
           <button
             onClick={scrollPrev}
-            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
-            <ChevronLeft className="w-4 h-4 text-slate-600" />
+            className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors'>
+            <ChevronLeft className='w-4 h-4 text-slate-600' />
           </button>
           <button
             onClick={scrollNext}
-            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
-            <ChevronRight className="w-4 h-4 text-slate-600" />
+            className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors'>
+            <ChevronRight className='w-4 h-4 text-slate-600' />
           </button>
         </div>
       </div>
 
       {/* Carousel */}
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-2">
+      <div className='overflow-hidden' ref={emblaRef}>
+        <div className='flex gap-2'>
           {dates.map((date, index) => (
             <button
               key={`${date.toString()}-${index}`}
@@ -118,14 +125,13 @@ const Calendar = ({ selectedDate, onDateSelect }) => {
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                   : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}>
-              <span className={`text-[9px] font-bold uppercase tracking-wider mb-1 ${
-                isSelected(date) ? 'text-white/80' : 'text-slate-400'
-              }`}>
+              <span
+                className={`text-[9px] font-bold uppercase tracking-wider mb-1 ${
+                  isSelected(date) ? 'text-white/80' : 'text-slate-400'
+                }`}>
                 {format(date, 'EEE')}
               </span>
-              <span className="text-base font-bold">
-                {format(date, 'd')}
-              </span>
+              <span className='text-base font-bold'>{format(date, 'd')}</span>
             </button>
           ))}
         </div>
