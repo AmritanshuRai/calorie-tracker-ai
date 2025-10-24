@@ -11,35 +11,15 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Calendar = ({ selectedDate, onDateSelect }) => {
-  // Generate dates for previous, current, and next month
+  // Generate dates for current month only
   const generateDates = useCallback(() => {
     const dates = [];
 
-    // Previous month
-    const prevMonth = subMonths(selectedDate, 1);
-    const prevMonthStart = startOfMonth(prevMonth);
-    const prevMonthEnd = endOfMonth(prevMonth);
-    let currentDate = prevMonthStart;
-    while (currentDate <= prevMonthEnd) {
-      dates.push(currentDate);
-      currentDate = addDays(currentDate, 1);
-    }
-
-    // Current month
+    // Current month only
     const currentMonthStart = startOfMonth(selectedDate);
     const currentMonthEnd = endOfMonth(selectedDate);
-    currentDate = currentMonthStart;
+    let currentDate = currentMonthStart;
     while (currentDate <= currentMonthEnd) {
-      dates.push(currentDate);
-      currentDate = addDays(currentDate, 1);
-    }
-
-    // Next month
-    const nextMonth = addMonths(selectedDate, 1);
-    const nextMonthStart = startOfMonth(nextMonth);
-    const nextMonthEnd = endOfMonth(nextMonth);
-    currentDate = nextMonthStart;
-    while (currentDate <= nextMonthEnd) {
       dates.push(currentDate);
       currentDate = addDays(currentDate, 1);
     }

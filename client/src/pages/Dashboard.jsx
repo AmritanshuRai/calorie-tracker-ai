@@ -1014,43 +1014,6 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* Bottom Navigation - Mobile Only */}
-      <nav className='lg:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/80 border-t border-slate-200/50 shadow-2xl'>
-        <div className='flex items-center justify-around h-20 max-w-md mx-auto px-4'>
-          <button className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
-            <Heart className='w-6 h-6' />
-            <span className='text-xs font-medium'>Health</span>
-          </button>
-
-          <button className='flex flex-col items-center justify-center gap-1 p-2 text-emerald-600'>
-            <div className='p-1 rounded-lg bg-gradient-to-br from-emerald-500/10 to-teal-500/10'>
-              <Apple className='w-6 h-6' />
-            </div>
-            <span className='text-xs font-semibold'>Home</span>
-          </button>
-
-          <button className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
-            <BarChart3 className='w-6 h-6' />
-            <span className='text-xs font-medium'>Stats</span>
-          </button>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className='relative -top-4 flex flex-col items-center justify-center'>
-            <div className='w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/50 transition-all'>
-              <Plus className='w-7 h-7 text-white' />
-            </div>
-          </button>
-
-          <button
-            onClick={() => navigate('/account')}
-            className='flex flex-col items-center justify-center gap-1 p-2 text-slate-400 hover:text-emerald-600 transition-colors'>
-            <User className='w-6 h-6' />
-            <span className='text-xs font-medium'>Profile</span>
-          </button>
-        </div>
-      </nav>
-
       {/* Food Log Modal */}
       <FoodLogModal
         isOpen={showModal}
