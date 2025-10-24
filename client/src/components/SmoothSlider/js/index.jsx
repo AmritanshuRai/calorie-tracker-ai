@@ -11,6 +11,13 @@ const SmoothSlider = ({
   min = 13,
   max = 100,
   label = 'years',
+  // Dual column props
+  isDualColumn = false,
+  value2,
+  onChange2,
+  min2,
+  max2,
+  label2,
 }) => (
   <main className='sandbox'>
     <section className='sandbox__carousel'>
@@ -21,6 +28,12 @@ const SmoothSlider = ({
         min={min}
         max={max}
         label={label}
+        isDualColumn={isDualColumn}
+        value2={value2}
+        onChange2={onChange2}
+        min2={min2}
+        max2={max2}
+        label2={label2}
       />
     </section>
   </main>
