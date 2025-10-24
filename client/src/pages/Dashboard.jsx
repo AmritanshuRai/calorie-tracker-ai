@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, addDays, subDays, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import {
   Bell,
-  ChevronLeft,
-  ChevronRight,
   Plus,
   TrendingUp,
   Heart,
@@ -26,6 +24,7 @@ import {
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import Calendar from '../components/Calendar';
 import FoodLogModal from '../components/FoodLogModal';
 import Tooltip from '../components/Tooltip';
 import Footer from '../components/Footer';
@@ -298,18 +297,6 @@ const Dashboard = () => {
     return user.name[0].toUpperCase();
   };
 
-  // Generate week dates (Sunday to Saturday)
-  const weekStart = startOfWeek(selectedDate);
-  const weekDates = [...Array(7)].map((_, i) => addDays(weekStart, i));
-
-  const isToday = (date) =>
-    format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-  const isSelected = (date) =>
-    format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-
-  const handlePrevWeek = () => setSelectedDate(subDays(selectedDate, 7));
-  const handleNextWeek = () => setSelectedDate(addDays(selectedDate, 7));
-
   const calorieProgress = userTargets.dailyCalorieTarget
     ? (dailyTotals.calories / userTargets.dailyCalorieTarget) * 100
     : 0;
@@ -446,47 +433,12 @@ const Dashboard = () => {
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
           {/* Left Column - Main Content */}
           <div className='lg:col-span-2 space-y-6'>
-            {/* Date Slider */}
-            <Card padding='sm' variant='default'>
-              <div className='flex items-center justify-between mb-3'>
-                <button
-                  onClick={handlePrevWeek}
-                  className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0'>
-                  <ChevronLeft className='w-4 h-4 text-slate-600' />
-                </button>
-                <h2 className='text-sm font-semibold text-slate-700'>
-                  {format(weekStart, 'MMM yyyy')}
-                </h2>
-                <button
-                  onClick={handleNextWeek}
-                  className='p-1.5 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0'>
-                  <ChevronRight className='w-4 h-4 text-slate-600' />
-                </button>
-              </div>
-
-              <div className='overflow-x-auto scrollbar-hide scroll-smooth -mx-1'>
-                <div className='flex gap-2 px-1 min-w-max'>
-                  {weekDates.map((date) => (
-                    <button
-                      key={date.toString()}
-                      onClick={() => setSelectedDate(date)}
-                      className={`flex flex-col items-center px-3 py-2 rounded-lg transition-all flex-shrink-0 ${
-                        isSelected(date)
-                          ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md'
-                          : isToday(date)
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'text-slate-600 hover:bg-slate-100'
-                      }`}>
-                      <span className='text-[10px] font-medium mb-0.5'>
-                        {format(date, 'EEE')}
-                      </span>
-                      <span className='text-base font-bold'>
-                        {format(date, 'd')}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Date Carousel */}
+            <Card padding='lg' variant='default'>
+              <Calendar 
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+              />
             </Card>
 
             {/* Upgrade Banner - Only show for free users */}
