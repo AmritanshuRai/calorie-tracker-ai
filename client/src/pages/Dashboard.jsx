@@ -27,6 +27,7 @@ import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FoodLogModal from '../components/FoodLogModal';
+import Tooltip from '../components/Tooltip';
 import Footer from '../components/Footer';
 import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
@@ -463,7 +464,7 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <div className='overflow-x-auto scrollbar-hide -mx-1'>
+              <div className='overflow-x-auto scrollbar-hide scroll-smooth -mx-1'>
                 <div className='flex gap-2 px-1 min-w-max'>
                   {weekDates.map((date) => (
                     <button
@@ -562,19 +563,15 @@ const Dashboard = () => {
                     const mealColor = getMealColor(entry.mealType);
 
                     return (
-                      <Card
-                        key={entry.id}
-                        padding='md'
-                        variant='glass'
-                        className='hover-lift'>
-                        <div className='flex items-start justify-between'>
-                          <div className='flex items-start gap-3 flex-1'>
+                      <Card key={entry.id} padding='md' variant='glass'>
+                        <div className='flex items-start justify-between gap-3'>
+                          <div className='flex items-start gap-3 flex-1 min-w-0'>
                             <div
-                              className={`p-2 rounded-xl bg-gradient-to-br ${mealColor}`}>
+                              className={`p-2 rounded-xl bg-gradient-to-br ${mealColor} flex-shrink-0`}>
                               <MealIcon className='w-5 h-5 text-white' />
                             </div>
                             <div className='flex-1 min-w-0'>
-                              <div className='flex items-center gap-2 mb-1'>
+                              <div className='flex items-center gap-2 mb-1 flex-wrap'>
                                 <span className='text-xs font-semibold text-slate-500 uppercase tracking-wide'>
                                   {entry.mealType}
                                 </span>
@@ -582,9 +579,11 @@ const Dashboard = () => {
                                   {format(new Date(entry.createdAt), 'h:mm a')}
                                 </span>
                               </div>
-                              <h3 className='font-semibold text-slate-800 mb-2 truncate'>
-                                {entry.foodName}
-                              </h3>
+                              <Tooltip content={entry.foodName}>
+                                <h3 className='font-semibold text-slate-800 mb-2 break-words line-clamp-2 cursor-pointer active:opacity-70 transition-opacity'>
+                                  {entry.foodName}
+                                </h3>
+                              </Tooltip>
 
                               <div className='grid grid-cols-4 gap-3 text-xs'>
                                 <div className='text-center'>
@@ -617,7 +616,7 @@ const Dashboard = () => {
 
                           <button
                             onClick={() => handleDeleteFood(entry.id)}
-                            className='ml-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors'>
+                            className='p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0'>
                             <Trash2 className='w-4 h-4' />
                           </button>
                         </div>
