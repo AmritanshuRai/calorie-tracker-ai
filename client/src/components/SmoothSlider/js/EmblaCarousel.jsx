@@ -2,15 +2,18 @@ import React from 'react';
 import { IosPickerItem } from './EmblaCarouselIosPickerItem';
 
 const EmblaCarousel = (props) => {
-  const { loop } = props;
+  const { loop, value, onChange } = props;
 
   return (
     <div className='embla'>
       <IosPickerItem
-        slideCount={24}
+        slideCount={88}
+        startValue={13}
         perspective='left'
         loop={loop}
-        label='hours'
+        label='years'
+        value={value}
+        onChange={onChange}
       />
     </div>
   );

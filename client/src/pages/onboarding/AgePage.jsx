@@ -54,22 +54,40 @@ const AgePage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className='mt-6'>
-          <Input
-            type='number'
-            value={age}
-            onChange={(e) => {
-              setAge(e.target.value);
-              setError('');
-            }}
-            placeholder='Enter your age'
-            unit='years'
-            min='13'
-            max='100'
-            error={error}
-            className='text-center text-xl'
-          />
+          {/* Desktop: Show input field */}
+          <div className='hidden md:block'>
+            <Input
+              type='number'
+              value={age}
+              onChange={(e) => {
+                setAge(e.target.value);
+                setError('');
+              }}
+              placeholder='Enter your age'
+              unit='years'
+              min='13'
+              max='100'
+              error={error}
+              className='text-center text-xl'
+            />
+          </div>
 
-          <SmoothSlider />
+          {/* Mobile: Show iOS picker */}
+          <div className='md:hidden'>
+            <SmoothSlider
+              value={age}
+              onChange={(value) => {
+                setAge(value);
+                setError('');
+              }}
+            />
+          </div>
+
+          {error && (
+            <p className='md:hidden text-sm text-red-500 text-center mt-2'>
+              {error}
+            </p>
+          )}
         </motion.div>
 
         <motion.div

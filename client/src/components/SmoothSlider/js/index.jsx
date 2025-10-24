@@ -5,10 +5,10 @@ import '../css/embla.css';
 
 const LOOP = true;
 
-const SmoothSlider = () => (
+const SmoothSlider = ({ value, onChange }) => (
   <main className='sandbox'>
     <section className='sandbox__carousel'>
-      <EmblaCarousel loop={LOOP} />
+      <EmblaCarousel loop={LOOP} value={value} onChange={onChange} />
     </section>
   </main>
 );
