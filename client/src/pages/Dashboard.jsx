@@ -24,7 +24,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
-import CircularProgress from '../components/CircularProgress';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FoodLogModal from '../components/FoodLogModal';
@@ -528,84 +527,6 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Quick Stats with Progress */}
-            <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
-              {[
-                {
-                  label: 'Calories',
-                  value: Math.round(dailyTotals.calories),
-                  target: userTargets.dailyCalorieTarget,
-                  icon: Flame,
-                  color: 'orange',
-                },
-                {
-                  label: 'Protein',
-                  value: Math.round(dailyTotals.protein),
-                  target: userTargets.proteinTarget,
-                  icon: Activity,
-                  color: 'blue',
-                },
-                {
-                  label: 'Carbs',
-                  value: Math.round(dailyTotals.carbs),
-                  target: userTargets.carbsTarget,
-                  icon: TrendingUp,
-                  color: 'green',
-                },
-                {
-                  label: 'Fats',
-                  value: Math.round(dailyTotals.fats),
-                  target: userTargets.fatsTarget,
-                  icon: Droplet,
-                  color: 'amber',
-                },
-              ].map((stat) => {
-                const percentage = stat.target
-                  ? Math.min(100, (stat.value / stat.target) * 100)
-                  : 0;
-
-                return (
-                  <Card
-                    key={stat.label}
-                    padding='md'
-                    variant='default'
-                    className='hover-lift'>
-                    <div className='flex flex-col items-center text-center'>
-                      <p className='text-sm font-semibold text-slate-600 mb-3'>
-                        {stat.label}
-                      </p>
-
-                      <div className='relative mb-3'>
-                        <CircularProgress
-                          value={percentage}
-                          color={stat.color}
-                          size={80}
-                          strokeWidth={8}
-                          showValue={false}
-                        />
-                        <div className='absolute inset-0 flex items-center justify-center'>
-                          <span className='text-lg font-bold text-slate-700'>
-                            {Math.round(percentage)}%
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className='text-2xl lg:text-3xl font-black text-slate-900'>
-                        {stat.value}
-                        <span className='text-base font-medium text-slate-500'>
-                          g
-                        </span>
-                      </p>
-                      <p className='text-xs text-slate-400 mt-1'>
-                        of {stat.target}
-                        {stat.label === 'Calories' ? '' : 'g'}
-                      </p>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-
             {/* Food Entries */}
             <Card padding='lg' variant='default'>
               <div className='flex items-center justify-between mb-6'>
@@ -705,6 +626,83 @@ const Dashboard = () => {
               </div>
             </Card>
 
+            {/* Quick Stats with Progress */}
+            <Card padding='lg' variant='default'>
+              <div className='space-y-5'>
+                {[
+                  {
+                    label: 'Calories',
+                    value: Math.round(dailyTotals.calories),
+                    target: userTargets.dailyCalorieTarget,
+                    icon: Flame,
+                    color: 'from-orange-500 to-red-500',
+                    unit: '',
+                  },
+                  {
+                    label: 'Protein',
+                    value: Math.round(dailyTotals.protein),
+                    target: userTargets.proteinTarget,
+                    icon: Activity,
+                    color: 'from-blue-500 to-cyan-500',
+                    unit: 'g',
+                  },
+                  {
+                    label: 'Carbs',
+                    value: Math.round(dailyTotals.carbs),
+                    target: userTargets.carbsTarget,
+                    icon: TrendingUp,
+                    color: 'from-green-500 to-emerald-500',
+                    unit: 'g',
+                  },
+                  {
+                    label: 'Fats',
+                    value: Math.round(dailyTotals.fats),
+                    target: userTargets.fatsTarget,
+                    icon: Droplet,
+                    color: 'from-amber-500 to-yellow-500',
+                    unit: 'g',
+                  },
+                ].map((stat) => {
+                  const Icon = stat.icon;
+                  const percentage = stat.target
+                    ? Math.min(100, (stat.value / stat.target) * 100)
+                    : 0;
+
+                  return (
+                    <div key={stat.label}>
+                      <div className='flex items-center justify-between mb-2'>
+                        <div className='flex items-center gap-2'>
+                          <Icon className='w-4 h-4 text-slate-600' />
+                          <span className='text-sm font-semibold text-slate-700'>
+                            {stat.label}
+                          </span>
+                        </div>
+                        <div className='text-right'>
+                          <span className='text-lg font-bold text-slate-900'>
+                            {stat.value}
+                          </span>
+                          <span className='text-sm text-slate-500 mx-1'>/</span>
+                          <span className='text-sm font-medium text-slate-600'>
+                            {stat.target}
+                            {stat.unit}
+                          </span>
+                          <span className='text-xs text-slate-400 ml-2'>
+                            {Math.round(percentage)}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className='relative h-3 bg-slate-100 rounded-full overflow-hidden'>
+                        <div
+                          className={`absolute inset-y-0 left-0 bg-gradient-to-r ${stat.color} rounded-full transition-all duration-500`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
             {/* Vitamins */}
             <Card padding='lg' variant='default'>
               <div className='flex items-center gap-2 mb-6'>
@@ -714,7 +712,7 @@ const Dashboard = () => {
                 <h3 className='text-xl font-bold text-slate-800'>Vitamins</h3>
               </div>
 
-              <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
+              <div className='space-y-4'>
                 {[
                   {
                     label: 'Vitamin A',
@@ -795,35 +793,29 @@ const Dashboard = () => {
                   );
 
                   return (
-                    <div
-                      key={item.label}
-                      className='bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 hover-lift border border-amber-100'>
-                      <div className='flex flex-col items-center text-center gap-2'>
-                        <div className='relative w-14 h-14 flex-shrink-0'>
-                          <CircularProgress
-                            value={percentage}
-                            color='amber'
-                            size={56}
-                            strokeWidth={5}
-                            showValue={false}
-                          />
-                          <div className='absolute inset-0 flex items-center justify-center'>
-                            <span className='text-xs font-bold text-amber-700'>
-                              {Math.round(percentage)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className='w-full'>
-                          <p className='text-xs text-slate-600 font-semibold mb-1 truncate'>
-                            {item.label}
-                          </p>
-                          <p className='text-sm font-bold text-slate-800'>
+                    <div key={item.label}>
+                      <div className='flex items-center justify-between mb-2'>
+                        <span className='text-sm font-medium text-slate-700'>
+                          {item.label}
+                        </span>
+                        <div className='text-right'>
+                          <span className='text-sm font-semibold text-slate-900'>
                             {item.value > 0 ? item.value.toFixed(1) : '0'}
-                          </p>
-                          <p className='text-[10px] text-slate-400 font-medium'>
-                            / {item.target} {item.unit}
-                          </p>
+                          </span>
+                          <span className='text-xs text-slate-500 mx-1'>/</span>
+                          <span className='text-xs font-medium text-slate-600'>
+                            {item.target} {item.unit}
+                          </span>
+                          <span className='text-xs text-slate-400 ml-2'>
+                            {Math.round(percentage)}%
+                          </span>
                         </div>
+                      </div>
+                      <div className='relative h-2 bg-amber-50 rounded-full overflow-hidden border border-amber-100'>
+                        <div
+                          className='absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500'
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
                   );
@@ -840,7 +832,7 @@ const Dashboard = () => {
                 <h3 className='text-xl font-bold text-slate-800'>Minerals</h3>
               </div>
 
-              <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
+              <div className='space-y-4'>
                 {[
                   {
                     label: 'Calcium',
@@ -903,35 +895,29 @@ const Dashboard = () => {
                   );
 
                   return (
-                    <div
-                      key={item.label}
-                      className='bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-3 hover-lift border border-orange-100'>
-                      <div className='flex flex-col items-center text-center gap-2'>
-                        <div className='relative w-14 h-14 flex-shrink-0'>
-                          <CircularProgress
-                            value={percentage}
-                            color='orange'
-                            size={56}
-                            strokeWidth={5}
-                            showValue={false}
-                          />
-                          <div className='absolute inset-0 flex items-center justify-center'>
-                            <span className='text-xs font-bold text-orange-700'>
-                              {Math.round(percentage)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className='w-full'>
-                          <p className='text-xs text-slate-600 font-semibold mb-1 truncate'>
-                            {item.label}
-                          </p>
-                          <p className='text-sm font-bold text-slate-800'>
+                    <div key={item.label}>
+                      <div className='flex items-center justify-between mb-2'>
+                        <span className='text-sm font-medium text-slate-700'>
+                          {item.label}
+                        </span>
+                        <div className='text-right'>
+                          <span className='text-sm font-semibold text-slate-900'>
                             {item.value > 0 ? item.value.toFixed(1) : '0'}
-                          </p>
-                          <p className='text-[10px] text-slate-400 font-medium'>
-                            / {item.target} {item.unit}
-                          </p>
+                          </span>
+                          <span className='text-xs text-slate-500 mx-1'>/</span>
+                          <span className='text-xs font-medium text-slate-600'>
+                            {item.target} {item.unit}
+                          </span>
+                          <span className='text-xs text-slate-400 ml-2'>
+                            {Math.round(percentage)}%
+                          </span>
                         </div>
+                      </div>
+                      <div className='relative h-2 bg-orange-50 rounded-full overflow-hidden border border-orange-100'>
+                        <div
+                          className='absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-500'
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
                   );
@@ -944,29 +930,35 @@ const Dashboard = () => {
           <div className='lg:col-span-1 space-y-6'>
             {/* Daily Progress */}
             <Card padding='lg' variant='gradient'>
-              <div className='text-center mb-6'>
+              <div className='mb-6'>
                 <div className='inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full mb-4'>
                   <Target className='w-4 h-4 text-white' />
                   <span className='text-xs font-semibold text-white'>
                     Daily Goal
                   </span>
                 </div>
-                <h2 className='text-2xl font-bold text-white mb-1'>
-                  {Math.round(calorieProgress)}%
-                </h2>
-                <p className='text-sm text-white/80'>Progress Today</p>
+                <div className='space-y-2'>
+                  <div className='flex items-end justify-between'>
+                    <h2 className='text-3xl font-bold text-white'>
+                      {Math.round(dailyTotals.calories)}
+                    </h2>
+                    <span className='text-sm text-white/80 mb-1'>
+                      / {userTargets.dailyCalorieTarget} cal
+                    </span>
+                  </div>
+                  <div className='relative h-3 bg-white/20 rounded-full overflow-hidden'>
+                    <div
+                      className='absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-500'
+                      style={{ width: `${Math.min(100, calorieProgress)}%` }}
+                    />
+                  </div>
+                  <p className='text-xs text-white/80'>
+                    {Math.round(calorieProgress)}% of daily goal
+                  </p>
+                </div>
               </div>
 
-              <div className='flex justify-center mb-6'>
-                <CircularProgress
-                  value={calorieProgress}
-                  color='white'
-                  size='lg'
-                  showValue={false}
-                />
-              </div>
-
-              <div className='space-y-3'>
+              <div className='space-y-3 pt-4 border-t border-white/20'>
                 <div className='flex justify-between text-sm'>
                   <span className='text-white/80'>Consumed</span>
                   <span className='font-bold text-white'>
