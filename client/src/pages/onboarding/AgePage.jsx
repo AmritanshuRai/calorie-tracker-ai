@@ -5,6 +5,7 @@ import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import useUserStore from '../../stores/useUserStore';
+import SmoothSlider from '../../components/SmoothSlider/js';
 
 const AgePage = () => {
   const navigate = useNavigate();
@@ -67,6 +68,8 @@ const AgePage = () => {
             error={error}
             className='text-center text-xl'
           />
+
+          <SmoothSlider />
         </motion.div>
 
         <motion.div
