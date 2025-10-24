@@ -15,7 +15,9 @@
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push",
     "prisma:reset": "prisma migrate reset",
-    "prisma:reset-tables": "prisma migrate reset --force --skip-seed"
+    "prisma:reset-tables": "prisma migrate reset --force --skip-seed",
+    "prisma:fresh": "prisma db push --force-reset --accept-data-loss",
+    "prisma:truncate": "node -e \"console.log('Run: npx prisma studio -> then manually delete records, OR use prisma:fresh')\""
   },
   "keywords": [
     "calorie-tracker",

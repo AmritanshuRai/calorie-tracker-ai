@@ -205,7 +205,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
 
   return (
     <AnimatePresence>
-      <div className='fixed inset-0 z-50 flex items-end sm:items-center justify-center'>
+      <div className='fixed inset-0 z-50 flex sm:items-center justify-center'>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -220,7 +220,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
           initial={{ opacity: 0, y: 100, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 100, scale: 0.9 }}
-          className='relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto'>
+          className='relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full flex flex-col'>
           {/* Close button */}
           <button
             onClick={handleClose}
@@ -228,14 +228,11 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
             <X className='w-6 h-6 text-slate-600' />
           </button>
 
-          <div className='p-6'>
+          <div className='p-4 sm:p-6 pb-6 overflow-y-auto flex-1'>
             {/* Step 1: Input */}
             {step === 1 && (
               <div className='space-y-6'>
                 <div className='text-center'>
-                  <div className='w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center'>
-                    <UtensilsCrossed className='w-7 h-7 text-slate-600' />
-                  </div>
                   <h2 className='text-2xl font-bold text-slate-800'>
                     Log Your Food
                   </h2>
@@ -256,7 +253,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                         <button
                           key={type.value}
                           onClick={() => setMealType(type.value)}
-                          className={`p-2.5 rounded-xl border-2 transition-all ${
+                          className={`p-3 rounded-xl border-2 transition-all ${
                             mealType === type.value
                               ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                               : 'border-slate-200 hover:border-slate-300 text-slate-600'
