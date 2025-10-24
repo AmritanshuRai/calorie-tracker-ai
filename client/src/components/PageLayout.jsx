@@ -57,7 +57,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
         <div
           className={`${
             isFullWidth ? 'w-full' : 'max-w-3xl'
-          } mx-auto px-4 sm:px-6 ${
+          } mx-auto px-6 max-md:px-4 ${
             isOnboardingPage ? 'py-2' : 'py-4'
           } flex items-center justify-between`}>
           {showBack ? (
@@ -101,7 +101,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       {/* Content */}
       <div
         className={`${
-          isFullWidth ? 'w-full' : 'max-w-3xl mx-auto px-4 sm:px-6'
+          isFullWidth ? 'w-full' : 'max-w-3xl mx-auto px-6 max-md:px-4'
         } ${isOnboardingPage ? 'flex-1 overflow-y-auto py-4' : 'flex-1 py-8'}`}>
         {children}
       </div>

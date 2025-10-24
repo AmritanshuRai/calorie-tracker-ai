@@ -495,7 +495,7 @@ const Admin = () => {
                 {(() => {
                   const totals = calculateTotals();
                   return (
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4'>
+                    <div className='grid grid-cols-2 max-md:grid-cols-1 lg:grid-cols-3 gap-3 mb-4'>
                       <Card className='bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 p-3'>
                         <div className='flex items-center justify-between'>
                           <div>

@@ -199,24 +199,24 @@ export default function Account() {
     goalConfig[onboardingData.goal] || goalConfig.improved_health;
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/30 pb-24 lg:pb-8'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/30 pb-8 max-lg:pb-24'>
       {/* Header */}
       <header className='sticky top-0 z-30 backdrop-blur-xl bg-white/95 border-b-2 border-slate-300 shadow-lg'>
-        <div className='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between h-16 sm:h-18 lg:h-20'>
+        <div className='max-w-5xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
+          <div className='flex items-center justify-between h-20 max-md:h-18 max-sm:h-16'>
             <button
               onClick={() => navigate('/dashboard')}
               className='flex items-center gap-2 hover:bg-slate-100 rounded-xl p-2 transition-all active:scale-95'>
-              <ChevronLeft className='w-5 h-5 sm:w-6 sm:h-6 text-slate-700' />
-              <span className='font-semibold text-slate-700 hidden sm:inline'>
+              <ChevronLeft className='w-6 h-6 max-sm:w-5 max-sm:h-5 text-slate-700' />
+              <span className='font-semibold text-slate-700 max-sm:hidden'>
                 Back
               </span>
             </button>
             <div className='text-center'>
-              <h1 className='text-lg sm:text-xl lg:text-2xl font-black text-slate-900'>
+              <h1 className='text-2xl max-lg:text-xl max-sm:text-lg font-black text-slate-900'>
                 Account Settings
               </h1>
-              <p className='text-xs sm:text-sm text-slate-600 font-medium'>
+              <p className='text-sm max-sm:text-xs text-slate-600 font-medium'>
                 Manage your profile
               </p>
             </div>
@@ -226,25 +226,25 @@ export default function Account() {
       </header>
 
       {/* Main Content */}
-      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
+      <main className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4 py-8 max-sm:py-6'>
         {/* Profile Card */}
         <Card variant='gradient' padding='lg' className='mb-6'>
-          <div className='flex flex-col sm:flex-row items-center sm:items-start gap-6'>
+          <div className='flex flex-row max-md:flex-col items-center sm:items-start gap-6'>
             {user?.picture ? (
               <img
                 src={user.picture}
                 alt={user?.name || 'User'}
                 referrerPolicy='no-referrer'
-                className='w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-2xl'
+                className='w-28 h-28 max-sm:w-24 max-sm:h-24 rounded-full border-4 border-white object-cover shadow-2xl'
               />
             ) : (
-              <div className='w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/30 backdrop-blur-sm border-4 border-white flex items-center justify-center text-white font-black text-4xl shadow-2xl'>
+              <div className='w-28 h-28 max-sm:w-24 max-sm:h-24 rounded-full bg-white/30 backdrop-blur-sm border-4 border-white flex items-center justify-center text-white font-black text-4xl shadow-2xl'>
                 {getUserInitials()}
               </div>
             )}
-            <div className='flex-1 text-center sm:text-left'>
-              <div className='flex items-center justify-center sm:justify-start gap-3 mb-2'>
-                <h2 className='text-2xl sm:text-3xl font-black text-white'>
+            <div className='flex-1 text-left max-sm:text-center'>
+              <div className='flex items-center justify-start max-sm:justify-center gap-3 mb-2'>
+                <h2 className='text-3xl max-sm:text-2xl font-black text-white'>
                   {user?.name || 'User'}
                 </h2>
                 {user?.isPro && (
@@ -254,7 +254,7 @@ export default function Account() {
                   </span>
                 )}
               </div>
-              <div className='flex items-center justify-center sm:justify-start gap-2 text-white/90 mb-4'>
+              <div className='flex items-center justify-start max-sm:justify-center gap-2 text-white/90 mb-4'>
                 <Mail className='w-4 h-4' />
                 <p className='text-sm font-medium'>
                   {user?.email || 'user@example.com'}
@@ -269,9 +269,9 @@ export default function Account() {
         </Card>
 
         {/* Sidebar and Content Layout */}
-        <div className='flex flex-col lg:flex-row gap-6'>
+        <div className='flex flex-row max-lg:flex-col gap-6'>
           {/* Sidebar */}
-          <aside className='lg:w-64 flex-shrink-0'>
+          <aside className='w-64 flex-shrink-0'>
             <Card padding='none' variant='default'>
               <nav className='p-2'>
                 <button
@@ -319,7 +319,7 @@ export default function Account() {
                     <User className='w-6 h-6 text-slate-700' />
                     Profile Information
                   </h3>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <div className='grid grid-cols-2 max-sm:grid-cols-1 gap-4'>
                     {profileStats.map((stat, index) => {
                       const Icon = stat.icon;
                       return (
@@ -456,7 +456,7 @@ export default function Account() {
                         <Button
                           onClick={handleStartOnboarding}
                           variant='primary'
-                          className='w-full sm:w-auto'>
+                          className='w-auto max-sm:w-full'>
                           <RefreshCw className='w-5 h-5' />
                           Start Onboarding
                         </Button>

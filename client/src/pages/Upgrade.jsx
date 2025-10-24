@@ -558,7 +558,7 @@ export default function Upgrade() {
             Join thousands of users who trust us for accurate, comprehensive
             nutrition data.
           </p>
-          <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
+          <div className='flex flex-row max-md:flex-col items-center justify-center gap-4'>
             <Button
               onClick={handlePurchase}
               disabled={isProcessing}

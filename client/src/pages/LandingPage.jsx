@@ -208,17 +208,17 @@ export default function LandingPage() {
     <div className='min-h-screen bg-white'>
       {/* Navigation */}
       <nav className='fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-200 shadow-sm'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between h-16 lg:h-20'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
+          <div className='flex items-center justify-between h-20 max-lg:h-16'>
             {/* Logo */}
             <button
               onClick={() => navigate('/')}
               className='flex items-center hover:opacity-80 transition-opacity'>
-              <Logo className='h-10 lg:h-12 w-auto' />
+              <Logo className='h-12 max-lg:h-10 w-auto' />
             </button>
 
             {/* Desktop Navigation */}
-            <div className='hidden lg:flex items-center gap-8'>
+            <div className='flex max-lg:hidden items-center gap-8'>
               <button
                 onClick={() => scrollToSection('features')}
                 className='text-slate-700 hover:text-emerald-600 font-medium transition-colors'>
@@ -242,7 +242,7 @@ export default function LandingPage() {
             </div>
 
             {/* CTA Buttons */}
-            <div className='hidden lg:flex items-center gap-4'>
+            <div className='flex max-lg:hidden items-center gap-4'>
               <Button
                 variant='outline'
                 onClick={openSignInModal}
@@ -260,7 +260,7 @@ export default function LandingPage() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className='lg:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-lg'>
+              className='hidden max-lg:block p-2 text-slate-700 hover:bg-slate-100 rounded-lg'>
               {mobileMenuOpen ? (
                 <X className='w-6 h-6' />
               ) : (
@@ -271,7 +271,7 @@ export default function LandingPage() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className='lg:hidden border-t border-slate-200 py-4 space-y-2'>
+            <div className='hidden max-lg:block border-t border-slate-200 py-4 space-y-2'>
               <button
                 onClick={() => scrollToSection('features')}
                 className='block w-full text-left px-4 py-2 text-slate-700 hover:bg-slate-50 rounded-lg font-medium'>
@@ -313,22 +313,22 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className='relative pt-24 lg:pt-32 pb-16 lg:pb-24 overflow-hidden'>
+      <section className='relative pt-32 max-lg:pt-24 pb-24 max-lg:pb-16 overflow-hidden'>
         {/* Background decorations */}
         <div className='absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50'></div>
         <div className='absolute top-0 right-0 w-96 h-96 bg-emerald-200 rounded-full blur-3xl opacity-20'></div>
         <div className='absolute bottom-0 left-0 w-96 h-96 bg-teal-200 rounded-full blur-3xl opacity-20'></div>
 
-        <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
+        <div className='relative max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
+          <div className='grid grid-cols-2 max-lg:grid-cols-1 gap-16 max-lg:gap-12 items-center'>
             {/* Left Content */}
-            <div className='text-center lg:text-left space-y-8'>
+            <div className='text-left max-lg:text-center space-y-8'>
               <div className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-700 rounded-full text-sm font-semibold'>
                 <Sparkles className='w-4 h-4' />
                 #1 AI-Powered Nutrition Tracker
               </div>
 
-              <h1 className='text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-tight'>
+              <h1 className='text-7xl max-xl:text-6xl max-lg:text-5xl max-sm:text-4xl font-black text-slate-900 leading-tight'>
                 Track Every
                 <br />
                 <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
@@ -339,24 +339,24 @@ export default function LandingPage() {
                 Matters
               </h1>
 
-              <p className='text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0'>
+              <p className='text-xl max-lg:text-lg text-slate-600 max-w-2xl max-lg:mx-auto'>
                 Hospital-grade AI analyzes 30+ nutrients from foods across 150+
                 countries. Get accurate, comprehensive nutrition tracking for
                 free.
               </p>
 
-              <div className='flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4'>
+              <div className='flex flex-row max-md:flex-col items-center justify-start max-lg:justify-center gap-4'>
                 <Button
                   size='xl'
                   onClick={openSignInModal}
-                  className='bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 text-lg px-8 py-4 w-full sm:w-auto'>
+                  className='bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 text-lg px-8 py-4 w-auto max-sm:w-full'>
                   Start Free Trial
                   <ArrowRight className='w-5 h-5 ml-2' />
                 </Button>
               </div>
 
               {/* Social Proof */}
-              <div className='flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 pt-4'>
+              <div className='flex flex-row max-md:flex-col items-center justify-start max-lg:justify-center gap-6 pt-4'>
                 <div className='flex items-center gap-2'>
                   <div className='flex -space-x-2'>
                     {['👨‍💼', '👩‍💻', '👨‍⚕️', '👩‍🔬'].map((emoji, i) => (
@@ -493,13 +493,13 @@ export default function LandingPage() {
       <section
         id='features'
         className='py-16 lg:py-24 bg-gradient-to-br from-slate-50 to-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
             <div className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-700 rounded-full text-sm font-semibold mb-4'>
               <Zap className='w-4 h-4' />
               Powerful Features
             </div>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Everything You Need for
               <br />
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
@@ -512,7 +512,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8'>
+          <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-lg:gap-6'>
             {features.map((feature, index) => (
               <Card
                 key={index}
@@ -535,9 +535,9 @@ export default function LandingPage() {
 
       {/* Nutrients Showcase */}
       <section className='py-16 lg:py-24 bg-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Track{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
                 30+ Nutrients
@@ -617,9 +617,9 @@ export default function LandingPage() {
 
       {/* Comparison Section */}
       <section className='py-16 lg:py-24 bg-gradient-to-br from-slate-50 to-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Why Choose{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
                 trackall.food?
@@ -702,9 +702,9 @@ export default function LandingPage() {
 
       {/* How It Works */}
       <section id='how-it-works' className='py-16 lg:py-24 bg-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Get Started in{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
                 3 Simple Steps
@@ -776,13 +776,13 @@ export default function LandingPage() {
       <section
         id='pricing'
         className='py-16 lg:py-24 bg-gradient-to-br from-slate-50 to-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
             <div className='inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-700 rounded-full text-sm font-semibold mb-4'>
               <Award className='w-4 h-4' />
               Best Value in Market
             </div>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Simple,{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
                 Transparent
@@ -924,9 +924,9 @@ export default function LandingPage() {
 
       {/* Testimonials */}
       <section id='testimonials' className='py-16 lg:py-24 bg-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4'>
           <div className='text-center mb-16'>
-            <h2 className='text-3xl lg:text-5xl font-black text-slate-900 mb-4'>
+            <h2 className='text-5xl max-lg:text-3xl font-black text-slate-900 mb-4'>
               Loved by{' '}
               <span className='text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600'>
                 Thousands
@@ -980,8 +980,8 @@ export default function LandingPage() {
           <div className='absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl'></div>
         </div>
 
-        <div className='relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
-          <h2 className='text-3xl lg:text-5xl font-black text-white mb-6'>
+        <div className='relative max-w-4xl mx-auto px-8 max-lg:px-6 max-sm:px-4 text-center'>
+          <h2 className='text-5xl max-lg:text-3xl font-black text-white mb-6'>
             Ready to Transform Your
             <br />
             Nutrition Journey?
@@ -991,11 +991,11 @@ export default function LandingPage() {
             accuracy. Start your free trial today!
           </p>
 
-          <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-8'>
+          <div className='flex flex-row max-md:flex-col items-center justify-center gap-4 mb-8'>
             <Button
               size='xl'
               onClick={openSignInModal}
-              className='bg-white text-emerald-600 hover:bg-slate-50 shadow-2xl text-lg px-8 py-4 w-full sm:w-auto'>
+              className='bg-white text-emerald-600 hover:bg-slate-50 shadow-2xl text-lg px-8 py-4 w-auto max-sm:w-full'>
               Get Started Free
               <ArrowRight className='w-5 h-5 ml-2' />
             </Button>
@@ -1003,7 +1003,7 @@ export default function LandingPage() {
               size='xl'
               variant='outline'
               onClick={() => scrollToSection('features')}
-              className='border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-4 w-full sm:w-auto'>
+              className='border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-4 w-auto max-sm:w-full'>
               Learn More
             </Button>
           </div>

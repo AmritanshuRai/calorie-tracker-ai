@@ -141,7 +141,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className='border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-4'>
+        <div className='border-t border-gray-800 pt-6 flex flex-row max-md:flex-col justify-between items-center gap-4'>
           <p className='text-sm text-gray-500'>
             © {currentYear} trackall.food. All rights reserved.
           </p>

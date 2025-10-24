@@ -90,10 +90,17 @@
 
   body {
     margin: 0;
-    min-width: 320px;
+    min-width: 1024px; /* Desktop-first: default to desktop min-width */
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
     color: var(--slate-700);
+  }
+
+  /* Mobile override */
+  @media (max-width: 1023px) {
+    body {
+      min-width: 320px;
+    }
   }
 
   #root {

@@ -80,7 +80,7 @@ const PregnancyStatusPage = () => {
           <div className='w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl flex items-center justify-center'>
             <Baby className='w-10 h-10 text-pink-600' />
           </div>
-          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
+          <h2 className='text-4xl max-lg:text-3xl font-black text-slate-900 mb-3'>
             Are you currently pregnant or breastfeeding?
           </h2>
           <p className='text-lg font-medium text-slate-600'>
@@ -93,7 +93,7 @@ const PregnancyStatusPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='grid grid-cols-2 max-md:grid-cols-1 gap-4'>
             {pregnancyOptions.map((option, index) => (
               <motion.button
                 key={option.value}

@@ -160,7 +160,7 @@ const UsageDashboard = () => {
   return (
     <div className='space-y-6'>
       {/* Header with Filters */}
-      <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4'>
+      <div className='flex flex-row max-lg:flex-col justify-between items-start lg:items-center gap-4'>
         <div>
           <h2 className='text-2xl font-bold text-slate-900'>
             OpenAI Usage Analytics
@@ -268,7 +268,7 @@ const UsageDashboard = () => {
       ) : aggregated ? (
         <>
           {/* Summary Cards */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+          <div className='grid grid-cols-2 max-md:grid-cols-1 lg:grid-cols-4 gap-4'>
             <Card className='bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 p-4'>
               <div className='flex items-center justify-between'>
                 <div>
@@ -346,7 +346,7 @@ const UsageDashboard = () => {
           </div>
 
           {/* Charts */}
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className='grid grid-cols-2 max-lg:grid-cols-1 gap-6'>
             {/* Token Usage Over Time */}
             <Card>
               <h3 className='text-lg font-bold text-slate-900 mb-4'>

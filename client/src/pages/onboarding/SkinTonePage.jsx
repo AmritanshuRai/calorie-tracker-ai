@@ -49,7 +49,7 @@ const SkinTonePage = () => {
           <div className='w-14 h-14 mx-auto mb-2 bg-gradient-to-br from-rose-100 to-pink-200 rounded-2xl flex items-center justify-center'>
             <Palette className='w-7 h-7 text-rose-600' />
           </div>
-          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
+          <h2 className='text-3xl max-lg:text-2xl font-black text-slate-900 mb-1.5'>
             What's your skin tone?
           </h2>
           <p className='text-base font-medium text-slate-600'>

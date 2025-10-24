@@ -305,22 +305,22 @@ const Dashboard = () => {
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/30'>
       {/* Header */}
       <header className='sticky top-0 z-50 backdrop-blur-xl bg-white/95 border-b-2 border-slate-300 shadow-lg'>
-        <div className='max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between h-16 sm:h-18 lg:h-20'>
-            <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0'>
-              <LogoIcon className='w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex-shrink-0' />
+        <div className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-3'>
+          <div className='flex items-center justify-between h-20 max-md:h-18 max-sm:h-16'>
+            <div className='flex items-center gap-4 max-lg:gap-3 max-sm:gap-2 min-w-0'>
+              <LogoIcon className='w-14 h-14 max-lg:w-12 max-lg:h-12 max-sm:w-11 max-sm:h-11 flex-shrink-0' />
               <div className='min-w-0'>
-                <h1 className='text-base sm:text-lg lg:text-xl font-black text-slate-900 truncate'>
+                <h1 className='text-xl max-lg:text-lg max-sm:text-base font-black text-slate-900 truncate'>
                   {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}!
                 </h1>
-                <p className='text-xs sm:text-sm text-slate-600 font-medium truncate'>
+                <p className='text-sm max-sm:text-xs text-slate-600 font-medium truncate'>
                   Track your nutrition journey
                 </p>
               </div>
             </div>
-            <div className='flex items-center gap-2 sm:gap-3 flex-shrink-0'>
-              <button className='p-2 sm:p-2.5 hover:bg-emerald-50 rounded-xl transition-all active:scale-95 relative bg-slate-100'>
-                <Bell className='w-5 h-5 sm:w-6 sm:h-6 text-slate-700' />
+            <div className='flex items-center gap-3 max-sm:gap-2 flex-shrink-0'>
+              <button className='p-2.5 max-sm:p-2 hover:bg-emerald-50 rounded-xl transition-all active:scale-95 relative bg-slate-100'>
+                <Bell className='w-6 h-6 max-sm:w-5 max-sm:h-5 text-slate-700' />
                 <span className='absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white'></span>
               </button>
 
@@ -338,16 +338,16 @@ const Dashboard = () => {
                         e.target.style.display = 'none';
                       }}
                       referrerPolicy='no-referrer'
-                      className='w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-emerald-500 object-cover shadow-md'
+                      className='w-10 h-10 max-sm:w-9 max-sm:h-9 rounded-full border-2 border-emerald-500 object-cover shadow-md'
                     />
                   ) : null}
                   <div
-                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm sm:text-base border-2 border-emerald-500 shadow-md ${
+                    className={`w-10 h-10 max-sm:w-9 max-sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-base max-sm:text-sm border-2 border-emerald-500 shadow-md ${
                       user?.picture ? 'hidden' : ''
                     }`}>
                     {getUserInitials()}
                   </div>
-                  <ChevronDown className='w-4 h-4 text-slate-600 hidden sm:block' />
+                  <ChevronDown className='w-4 h-4 text-slate-600 max-sm:hidden' />
                 </button>
 
                 {/* Dropdown Menu */}
@@ -429,10 +429,10 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8'>
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
+      <main className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4 py-8 max-lg:py-6 pb-8 max-lg:pb-24'>
+        <div className='grid grid-cols-3 max-lg:grid-cols-1 gap-8 max-lg:gap-6'>
           {/* Left Column - Main Content */}
-          <div className='lg:col-span-2 space-y-6'>
+          <div className='col-span-2 max-col-span-1 space-y-6'>
             {/* Date Carousel */}
             <Card padding='lg' variant='default'>
               <Calendar
@@ -449,7 +449,7 @@ const Dashboard = () => {
                   <div className='absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32'></div>
                   <div className='absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24'></div>
 
-                  <div className='relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+                  <div className='relative z-10 flex flex-row max-md:flex-col items-center max-md:items-start justify-between gap-4'>
                     <div className='flex items-start gap-4'>
                       <div className='flex-shrink-0 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center'>
                         <Sparkles className='w-6 h-6 text-white' />
@@ -880,7 +880,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Column - Progress Overview */}
-          <div className='lg:col-span-1 space-y-6'>
+          <div className='col-span-1 max-col-span-1 space-y-6'>
             {/* Daily Progress */}
             <Card padding='lg' variant='gradient'>
               <div className='mb-6'>

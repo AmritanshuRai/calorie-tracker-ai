@@ -21,9 +21,9 @@ export default function Card({
 
   const paddings = {
     none: '',
-    sm: 'p-4',
-    md: 'p-5 lg:p-7',
-    lg: 'p-7 lg:p-9',
+    sm: 'p-4 max-md:p-3',
+    md: 'p-7 max-md:p-5',
+    lg: 'p-9 max-md:p-7 max-sm:p-5',
   };
 
   const baseStyles = 'rounded-2xl transition-all duration-300';

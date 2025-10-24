@@ -32,7 +32,7 @@ const GenderPage = () => {
     <PageLayout title='Welcome!' showBack={false}>
       <div className='h-full flex flex-col justify-center space-y-4 max-w-3xl mx-auto'>
         <div className='text-center'>
-          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-2'>
+          <h2 className='text-3xl max-lg:text-2xl font-black text-slate-900 mb-2'>
             What's your gender?
           </h2>
           <p className='text-base font-medium text-slate-600'>
@@ -40,7 +40,7 @@ const GenderPage = () => {
           </p>
         </div>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6'>
+        <div className='grid grid-cols-2 max-sm:grid-cols-1 gap-3 mt-6'>
           {options.map((option) => {
             const Icon = option.icon;
             return (

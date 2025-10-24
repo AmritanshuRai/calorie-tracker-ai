@@ -61,7 +61,7 @@ const DeficienciesPage = () => {
           <div className='w-14 h-14 mx-auto mb-2 bg-gradient-to-br from-orange-100 to-yellow-200 rounded-2xl flex items-center justify-center'>
             <AlertCircle className='w-7 h-7 text-orange-600' />
           </div>
-          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
+          <h2 className='text-3xl max-lg:text-2xl font-black text-slate-900 mb-1.5'>
             Any previous nutrient deficiencies?
           </h2>
           <p className='text-base font-medium text-slate-600'>
