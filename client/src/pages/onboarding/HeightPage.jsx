@@ -5,6 +5,7 @@ import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import useUserStore from '../../stores/useUserStore';
+import SmoothSlider from '../../components/SmoothSlider/js';
 
 const HeightPage = () => {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ const HeightPage = () => {
   };
 
   const heightInFeet = height ? (parseFloat(height) / 30.48).toFixed(1) : '0.0';
+  const feet = height ? Math.floor(parseFloat(height) / 30.48) : 0;
+  const inches = height ? Math.round((parseFloat(height) / 2.54) % 12) : 0;
 
   return (
     <PageLayout title='Your Height' showBack={true}>
@@ -55,27 +58,59 @@ const HeightPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}>
-            <Input
-              label='Height'
-              type='number'
-              value={height}
-              onChange={(e) => {
-                setHeight(e.target.value);
-                setError('');
-              }}
-              placeholder='170'
-              unit='cm'
-              min='100'
-              max='250'
-              step='0.1'
-            />
+            {/* Desktop: Show input field */}
+            <div className='hidden md:block'>
+              <Input
+                label='Height'
+                type='number'
+                value={height}
+                onChange={(e) => {
+                  setHeight(e.target.value);
+                  setError('');
+                }}
+                placeholder='170'
+                unit='cm'
+                min='100'
+                max='250'
+                step='0.1'
+              />
+            </div>
+
+            {/* Mobile: Show iOS picker */}
+            <div className='md:hidden'>
+              <SmoothSlider
+                value={height}
+                onChange={(value) => {
+                  setHeight(value);
+                  setError('');
+                }}
+                min={100}
+                max={250}
+                label='cm'
+              />
+
+              {/* Show converted imperial value */}
+              {height &&
+                parseFloat(height) >= 100 &&
+                parseFloat(height) <= 250 && (
+                  <div className='text-center mt-4'>
+                    <p className='text-sm text-gray-600'>
+                      Approximately{' '}
+                      <span className='font-semibold text-gray-800'>
+                        {feet}'{inches}"
+                      </span>{' '}
+                      ({heightInFeet} ft)
+                    </p>
+                  </div>
+                )}
+            </div>
           </motion.div>
 
           {height && parseFloat(height) >= 100 && parseFloat(height) <= 250 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-green-50 border border-green-200 rounded-lg p-3'>
+              className='bg-green-50 border border-green-200 rounded-lg p-3 hidden md:block'>
               <div className='flex items-center gap-2 text-green-800'>
                 <svg
                   className='w-4 h-4'
@@ -88,7 +123,7 @@ const HeightPage = () => {
                   />
                 </svg>
                 <span className='text-sm font-semibold'>
-                  That's approximately {heightInFeet} feet
+                  That's approximately {feet}'{inches}" ({heightInFeet} ft)
                 </span>
               </div>
             </motion.div>
@@ -98,17 +133,17 @@ const HeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm'>
+              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm md:block hidden'>
               {error}
             </motion.div>
           )}
 
-          {/* Common heights helper */}
+          {/* Common heights helper - Desktop only */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className='bg-gray-50 rounded-lg p-3'>
+            className='bg-gray-50 rounded-lg p-3 hidden md:block'>
             <p className='text-xs text-gray-600 mb-2 font-medium'>
               Quick reference:
             </p>
