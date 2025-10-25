@@ -6,7 +6,6 @@ import {
   Globe,
   Award,
   ChevronRight,
-  Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
@@ -14,18 +13,12 @@ import Button from '../components/Button';
 import Card from '../components/Card';
 import useUserStore from '../stores/useUserStore';
 import { FREE_LOGS_LIMIT } from '../utils/constants';
-import {
-  createOrder,
-  verifyPayment,
-  initializeRazorpayCheckout,
-} from '../services/paymentService';
 
 export default function Upgrade() {
   const [billingCycle, setBillingCycle] = useState('annual'); // 'monthly' or 'annual'
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user, subscription, setSubscription } = useUserStore();
+  const { user, subscription } = useUserStore();
 
   const pricing = {
     test: {
@@ -59,82 +52,17 @@ export default function Upgrade() {
     }
   }, [subscription, navigate]);
 
-  // Handle payment initiation
+  // Handle purchase button click - currently disabled
   const handlePurchase = async () => {
     if (!user) {
       navigate('/signin');
       return;
     }
 
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      // Create subscription on backend
-      const subscriptionData = await createOrder(billingCycle);
-
-      // Initialize Razorpay checkout for subscription
-      initializeRazorpayCheckout(
-        {
-          key: subscriptionData.key,
-          amount: subscriptionData.amount,
-          currency: subscriptionData.currency,
-          subscriptionId: subscriptionData.subscription.id, // Subscription ID instead of order ID
-          description: `TrackAll.Food Pro - ${
-            billingCycle === 'monthly' ? 'Monthly' : 'Annual'
-          } Subscription (Auto-renewing)`,
-          plan: billingCycle,
-          userName: user.name || user.email.split('@')[0],
-          userEmail: user.email,
-        },
-        async (response) => {
-          // Payment successful - verify on backend
-          try {
-            const verificationResult = await verifyPayment(response);
-
-            if (verificationResult.success) {
-              // Update local subscription state
-              setSubscription({
-                status: 'active',
-                plan: billingCycle,
-                endDate: verificationResult.subscription.endDate,
-                nextBillingDate:
-                  verificationResult.subscription.nextBillingDate,
-                recurring: true,
-                freeLogs: 0,
-                canLog: true,
-              });
-
-              // Show success and redirect
-              alert(
-                `🎉 Subscription activated! Your ${billingCycle} plan will auto-renew.`
-              );
-              navigate('/dashboard');
-            } else {
-              throw new Error('Payment verification failed');
-            }
-          } catch (err) {
-            console.error('Verification error:', err);
-            setError('Payment verification failed. Please contact support.');
-          } finally {
-            setIsProcessing(false);
-          }
-        },
-        (error) => {
-          // Payment failed or cancelled
-          console.error('Payment error:', error);
-          setError(error.message || 'Payment failed. Please try again.');
-          setIsProcessing(false);
-        }
-      );
-    } catch (err) {
-      console.error('Subscription creation error:', err);
-      setError(
-        err.response?.data?.details ||
-          'Failed to initialize payment. Please try again.'
-      );
-      setIsProcessing(false);
-    }
+    // Payment functionality disabled - Razorpay integration removed
+    setError(
+      'Payment processing is currently unavailable. Please contact support@trackall.food for subscription.'
+    );
   };
 
   // Nutrients we track
@@ -350,19 +278,9 @@ export default function Upgrade() {
             {/* CTA Button */}
             <Button
               onClick={handlePurchase}
-              disabled={isProcessing}
-              className='w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
-              {isProcessing ? (
-                <>
-                  <Loader2 className='w-5 h-5 mr-2 animate-spin' />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Get Started Now
-                  <ChevronRight className='w-5 h-5 ml-1' />
-                </>
-              )}
+              className='w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow'>
+              Get Started Now
+              <ChevronRight className='w-5 h-5 ml-1' />
             </Button>
 
             {/* Benefits List */}
@@ -561,19 +479,9 @@ export default function Upgrade() {
           <div className='flex flex-row max-md:flex-col items-center justify-center gap-4'>
             <Button
               onClick={handlePurchase}
-              disabled={isProcessing}
-              className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
-              {isProcessing ? (
-                <>
-                  <Loader2 className='w-5 h-5 mr-2 animate-spin' />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Get Started Now
-                  <ChevronRight className='w-5 h-5 ml-1' />
-                </>
-              )}
+              className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow'>
+              Get Started Now
+              <ChevronRight className='w-5 h-5 ml-1' />
             </Button>
             <button className='text-emerald-600 font-medium hover:underline'>
               View sample nutrition report →

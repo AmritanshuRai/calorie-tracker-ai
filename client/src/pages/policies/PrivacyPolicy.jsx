@@ -57,10 +57,9 @@ const PrivacyPolicy = () => {
               2.3 Payment Information
             </h3>
             <p>
-              Payment processing is handled securely through Razorpay. We do not
-              store your credit card or banking information on our servers.
-              Please refer to Razorpay's privacy policy for information about
-              how they handle your payment data.
+              We do not currently process payments directly. For subscription
+              upgrades, please contact us directly. We do not store your credit
+              card or banking information on our servers.
             </p>
           </section>
 
@@ -96,7 +95,7 @@ const PrivacyPolicy = () => {
               <li>
                 <strong>Service Providers:</strong> With third-party vendors who
                 assist us in operating our application (e.g., OpenAI for
-                AI-powered nutrition analysis, Razorpay for payment processing)
+                AI-powered nutrition analysis)
               </li>
               <li>
                 <strong>Legal Requirements:</strong> When required by law or to

@@ -86,7 +86,7 @@ const TermsAndConditions = () => {
                 Subscription fees are billed in advance on a monthly or annual
                 basis
               </li>
-              <li>Payment is processed securely through Razorpay</li>
+              <li>Payment is processed securely</li>
               <li>
                 You authorize us to charge your payment method for all
                 applicable fees
@@ -212,9 +212,8 @@ const TermsAndConditions = () => {
             </h2>
             <p>
               Our Service may contain links to third-party websites or services
-              (including Razorpay for payments and OpenAI for AI features). We
-              are not responsible for the content, privacy policies, or
-              practices of third-party services.
+              (including OpenAI for AI features). We are not responsible for the
+              content, privacy policies, or practices of third-party services.
             </p>
           </section>
 

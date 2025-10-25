@@ -26,10 +26,6 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Footer from '../components/Footer';
 import { authService } from '../services/authService';
-import {
-  cancelSubscription,
-  reactivateSubscription,
-} from '../services/paymentService';
 
 export default function Account() {
   const navigate = useNavigate();
@@ -68,19 +64,16 @@ export default function Account() {
 
     try {
       setIsProcessing(true);
-      await cancelSubscription('User requested cancellation');
-
-      // Refresh user profile
-      const profile = await authService.getProfile();
-      setUser(profile);
-
-      setShowCancelConfirm(false);
+      // Payment functionality disabled - Razorpay integration removed
       alert(
-        'Subscription cancelled successfully. You can continue using Pro features until the end of your billing period.'
+        'Subscription management is currently unavailable. Please contact support@trackall.food to cancel your subscription.'
       );
+      setShowCancelConfirm(false);
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert('Failed to cancel subscription. Please try again.');
+      alert(
+        'Failed to cancel subscription. Please contact support@trackall.food.'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -89,16 +82,15 @@ export default function Account() {
   const handleReactivateSubscription = async () => {
     try {
       setIsProcessing(true);
-      await reactivateSubscription();
-
-      // Refresh user profile
-      const profile = await authService.getProfile();
-      setUser(profile);
-
-      alert('Subscription reactivated successfully!');
+      // Payment functionality disabled - Razorpay integration removed
+      alert(
+        'Subscription management is currently unavailable. Please contact support@trackall.food to reactivate your subscription.'
+      );
     } catch (error) {
       console.error('Error reactivating subscription:', error);
-      alert('Failed to reactivate subscription. Please try again.');
+      alert(
+        'Failed to reactivate subscription. Please contact support@trackall.food.'
+      );
     } finally {
       setIsProcessing(false);
     }

@@ -28,7 +28,6 @@ model User {
   subscriptionPlan     String?  // monthly, annual
   subscriptionStart    DateTime?
   subscriptionEnd      DateTime?
-  razorpayCustomerId   String?  @unique
   freeLogs             Int      @default(15) // Free logs remaining
   
   // Metadata
@@ -46,7 +45,6 @@ model User {
   @@index([googleId])
   @@index([isAdmin])
   @@index([subscriptionStatus])
-  @@index([razorpayCustomerId])
 }
 
 model UserOnboarding {
@@ -267,11 +265,6 @@ model Subscription {
   amount                Float    // Amount paid in INR
   currency              String   @default("INR")
   
-  // Razorpay details
-  razorpaySubscriptionId String? @unique
-  razorpayPlanId        String?
-  razorpayCustomerId    String?
-  
   // Subscription period
   startDate             DateTime @default(now())
   endDate               DateTime
@@ -289,7 +282,6 @@ model Subscription {
   
   @@index([userId])
   @@index([status])
-  @@index([razorpaySubscriptionId])
   @@index([endDate])
 }
 
@@ -309,10 +301,8 @@ model Payment {
   plan                String?  // monthly, annual (if subscription)
   description         String?
   
-  // Razorpay details
-  razorpayOrderId     String   @unique
-  razorpayPaymentId   String?  @unique
-  razorpaySignature   String?
+  // Payment reference
+  paymentReference    String   @unique
   
   // Receipt and invoice
   receipt             String?
@@ -333,7 +323,6 @@ model Payment {
   
   @@index([userId])
   @@index([status])
-  @@index([razorpayOrderId])
-  @@index([razorpayPaymentId])
+  @@index([paymentReference])
   @@index([createdAt])
 }
