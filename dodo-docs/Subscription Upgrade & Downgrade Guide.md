@@ -1,0 +1,685 @@
+# Subscription Upgrade & Downgrade Guide
+
+> Learn how to change a customer's subscription plan, handle proration, and process webhooks reliably.
+
+<CardGroup cols={2}>
+  <Card title="Change Plan API Reference" icon="code" href="/api-reference/subscriptions/change-plan">
+    Access the complete API documentation for changing subscription plans and test plan change requests interactively.
+  </Card>
+
+  <Card title="Subscription Integration Guide" icon="book" href="/developer-resources/subscription-integration-guide">
+    Learn how to create and manage subscriptions from scratch with our comprehensive integration guide.
+  </Card>
+</CardGroup>
+
+## What is a subscription upgrade or downgrade?
+
+Changing plans lets you move a customer between subscription tiers or quantities. Use it to:
+
+- Align pricing with usage or features
+- Move from monthly to annual (or vice versa)
+- Adjust quantity for seat-based products
+
+<Info>
+  Plan changes can trigger an immediate charge depending on the proration mode you choose.
+</Info>
+
+## When to use plan changes
+
+- Upgrade when a customer needs more features, usage, or seats
+- Downgrade when usage decreases
+- Migrate users to a new product or price without cancelling their subscription
+
+## Prerequisites
+
+Before implementing subscription plan changes, ensure you have:
+
+- A Dodo Payments merchant account with active subscription products
+- API credentials (API key and webhook secret key) from the dashboard
+- An existing active subscription to modify
+- Webhook endpoint configured to handle subscription events
+
+<Info>
+  For detailed setup instructions, see our [Integration Guide](/developer-resources/integration-guide#dashboard-setup).
+</Info>
+
+## Step-by-Step Implementation Guide
+
+Follow this comprehensive guide to implement subscription plan changes in your application:
+
+<Steps>
+  <Step title="Understand Plan Change Requirements">
+    Before implementing, determine:
+
+    * Which subscription products can be changed to which others
+    * What proration mode fits your business model
+    * How to handle failed plan changes gracefully
+    * Which webhook events to track for state management
+
+    <Tip>
+      Test plan changes thoroughly in test mode before implementing in production.
+    </Tip>
+
+  </Step>
+
+  <Step title="Choose Your Proration Strategy">
+    Select the billing approach that aligns with your business needs:
+
+    <Tabs>
+      <Tab title="prorated_immediately">
+        Best for: SaaS applications wanting to charge fairly for unused time
+
+        * Calculates exact prorated amount based on remaining cycle time
+        * Charges a prorated amount based on unused time remaining in the cycle
+        * Provides transparent billing to customers
+      </Tab>
+
+      <Tab title="difference_immediately">
+        Best for: Clear upgrade/downgrade scenarios
+
+        * Upgrade: Charge immediate difference (e.g., $30→$80 = charge \$50)
+        * Downgrade: Credit remaining value for future renewals
+        * Simplifies billing logic and customer communication
+      </Tab>
+
+      <Tab title="full_immediately">
+        Best for: When you want to reset the billing cycle
+
+        * Charges full amount of new plan immediately
+        * Ignores remaining time from old plan
+        * Useful for annual to monthly transitions
+      </Tab>
+    </Tabs>
+
+  </Step>
+
+  <Step title="Implement the Change Plan API">
+    Use the Change Plan API to modify subscription details:
+
+    <ParamField path="subscription_id" type="string" required>
+      The ID of the active subscription to modify.
+    </ParamField>
+
+    <ParamField path="product_id" type="string" required>
+      The new product ID to change the subscription to.
+    </ParamField>
+
+    <ParamField path="quantity" type="integer" default="1">
+      Number of units for the new plan (for seat-based products).
+    </ParamField>
+
+    <ParamField path="proration_billing_mode" type="string" required>
+      How to handle immediate billing: `prorated_immediately`, `full_immediately`, or `difference_immediately`.
+    </ParamField>
+
+    <ParamField path="addons" type="array">
+      Optional addons for the new plan. Leaving this empty removes any existing addons.
+    </ParamField>
+
+  </Step>
+
+  <Step title="Handle Webhook Events">
+    Set up webhook handling to track plan change outcomes:
+
+    * `subscription.active`: Plan change successful, subscription updated
+    * `subscription.plan_changed`: Subscription plan changed (upgrade/downgrade/addon update)
+    * `subscription.on_hold`: Plan change charge failed, subscription paused
+    * `payment.succeeded`: Immediate charge for plan change succeeded
+    * `payment.failed`: Immediate charge failed
+
+    <Warning>
+      Always verify webhook signatures and implement idempotent event processing.
+    </Warning>
+
+  </Step>
+
+  <Step title="Update Your Application State">
+    Based on webhook events, update your application:
+
+    * Grant/revoke features based on new plan
+    * Update customer dashboard with new plan details
+    * Send confirmation emails about plan changes
+    * Log billing changes for audit purposes
+
+  </Step>
+
+  <Step title="Test and Monitor">
+    Thoroughly test your implementation:
+
+    * Test all proration modes with different scenarios
+    * Verify webhook handling works correctly
+    * Monitor plan change success rates
+    * Set up alerts for failed plan changes
+
+    <Check>
+      Your subscription plan change implementation is now ready for production use.
+    </Check>
+
+  </Step>
+</Steps>
+
+## Change Plan API
+
+Use the Change Plan API to modify product, quantity, and proration behavior for an active subscription.
+
+### Quick start examples
+
+<Tabs>
+  <Tab title="Node.js SDK">
+    ```javascript  theme={null}
+    import DodoPayments from 'dodopayments';
+
+    const client = new DodoPayments({
+      bearerToken: process.env.DODO_PAYMENTS_API_KEY,
+    });
+
+    async function changePlan() {
+      const result = await client.subscriptions.changePlan('sub_123', {
+        product_id: 'prod_new',
+        quantity: 3,
+        proration_billing_mode: 'prorated_immediately',
+      });
+      console.log(result.status, result.invoice_id, result.payment_id);
+    }
+
+    changePlan();
+    ```
+
+  </Tab>
+
+  <Tab title="Python SDK">
+    ```python  theme={null}
+    import os
+    from dodopayments import DodoPayments
+
+    client = DodoPayments(bearer_token=os.environ.get("DODO_PAYMENTS_API_KEY"))
+
+    result = client.subscriptions.change_plan(
+        subscription_id="sub_123",
+        product_id="prod_new",
+        quantity=3,
+        proration_billing_mode="prorated_immediately",
+    )
+    print(result.status, result.get("invoice_id"), result.get("payment_id"))
+    ```
+
+  </Tab>
+
+  <Tab title="Go SDK">
+    ```go  theme={null}
+    package main
+
+    import (
+      "context"
+      "fmt"
+      "github.com/dodopayments/dodopayments-go"
+      "github.com/dodopayments/dodopayments-go/option"
+    )
+
+    func main() {
+      client := dodopayments.NewClient(option.WithBearerToken("YOUR_TOKEN"))
+      res, err := client.Subscriptions.ChangePlan(context.TODO(), dodopayments.SubscriptionChangePlanParams{
+        SubscriptionID: dodopayments.F("sub_123"),
+        ProductID:             dodopayments.F("prod_new"),
+        Quantity:              dodopayments.F(int64(3)),
+        ProrationBillingMode:  dodopayments.F(dodopayments.SubscriptionChangePlanParamsProrationBillingModeProratedImmediately),
+      })
+      if err != nil { panic(err) }
+      fmt.Println(res.Status, res.InvoiceID, res.PaymentID)
+    }
+    ```
+
+  </Tab>
+
+  <Tab title="HTTP">
+    ```bash  theme={null}
+    curl -X POST "$DODO_API_BASE/subscriptions/sub_123/change-plan" \
+      -H "Authorization: Bearer $DODO_PAYMENTS_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "product_id": "prod_new",
+        "quantity": 3,
+        "proration_billing_mode": "prorated_immediately"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+```json Success theme={null}
+{
+  "status": "processing",
+  "subscription_id": "sub_123",
+  "invoice_id": "inv_789",
+  "payment_id": "pay_456",
+  "proration_billing_mode": "prorated_immediately"
+}
+```
+
+<Note>
+  Fields like <code>invoice\_id</code> and <code>payment\_id</code> are returned only when an immediate charge and/or invoice is created during the plan change. Always rely on webhook events (e.g., <code>payment.succeeded</code>, <code>subscription.plan\_changed</code>) to confirm outcomes.
+</Note>
+
+<Warning>
+  If the immediate charge fails, the subscription may move to `subscription.on_hold` until payment succeeds.
+</Warning>
+
+## Managing Addons
+
+When changing subscription plans, you can also modify addons:
+
+```javascript theme={null}
+// Add addons to the new plan
+await client.subscriptions.changePlan('sub_123', {
+  product_id: 'prod_new',
+  quantity: 1,
+  proration_billing_mode: 'difference_immediately',
+  addons: [{ addon_id: 'addon_123', quantity: 2 }],
+});
+
+// Remove all existing addons
+await client.subscriptions.changePlan('sub_123', {
+  product_id: 'prod_new',
+  quantity: 1,
+  proration_billing_mode: 'difference_immediately',
+  addons: [], // Empty array removes all existing addons
+});
+```
+
+<Info>
+  Addons are included in the proration calculation and will be charged according to the selected proration mode.
+</Info>
+
+## Proration modes
+
+Choose how to bill the customer when changing plans:
+
+#### `prorated_immediately`
+
+- Charges for the partial difference in the current cycle
+- If in trial, charges immediately and switches to the new plan now
+- Downgrade: may generate a prorated credit applied to future renewals
+
+#### `full_immediately`
+
+- Charges the full amount of the new plan immediately
+- Ignores remaining time from the old plan
+
+<Info>
+  Credits created by downgrades using <code>difference\_immediately</code> are subscription-scoped and distinct from <a href="/features/customer-credit">Customer Credits</a>. They automatically apply to future renewals of the same subscription and are not transferable between subscriptions.
+</Info>
+
+#### `difference_immediately`
+
+- Upgrade: immediately charge the price difference between old and new plans
+- Downgrade: add remaining value as internal credit to the subscription and auto-apply on renewals
+
+### Example scenarios
+
+<AccordionGroup>
+  <Accordion title="Upgrade: Basic ($30) → Pro ($80) with difference_immediately">
+    ```javascript  theme={null}
+    await client.subscriptions.changePlan('sub_123', {
+      product_id: 'prod_pro',
+      quantity: 1,
+      proration_billing_mode: 'difference_immediately'
+    })
+    // Immediate charge: $50
+    ```
+  </Accordion>
+
+  <Accordion title="Downgrade: Plus ($50) → Starter ($20) with difference_immediately">
+    ```javascript  theme={null}
+    await client.subscriptions.changePlan('sub_123', {
+      product_id: 'prod_starter',
+      quantity: 1,
+      proration_billing_mode: 'difference_immediately'
+    })
+    // Credit added: $30 (auto-applied to future renewals for this subscription)
+    ```
+  </Accordion>
+
+  <Accordion title="Upgrade mid-cycle with prorated_immediately">
+    ```javascript  theme={null}
+    await client.subscriptions.changePlan('sub_123', {
+      product_id: 'prod_new',
+      quantity: 1,
+      proration_billing_mode: 'prorated_immediately'
+    })
+    // Immediate prorated charge based on remaining days in cycle
+    ```
+  </Accordion>
+
+  <Accordion title="Reset billing with full_immediately">
+    ```javascript  theme={null}
+    await client.subscriptions.changePlan('sub_123', {
+      product_id: 'prod_new',
+      quantity: 1,
+      proration_billing_mode: 'full_immediately'
+    })
+    // Immediate full charge for new plan; no credits calculated
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Pick `prorated_immediately` for fair-time accounting; choose `full_immediately` to restart billing; use `difference_immediately` for simple upgrades and automatic credit on downgrades.
+</Tip>
+
+## Handling webhooks
+
+Track subscription state through webhooks to confirm plan changes and payments.
+
+### Event types to handle
+
+- `subscription.active`: subscription activated
+- `subscription.plan_changed`: subscription plan changed (upgrade/downgrade/addon changes)
+- `subscription.on_hold`: charge failed, subscription paused
+- `subscription.renewed`: renewal succeeded
+- `payment.succeeded`: payment for plan change or renewal succeeded
+- `payment.failed`: payment failed
+
+<Info>
+  We recommend driving business logic from subscription events and using payment events for confirmation and reconciliation.
+</Info>
+
+### Verify signatures and handle intents
+
+<Tabs>
+  <Tab title="Next.js Route Handler">
+    ```javascript  theme={null}
+    import { NextRequest, NextResponse } from 'next/server';
+
+    export async function POST(req) {
+      const webhookId = req.headers.get('webhook-id');
+      const webhookSignature = req.headers.get('webhook-signature');
+      const webhookTimestamp = req.headers.get('webhook-timestamp');
+      const secret = process.env.DODO_WEBHOOK_SECRET;
+
+      const payload = await req.text();
+      // verifySignature is a placeholder – in production, use a Standard Webhooks library
+      const { valid, event } = await verifySignature(
+        payload,
+        { id: webhookId, signature: webhookSignature, timestamp: webhookTimestamp },
+        secret
+      );
+      if (!valid) return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+
+      switch (event.type) {
+        case 'subscription.active':
+          // mark subscription active in your DB
+          break;
+        case 'subscription.plan_changed':
+          // refresh entitlements and reflect the new plan in your UI
+          break;
+        case 'subscription.on_hold':
+          // notify user to update payment method
+          break;
+        case 'subscription.renewed':
+          // extend access window
+          break;
+        case 'payment.succeeded':
+          // reconcile payment for plan change
+          break;
+        case 'payment.failed':
+          // log and alert
+          break;
+        default:
+          // ignore unknown events
+          break;
+      }
+
+      return NextResponse.json({ received: true });
+    }
+    ```
+
+  </Tab>
+
+  <Tab title="Express.js">
+    ```javascript  theme={null}
+    import express from 'express';
+
+    const app = express();
+    app.post('/webhooks/dodo', express.raw({ type: 'application/json' }), async (req, res) => {
+      const webhookId = req.header('webhook-id');
+      const webhookSignature = req.header('webhook-signature');
+      const webhookTimestamp = req.header('webhook-timestamp');
+      const secret = process.env.DODO_WEBHOOK_SECRET;
+      const payload = req.body.toString('utf8');
+
+      const { valid, event } = await verifySignature(
+        payload,
+        { id: webhookId, signature: webhookSignature, timestamp: webhookTimestamp },
+        secret
+      );
+      if (!valid) return res.status(400).send('Invalid signature');
+
+      // handle events like above
+      res.json({ received: true });
+    });
+
+    app.listen(3000);
+    ```
+
+  </Tab>
+</Tabs>
+
+<Note>
+  For detailed payload schemas, see the <a href="/developer-resources/webhooks/intents/subscription">Subscription webhook payloads</a> and <a href="/developer-resources/webhooks/intents/payment">Payment webhook payloads</a>.
+</Note>
+
+## Best Practices
+
+Follow these recommendations for reliable subscription plan changes:
+
+### Plan Change Strategy
+
+- **Test thoroughly**: Always test plan changes in test mode before production
+- **Choose proration carefully**: Select the proration mode that aligns with your business model
+- **Handle failures gracefully**: Implement proper error handling and retry logic
+- **Monitor success rates**: Track plan change success/failure rates and investigate issues
+
+### Webhook Implementation
+
+- **Verify signatures**: Always validate webhook signatures to ensure authenticity
+- **Implement idempotency**: Handle duplicate webhook events gracefully
+- **Process asynchronously**: Don't block webhook responses with heavy operations
+- **Log everything**: Maintain detailed logs for debugging and audit purposes
+
+### User Experience
+
+- **Communicate clearly**: Inform customers about billing changes and timing
+- **Provide confirmations**: Send email confirmations for successful plan changes
+- **Handle edge cases**: Consider trial periods, prorations, and failed payments
+- **Update UI immediately**: Reflect plan changes in your application interface
+
+## Common Issues and Solutions
+
+Resolve typical problems encountered during subscription plan changes:
+
+<AccordionGroup>
+  <Accordion title="Charge created but subscription not updated">
+    **Symptoms**: API call succeeds but subscription remains on old plan
+
+    **Common causes**:
+
+    * Webhook processing failed or was delayed
+    * Application state not updated after receiving webhooks
+    * Database transaction issues during state update
+
+    **Solutions**:
+
+    * Implement robust webhook handling with retry logic
+    * Use idempotent operations for state updates
+    * Add monitoring to detect and alert on missed webhook events
+    * Verify webhook endpoint is accessible and responding correctly
+
+  </Accordion>
+
+  <Accordion title="Credits not applied after downgrade">
+    **Symptoms**: Customer downgrades but doesn't see credit balance
+
+    **Common causes**:
+
+    * Proration mode expectations: downgrades credit the full plan price difference with `difference_immediately`, while `prorated_immediately` creates a prorated credit based on remaining time in the cycle
+    * Credits are subscription-specific and don't transfer between subscriptions
+    * Credit balance not visible in customer dashboard
+
+    **Solutions**:
+
+    * Use `difference_immediately` for downgrades when you want automatic credits
+    * Explain to customers that credits apply to future renewals of the same subscription
+    * Implement customer portal to show credit balances
+    * Check next invoice preview to see applied credits
+
+  </Accordion>
+
+  <Accordion title="Webhook signature verification fails">
+    **Symptoms**: Webhook events rejected due to invalid signature
+
+    **Common causes**:
+
+    * Incorrect webhook secret key
+    * Raw request body modified before signature verification
+    * Wrong signature verification algorithm
+
+    **Solutions**:
+
+    * Verify you're using the correct `DODO_WEBHOOK_SECRET` from dashboard
+    * Read raw request body before any JSON parsing middleware
+    * Use the standard webhook verification library for your platform
+    * Test webhook signature verification in development environment
+
+  </Accordion>
+
+  <Accordion title="Plan change fails with 422 error">
+    **Symptoms**: API returns 422 Unprocessable Entity error
+
+    **Common causes**:
+
+    * Invalid subscription ID or product ID
+    * Subscription not in active state
+    * Missing required parameters
+    * Product not available for plan changes
+
+    **Solutions**:
+
+    * Verify subscription exists and is active
+    * Check product ID is valid and available
+    * Ensure all required parameters are provided
+    * Review API documentation for parameter requirements
+
+  </Accordion>
+
+  <Accordion title="Immediate charge fails during plan change">
+    **Symptoms**: Plan change initiated but immediate charge fails
+
+    **Common causes**:
+
+    * Insufficient funds on customer's payment method
+    * Payment method expired or invalid
+    * Bank declined the transaction
+    * Fraud detection blocked the charge
+
+    **Solutions**:
+
+    * Handle `payment.failed` webhook events appropriately
+    * Notify customer to update payment method
+    * Implement retry logic for temporary failures
+    * Consider allowing plan changes with failed immediate charges
+
+  </Accordion>
+</AccordionGroup>
+
+## Testing Your Implementation
+
+Follow these steps to thoroughly test your subscription plan change implementation:
+
+<Steps>
+  <Step title="Set up test environment">
+    * Use test API keys and test products
+    * Create test subscriptions with different plan types
+    * Configure test webhook endpoint
+    * Set up monitoring and logging
+  </Step>
+
+  <Step title="Test different proration modes">
+    * Test `prorated_immediately` with various billing cycle positions
+    * Test `difference_immediately` for upgrades and downgrades
+    * Test `full_immediately` to reset billing cycles
+    * Verify credit calculations are correct
+  </Step>
+
+  <Step title="Test webhook handling">
+    * Verify all relevant webhook events are received
+    * Test webhook signature verification
+    * Handle duplicate webhook events gracefully
+    * Test webhook processing failure scenarios
+  </Step>
+
+  <Step title="Test error scenarios">
+    * Test with invalid subscription IDs
+    * Test with expired payment methods
+    * Test network failures and timeouts
+    * Test with insufficient funds
+  </Step>
+
+  <Step title="Monitor in production">
+    * Set up alerts for failed plan changes
+    * Monitor webhook processing times
+    * Track plan change success rates
+    * Review customer support tickets for plan change issues
+  </Step>
+</Steps>
+
+## Error Handling
+
+Handle common API errors gracefully in your implementation:
+
+### HTTP Status Codes
+
+<AccordionGroup>
+  <Accordion title="200 OK">
+    Plan change request processed successfully. The subscription is being updated and payment processing has begun.
+  </Accordion>
+
+  <Accordion title="400 Bad Request">
+    Invalid request parameters. Check that all required fields are provided and properly formatted.
+  </Accordion>
+
+  <Accordion title="401 Unauthorized">
+    Invalid or missing API key. Verify your `DODO_PAYMENTS_API_KEY` is correct and has proper permissions.
+  </Accordion>
+
+  <Accordion title="404 Not Found">
+    Subscription ID not found or doesn't belong to your account.
+  </Accordion>
+
+  <Accordion title="422 Unprocessable Entity">
+    The subscription cannot be changed (e.g., already cancelled, product not available, etc.).
+  </Accordion>
+
+  <Accordion title="500 Internal Server Error">
+    Server error occurred. Retry the request after a brief delay.
+  </Accordion>
+</AccordionGroup>
+
+### Error Response Format
+
+```json theme={null}
+{
+  "error": {
+    "code": "subscription_not_found",
+    "message": "The subscription with ID 'sub_123' was not found",
+    "details": {
+      "subscription_id": "sub_123"
+    }
+  }
+}
+```
+
+## Next steps
+
+- Review the <a href="/api-reference/subscriptions/change-plan">Change Plan API</a>
+- Explore <a href="/features/customer-credit">Customer Credits</a>
+- Implement alerts for `subscription.on_hold`
+- Check out our <a href="/developer-resources/webhooks">Webhook Integration Guide</a>

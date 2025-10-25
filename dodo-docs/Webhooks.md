@@ -1,0 +1,491 @@
+# Webhooks
+
+> Webhooks provide a mechanism for real-time notifications when specific events occur within Dodo Payments, enabling seamless automation and integration with your application.
+
+<Frame>
+  <img src="https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=477435b1004773582aa51236b5cc58e7" alt="Webhook Cover Image" data-og-width="1200" width="1200" data-og-height="630" height="630" data-path="images/cover-images/Webhooks.webp" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=280&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=4499081979872a5281c76ec5c2fca3d4 280w, https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=560&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=81bdc2f85d8d2fc0b3bf6b15488aac95 560w, https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=840&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=a7895a74bca4f5f08cdda49aee2fcf1c 840w, https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=1100&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=1756398be4696df7d9c5b732b8ed7f84 1100w, https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=1650&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=fcc1e8d80719712e8c60d9a0a395d725 1650w, https://mintcdn.com/dodopayments/mOQO5ej_lx0yH9p-/images/cover-images/Webhooks.webp?w=2500&fit=max&auto=format&n=mOQO5ej_lx0yH9p-&q=85&s=ed239cefb0cce030f7a58c2b91266f27 2500w" />
+</Frame>
+
+# Introduction
+
+This guide will walk you through setting up and securely handling webhooks.
+Our implementation follows the [Standard Webhooks](https://standardwebhooks.com/) specification.
+
+## Getting Started
+
+<Steps>
+  <Step title="Access Webhook Settings">
+    Navigate to the DodoPayments Dashboard and go to `Settings > Webhooks`.
+  </Step>
+
+  <Step title="Create Webhook Endpoint">
+    Click on `Add Webhook` to create a new webhook endpoint.
+
+    <Info>
+      You can create up to **5 webhook endpoints** to receive notifications at different URLs or for different purposes.
+    </Info>
+
+  </Step>
+
+  <Step title="Configure Endpoint">
+    Enter the URL where you want to receive webhook events.
+  </Step>
+
+  <Step title="Get Secret Key">
+    Obtain your webhook `Secret Key` from the settings page. You'll use this to verify the authenticity of received webhooks.
+
+    <Warning>
+      Keep your webhook secret key secure and never expose it in client-side code or public repositories.
+    </Warning>
+
+  </Step>
+
+  <Step title="Rotate Secret (Optional)">
+    If needed, you can rotate your webhook secret for enhanced security. Click the **Rotate Secret** button in your webhook settings.
+
+    <Warning>
+      Rotating the secret will **expire it** and **replace it** with a new one. The old secret will only be valid for the next 24 hours. Afterward, trying to verify with the old secret will fail.
+    </Warning>
+
+    <Info>
+      Use secret rotation periodically or immediately if you suspect your current secret has been compromised.
+    </Info>
+
+  </Step>
+</Steps>
+
+## Configuring Subscribed Events
+
+Merchants can configure which specific events they want to receive for each webhook endpoint.
+
+### Accessing Event Configuration
+
+<Steps>
+  <Step title="Navigate to Webhook Details">
+    Go to your Dodo Payments Dashboard and navigate to `Settings > Webhooks`.
+  </Step>
+
+  <Step title="Select Your Endpoint">
+    Click on the webhook endpoint you want to configure.
+  </Step>
+
+  <Step title="Open Event Settings">
+    In the webhook details page, you'll see a "Subscribed events" section. Click the **Edit** button to modify your event subscriptions.
+  </Step>
+</Steps>
+
+### Managing Event Subscriptions
+
+<Steps>
+  <Step title="View Available Events">
+    The interface displays all available webhook events organized in a hierarchical structure. Events are grouped by category (e.g., `dispute`, `payment`, `subscription`).
+  </Step>
+
+  <Step title="Search and Filter">
+    Use the search bar to quickly find specific events by typing event names or keywords.
+  </Step>
+
+  <Step title="Select Events">
+    Check the boxes next to the events you want to receive. You can:
+
+    * Select individual sub-events (e.g., `dispute.accepted`, `dispute.challenged`)
+    * Select parent events to receive all related sub-events
+    * Mix and match specific events based on your needs
+
+  </Step>
+
+  <Step title="Review Event Details">
+    Hover over the information icon (ⓘ) next to each event to see a description of when that event is triggered.
+  </Step>
+
+  <Step title="Save Configuration">
+    Click **Save** to apply your changes, or **Cancel** to discard modifications.
+  </Step>
+</Steps>
+
+<Info>
+  By default, webhook endpoints are configured to listen to all events. You can customize this to receive only the events relevant to your integration.
+</Info>
+
+<Warning>
+  If you deselect all events, your webhook endpoint will not receive any notifications. Make sure to select at least the events your application needs to function properly.
+</Warning>
+
+## Webhook Delivery
+
+### Timeouts
+
+- Webhooks have a `15-second` timeout window, including both connection and read timeouts.
+- If a webhook delivery attempt fails, we will retry sending the event using exponential backoff to avoid overloading your system.
+
+### Retries
+
+- We will attempt a maximum of **8 retries** for each failed webhook delivery.
+- Each retry follows a specific schedule based on the failure of the preceding attempt:
+
+<Steps>
+  <Step title="Retry Schedule">
+    The retry attempts follow this schedule:
+
+    * **Immediately** (first retry)
+    * **5 seconds** after the first failure
+    * **5 minutes** after the second failure
+    * **30 minutes** after the third failure
+    * **2 hours** after the fourth failure
+    * **5 hours** after the fifth failure
+    * **10 hours** after the sixth failure
+    * **10 hours** after the seventh failure (final retry)
+
+  </Step>
+
+  <Step title="Total Timeline">
+    For example, if a webhook fails three times before succeeding, it will be delivered roughly **35 minutes and 5 seconds** following the first attempt.
+  </Step>
+</Steps>
+
+<Info>
+  If a webhook endpoint is removed or disabled, all delivery attempts to that endpoint will be stopped immediately.
+</Info>
+
+<Tip>
+  You can also use the Dodo Payments dashboard to manually retry each message at any time, or automatically retry ("Recover") all failed messages.
+</Tip>
+
+### Idempotency
+
+- Each webhook event contains a unique `webhook-id` header. Use this to implement idempotency and avoid processing the same event multiple times.
+- Even if you receive the same event more than once (due to retries), your system should handle it gracefully without causing errors or duplicate actions.
+
+### Ordering
+
+- Webhook delivery order is not guaranteed, as webhooks may be delivered out of order due to retries or network issues.
+- Ensure your system can handle events arriving out of order by using the `webhook-id` header to process events correctly.
+
+<Info>Please note that you will receive the latest payload at the time of delivery, regardless of when the webhook event was emitted.</Info>
+
+## Securing Webhooks
+
+To ensure the security of your webhooks, always validate the payloads and use HTTPS.
+
+### Verifying Signatures
+
+Each webhook request includes a `webhook-signature` header -- an HMAC SHA256 signature of the webhook payload and timestamp, signed with your secret key.
+To verify a webhook came from DodoPayments:
+
+1. Compute the HMAC SHA256 of this string using your webhook secret key obtained from the DodoPayments Dashboard
+
+2. Concatenate the `webhook-id`, `webhook-timestamp`, and stringified `payload` values from the webhook with periods (`.`)\
+   The respective payloads for outgoing webhooks can be found in the [Webhook Payload](/developer-resources/webhooks/intents/payment).
+
+3. Compare the computed signature to the received `webhook-signature` header value. If they match, the webhook is authentic.
+
+Since we follow the Standard Webhooks specification, you can use one of their libraries to verify the signature: [https://github.com/standard-webhooks/standard-webhooks/tree/main/libraries](https://github.com/standard-webhooks/standard-webhooks/tree/main/libraries)
+
+### Responding to Webhooks
+
+- Your webhook handler must return a `2xx status code` to acknowledge receipt of the event.
+- Any other response will be treated as a failure, and the webhook will be retried.
+
+## Outgoing Webhook Payload Structure
+
+The following section describes the structure of the outgoing webhook request sent to your endpoint. This helps you understand what to expect and how to parse the payload.
+
+### Endpoint
+
+```http theme={null}
+POST /your-webhook-url
+```
+
+### Headers
+
+<ParamField header="webhook-id" type="string" required>
+  Unique identifier for the webhook.
+</ParamField>
+
+<ParamField header="webhook-signature" type="string" required>
+  Signature of the Webhook (HMAC SHA256).
+</ParamField>
+
+<ParamField header="webhook-timestamp" type="string" required>
+  Unix timestamp when the webhook was sent.
+</ParamField>
+
+### Request Body
+
+The request body is a JSON object with the following structure:
+
+```json theme={null}
+{
+  "business_id": "string",
+  "type": "payment.succeeded | payment.failed |...",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "data": {
+    "payload_type": "Payment | Subscription | Refund | Dispute | LicenseKey"
+    // ... event-specific fields (see below)
+  }
+}
+```
+
+<Info>
+  For details on each event type, see the [Webhook Event Type](/developer-resources/webhooks/intents/webhook-events-guide)
+</Info>
+
+<Info>
+  For detailed payloads for each event type, see the [Webhook Payload Event Guide](/developer-resources/webhooks/intents/payment)
+</Info>
+
+### Responses
+
+<ResponseField name="200" type="status code">
+  Webhook processed successfully. You must return a 2xx status code to acknowledge receipt.
+</ResponseField>
+
+<ResponseField name="400" type="status code">
+  Invalid request. The payload or headers are malformed.
+</ResponseField>
+
+<ResponseField name="401" type="status code">
+  Invalid webhook signature. The signature verification failed.
+</ResponseField>
+
+## Testing Webhooks
+
+You can test your webhook integration directly from the Dodo Payments dashboard to ensure your endpoint is working correctly before going live.
+
+### Accessing the Testing Interface
+
+<Steps>
+  <Step title="Navigate to Webhooks">
+    Go to your Dodo Payments Dashboard and navigate to `Settings > Webhooks`.
+  </Step>
+
+  <Step title="Select Your Endpoint">
+    Click on your webhook endpoint to access its details page.
+  </Step>
+
+  <Step title="Open Testing Tab">
+    Click on the **Testing** tab to access the webhook testing interface.
+  </Step>
+</Steps>
+
+### Testing Your Webhook
+
+The testing interface provides a comprehensive way to test your webhook endpoint:
+
+<Steps>
+  <Step title="Select Event Type">
+    Use the dropdown menu to select the specific event type you want to test (e.g., `payment.succeeded`, `payment.failed`, etc.).
+
+    <Info>
+      The dropdown contains all available webhook event types that your endpoint can receive.
+    </Info>
+
+  </Step>
+
+  <Step title="Review Schema and Example">
+    The interface displays both the **Schema** (data structure) and **Example** (sample payload) for the selected event type.
+  </Step>
+
+  <Step title="Send Test Event">
+    Click the **Send Example** button to send a test webhook to your endpoint.
+
+    <Warning>
+      **Important**: Failed messages sent through the testing interface will not be retried. This is for testing purposes only.
+    </Warning>
+
+  </Step>
+</Steps>
+
+### Verifying Your Test
+
+<Steps>
+  <Step title="Check Your Endpoint">
+    Monitor your webhook endpoint logs to confirm the test event was received.
+  </Step>
+
+  <Step title="Verify Signature">
+    Ensure your signature verification is working correctly with the test payload.
+  </Step>
+
+  <Step title="Test Response">
+    Confirm your endpoint returns a `2xx` status code to acknowledge receipt.
+  </Step>
+</Steps>
+
+### Example code
+
+An `Express.js` code snippet on how you can listen and verify our webhooks.
+
+<Tabs>
+  <Tab title="index.ts">
+    ```typescript  theme={null}
+    // index.ts in express 
+    const { Webhook } = require("standardwebhooks");
+
+    const webhook = new Webhook('DODO_PAYMENTS_WEBHOOK_KEY');
+
+    // Add this endpoint in the Dodo Payments Website | Side Bar -> Developer -> Webhooks -> create
+    app.post('/webhook/dodo-payments', async (req: any, res: any) => {
+      try {
+        const body = req.body;
+
+        const webhookHeaders: WebhookUnbrandedRequiredHeaders = {
+          "webhook-id": (req.headers["webhook-id"] || "") as string,
+          "webhook-signature": (req.headers["webhook-signature"] || "") as string,
+          "webhook-timestamp": (req.headers["webhook-timestamp"] || "") as string,
+        };
+
+        const raw = JSON.stringify(body);
+
+        const samePayloadOutput = await webhook.verify(raw, webhookHeaders);
+
+        // ... Rest of your code HERE ...
+        res.status(200).json({ received: true });
+      } catch (error) {
+        console.error('Error processing webhook:', error);
+        res.status(400).json({ error: 'Webhook handler failed' });
+      }
+    });
+    ```
+
+  </Tab>
+
+  <Tab title="test.js">
+    ```javascript  theme={null}
+    // test.js seperate file or maybe even in the index.js with correct routes
+    const { Webhook } = require("standardwebhooks");
+
+    const timestamp = new Date();
+    const generatedId = crypto.randomUUID();
+
+    const payload = { key: "value" };
+    const payloadString = JSON.parse(payload);
+
+    // Create a new Webhook instance and sign the payload.
+    const webhookInstance = new Webhook('DODOS_DONT_FLY');
+    const signature = webhookInstance.sign(generatedId, timestamp, payloadString);
+
+    const headers = {
+        "webhook-id": generatedId,
+        "webhook-timestamp": Math.floor(timestamp.getTime() / 1000),
+        "webhook-signature": signature,
+        "Content-Type": "application/json" // Ensure Express parses JSON body correctly.
+    };
+
+    // Define the target endpoint URL.
+    const endpointUrl = "http://localhost:8080/webhook/dodo-payments";
+
+    // Send the POST request using Axios.
+    const response = await axios.post(endpointUrl, payload, { headers });
+
+    console.log("Webhook request successful, response:", response.data);
+    ```
+
+  </Tab>
+</Tabs>
+
+<Tip>
+  Use the testing interface to verify your webhook handler logic before processing real events. This helps catch issues early and ensures your integration is robust.
+</Tip>
+
+## Advanced Settings
+
+The Advanced Settings tab provides additional configuration options for fine-tuning your webhook endpoint behavior.
+
+### Rate Limiting (Throttling)
+
+Control the rate at which webhook events are delivered to your endpoint to prevent overwhelming your system.
+
+<Steps>
+  <Step title="Access Rate Limit Settings">
+    In the **Advanced** tab, locate the "Rate Limit (throttling)" section.
+  </Step>
+
+  <Step title="Configure Rate Limit">
+    Click the **Edit** button to modify the rate limit settings.
+
+    <Info>
+      By default, webhooks have "No rate limit" applied, meaning events are delivered as soon as they occur.
+    </Info>
+
+  </Step>
+
+  <Step title="Set Limits">
+    Configure your desired rate limit to control webhook delivery frequency and prevent system overload.
+  </Step>
+</Steps>
+
+<Tip>
+  Use rate limiting when your webhook handler needs time to process events or when you want to batch multiple events together.
+</Tip>
+
+### Custom Headers
+
+Add custom HTTP headers to all webhook requests sent to your endpoint. This is useful for authentication, routing, or adding metadata to your webhook requests.
+
+<Steps>
+  <Step title="Add Custom Header">
+    In the "Custom Headers" section, enter a **Key** and **Value** for your custom header.
+  </Step>
+
+  <Step title="Add Multiple Headers">
+    Click the **+** button to add additional custom headers as needed.
+  </Step>
+
+  <Step title="Save Configuration">
+    Your custom headers will be included in all webhook requests to this endpoint.
+  </Step>
+</Steps>
+
+### Transformations
+
+Transformations allow you to modify a webhook's payload and redirect it to a different URL. This powerful feature enables you to:
+
+- Modify the payload structure before processing
+- Route webhooks to different endpoints based on content
+- Add or remove fields from the payload
+- Transform data formats
+
+<Steps>
+  <Step title="Enable Transformations">
+    Toggle the **Enabled** switch to activate the transformation feature.
+  </Step>
+
+  <Step title="Configure Transformation">
+    Click **Edit transformation** to define your transformation rules.
+
+    <Info>
+      You can use JavaScript to transform the webhook payload and specify a different target URL.
+    </Info>
+
+  </Step>
+
+  <Step title="Test Transformation">
+    Use the testing interface to verify your transformation works correctly before going live.
+  </Step>
+</Steps>
+
+<Warning>
+  Transformations can significantly impact webhook delivery performance. Test thoroughly and keep transformation logic simple and efficient.
+</Warning>
+
+<Tip>
+  Transformations are particularly useful for:
+
+- Converting between different data formats
+- Filtering events based on specific criteria
+- Adding computed fields to the payload
+- Routing events to different microservices
+  </Tip>
+
+## Monitoring Webhook Logs
+
+The Logs tab provides comprehensive visibility into your webhook delivery status, allowing you to monitor, debug, and manage webhook events effectively.
+
+## Activity Monitoring
+
+The Activity tab provides real-time insights into your webhook delivery performance with visual analytics.
+
+---
+
+We look forward to helping you implement seamless real-time notifications with webhooks! If you have any questions, please don't hesitate to reach out to our support team.
