@@ -425,7 +425,7 @@ export default function Upgrade() {
 
               {/* CTA Button */}
               <Button
-                onClick={handlePurchase}
+                onClick={() => handlePurchase()}
                 disabled={loading || !currentProduct}
                 className='w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
                 {loading ? (
@@ -774,7 +774,7 @@ export default function Upgrade() {
           </p>
           <div className='flex flex-row max-md:flex-col items-center justify-center gap-4'>
             <Button
-              onClick={handlePurchase}
+              onClick={() => handlePurchase()}
               disabled={loading || !currentProduct}
               className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed'>
               {loading ? (
