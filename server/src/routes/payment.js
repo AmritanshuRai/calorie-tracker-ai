@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
+import prisma from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -165,6 +166,307 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to create checkout session',
+      message: error.message,
+    });
+  }
+});
+
+// Cancel subscription
+router.post('/cancel-subscription', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;
+
+    // Get user's active subscription
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId: user.userId, // JWT token contains userId field
+        status: 'active',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active subscription found',
+      });
+    }
+
+    if (!subscription.dodoSubscriptionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid subscription data',
+      });
+    }
+
+    // Attempt to set cancel_at_next_billing_date on subscription via Dodo API.
+    // Different Dodo API versions expose different endpoints; try PATCH first
+    // (more RESTful) and fall back to POST /cancel if PATCH is not supported.
+    let apiResponse = null;
+    let apiData = null;
+
+    try {
+      // PATCH /subscriptions/{id} with cancel_at_period_end (correct field name per docs)
+      apiResponse = await fetch(
+        `${DODO_API_URL}/subscriptions/${subscription.dodoSubscriptionId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ cancel_at_period_end: true }),
+        }
+      );
+
+      if (apiResponse && apiResponse.ok) {
+        apiData = await apiResponse.json().catch(() => ({}));
+      } else if (apiResponse && apiResponse.status === 404) {
+        // Try legacy POST /cancel
+        apiResponse = await fetch(
+          `${DODO_API_URL}/subscriptions/${subscription.dodoSubscriptionId}/cancel`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cancel_at_period_end: true }),
+          }
+        );
+
+        if (apiResponse && apiResponse.ok) {
+          apiData = await apiResponse.json().catch(() => ({}));
+        }
+      } else if (apiResponse && !apiResponse.ok) {
+        // Try to parse error body for logging
+        const errBody = await apiResponse.json().catch(() => ({}));
+        console.error('Dodo API error while cancelling:', errBody);
+        throw new Error(
+          errBody.message || `Dodo API error: ${apiResponse.status}`
+        );
+      }
+    } catch (e) {
+      console.error('Dodo API error during cancel attempt:', e.message || e);
+      // Do not immediately fail the request for transient API issues; return helpful message
+      return res.status(502).json({
+        success: false,
+        error: 'Failed to request cancellation from payment provider',
+        message: e.message || String(e),
+      });
+    }
+
+    // If apiData is null here, Dodo did not accept any endpoint
+    if (!apiData) {
+      console.error('Dodo API did not return data for cancellation');
+      return res.status(404).json({
+        success: false,
+        error: 'Subscription cancel endpoint not found on payment provider',
+      });
+    }
+
+    // Verify that Dodo actually marked the subscription for cancellation
+    console.log(
+      'Dodo API response for cancellation:',
+      JSON.stringify(apiData, null, 2)
+    );
+
+    // Check both possible field names since the API might use either
+    const isCancelScheduled =
+      apiData.cancel_at_next_billing_date === true ||
+      apiData.cancel_at_period_end === true;
+
+    if (!isCancelScheduled) {
+      console.error('Dodo API did not confirm cancellation scheduling');
+      console.error(
+        'cancel_at_next_billing_date:',
+        apiData.cancel_at_next_billing_date
+      );
+      console.error('cancel_at_period_end:', apiData.cancel_at_period_end);
+      return res.status(500).json({
+        success: false,
+        error: 'Payment provider did not confirm cancellation',
+        message:
+          'The subscription was not marked for cancellation by the payment provider',
+        debug: {
+          cancel_at_next_billing_date: apiData.cancel_at_next_billing_date,
+          cancel_at_period_end: apiData.cancel_at_period_end,
+        },
+      });
+    }
+
+    // Update subscription in our database: if provider set cancel_at_next_billing_date
+    // mark cancelledAt to the next billing date if present; otherwise set a pending flag.
+    const cancelledAt = apiData.next_billing_date
+      ? new Date(apiData.next_billing_date)
+      : new Date();
+
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        // Keep status 'active' until provider emits subscription.cancelled webhook.
+        cancelledAt,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Update user to indicate cancel requested (keep subscriptionStatus active for now)
+    await prisma.user.update({
+      where: { id: user.userId }, // JWT token contains userId field
+      data: {
+        subscriptionStatus: 'active',
+      },
+    });
+
+    res.json({
+      success: true,
+      message:
+        'Cancellation requested. The subscription will be cancelled at the end of the billing period.',
+      subscription: apiData,
+    });
+  } catch (error) {
+    console.error('Error cancelling subscription:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cancel subscription',
+      message: error.message,
+    });
+  }
+});
+
+// Reactivate subscription
+router.post('/reactivate-subscription', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;
+
+    // Get user's cancelled subscription (either status=cancelled or has cancelledAt set)
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId: user.userId, // JWT token contains userId field
+        OR: [{ status: 'cancelled' }, { cancelledAt: { not: null } }],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No cancelled subscription found',
+      });
+    }
+
+    if (!subscription.dodoSubscriptionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid subscription data',
+      });
+    }
+
+    // Check if subscription hasn't expired yet
+    if (
+      subscription.currentPeriodEnd &&
+      new Date(subscription.currentPeriodEnd) < new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Subscription has already expired. Please create a new subscription.',
+      });
+    }
+
+    // Attempt to reactivate via PATCH (cancel_at_next_billing_date = false) first,
+    // then fall back to POST /reactivate if PATCH not supported.
+    let apiResponse = null;
+    let apiData = null;
+
+    try {
+      apiResponse = await fetch(
+        `${DODO_API_URL}/subscriptions/${subscription.dodoSubscriptionId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ cancel_at_next_billing_date: false }),
+        }
+      );
+
+      if (apiResponse && apiResponse.ok) {
+        apiData = await apiResponse.json().catch(() => ({}));
+      } else if (apiResponse && apiResponse.status === 404) {
+        apiResponse = await fetch(
+          `${DODO_API_URL}/subscriptions/${subscription.dodoSubscriptionId}/reactivate`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (apiResponse && apiResponse.ok) {
+          apiData = await apiResponse.json().catch(() => ({}));
+        }
+      } else if (apiResponse && !apiResponse.ok) {
+        const errBody = await apiResponse.json().catch(() => ({}));
+        console.error('Dodo API error while reactivating:', errBody);
+        throw new Error(
+          errBody.message || `Dodo API error: ${apiResponse.status}`
+        );
+      }
+    } catch (e) {
+      console.error(
+        'Dodo API error during reactivate attempt:',
+        e.message || e
+      );
+      return res.status(502).json({
+        success: false,
+        error: 'Failed to request reactivation from payment provider',
+        message: e.message || String(e),
+      });
+    }
+
+    if (!apiData) {
+      console.error('Dodo API did not return data for reactivation');
+      return res.status(404).json({
+        success: false,
+        error: 'Subscription reactivate endpoint not found on payment provider',
+      });
+    }
+
+    // Clear cancelledAt and keep status active.
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        cancelledAt: null,
+        updatedAt: new Date(),
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: user.userId }, // JWT token contains userId field
+      data: {
+        subscriptionStatus: 'active',
+      },
+    });
+
+    res.json({
+      success: true,
+      message:
+        'Subscription reactivation requested. Subscription will remain active.',
+      subscription: apiData,
+    });
+  } catch (error) {
+    console.error('Error reactivating subscription:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reactivate subscription',
       message: error.message,
     });
   }

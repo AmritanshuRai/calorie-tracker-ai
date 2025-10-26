@@ -151,6 +151,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
           status: true,
           endDate: true,
           nextBillingDate: true,
+          cancelledAt: true,
         },
       });
     }

@@ -15,6 +15,12 @@ export const authService = {
     return response.data;
   },
 
+  // Get current user (alias for getProfile)
+  getCurrentUser: async () => {
+    const response = await api.get('/auth/profile');
+    return response.data;
+  },
+
   // Update user profile (onboarding data)
   updateProfile: async (profileData) => {
     const response = await api.put('/auth/profile', profileData);

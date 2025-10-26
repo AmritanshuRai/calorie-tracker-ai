@@ -88,6 +88,28 @@ export const paymentService = {
     };
     return symbols[currencyCode] || currencyCode;
   },
+
+  // Cancel subscription
+  async cancelSubscription() {
+    try {
+      const response = await api.post('/payment/cancel-subscription');
+      return response.data;
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      throw error;
+    }
+  },
+
+  // Reactivate subscription
+  async reactivateSubscription() {
+    try {
+      const response = await api.post('/payment/reactivate-subscription');
+      return response.data;
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      throw error;
+    }
+  },
 };
 
 export default paymentService;

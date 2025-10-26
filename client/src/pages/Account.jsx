@@ -26,6 +26,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Footer from '../components/Footer';
 import { authService } from '../services/authService';
+import { paymentService } from '../services/paymentService';
 
 export default function Account() {
   const navigate = useNavigate();
@@ -64,16 +65,27 @@ export default function Account() {
 
     try {
       setIsProcessing(true);
-      // Payment functionality disabled - Razorpay integration removed
-      alert(
-        'Subscription management is currently unavailable. Please contact support@trackall.food to cancel your subscription.'
-      );
-      setShowCancelConfirm(false);
+      const result = await paymentService.cancelSubscription();
+
+      if (result.success) {
+        // Refresh user data from auth service
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          useUserStore.getState().setUser(userData);
+        }
+
+        alert(
+          'Subscription cancelled successfully. You will have access until the end of your current billing period.'
+        );
+        setShowCancelConfirm(false);
+      }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert(
-        'Failed to cancel subscription. Please contact support@trackall.food.'
-      );
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to cancel subscription';
+      alert(`Failed to cancel subscription: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
@@ -82,15 +94,26 @@ export default function Account() {
   const handleReactivateSubscription = async () => {
     try {
       setIsProcessing(true);
-      // Payment functionality disabled - Razorpay integration removed
-      alert(
-        'Subscription management is currently unavailable. Please contact support@trackall.food to reactivate your subscription.'
-      );
+      const result = await paymentService.reactivateSubscription();
+
+      if (result.success) {
+        // Refresh user data from auth service
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          useUserStore.getState().setUser(userData);
+        }
+
+        alert(
+          'Subscription reactivated successfully! Your subscription will continue at the next billing date.'
+        );
+      }
     } catch (error) {
       console.error('Error reactivating subscription:', error);
-      alert(
-        'Failed to reactivate subscription. Please contact support@trackall.food.'
-      );
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to reactivate subscription';
+      alert(`Failed to reactivate subscription: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
@@ -462,7 +485,9 @@ export default function Account() {
             {/* Subscription Tab */}
             {activeTab === 'subscription' && (
               <>
-                {(user?.isPro || user?.subscriptionStatus === 'cancelled') &&
+                {(user?.isPro ||
+                  user?.subscriptionStatus === 'cancelled' ||
+                  user?.subscription?.cancelledAt) &&
                 user?.subscription ? (
                   <>
                     {/* Subscription Status */}
@@ -476,7 +501,8 @@ export default function Account() {
                             Pro Subscription
                           </h3>
                           <p className='text-sm font-medium text-slate-600'>
-                            {user.subscriptionStatus === 'cancelled'
+                            {user.subscriptionStatus === 'cancelled' ||
+                            user.subscription?.cancelledAt
                               ? 'Cancelled - Active until end date'
                               : 'Active subscription'}
                           </p>
@@ -495,7 +521,8 @@ export default function Account() {
                           <span className='text-sm font-semibold text-slate-700'>
                             Status
                           </span>
-                          {user.subscriptionStatus === 'cancelled' ? (
+                          {user.subscriptionStatus === 'cancelled' ||
+                          user.subscription?.cancelledAt ? (
                             <span className='inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 text-sm font-bold rounded-full'>
                               ⚠ Cancelled
                             </span>
@@ -508,7 +535,8 @@ export default function Account() {
                         {user.subscription.nextBillingDate && (
                           <div className='flex justify-between items-center'>
                             <span className='text-sm font-semibold text-slate-700'>
-                              {user.subscriptionStatus === 'cancelled'
+                              {user.subscriptionStatus === 'cancelled' ||
+                              user.subscription?.cancelledAt
                                 ? 'Access Until'
                                 : 'Next Billing'}
                             </span>
@@ -527,7 +555,8 @@ export default function Account() {
 
                       {/* Cancel/Reactivate Section */}
                       <div className='mt-6 pt-6 border-t-2 border-slate-200'>
-                        {user.subscriptionStatus === 'cancelled' &&
+                        {(user.subscriptionStatus === 'cancelled' ||
+                          user.subscription?.cancelledAt) &&
                         user.subscription.nextBillingDate &&
                         new Date(user.subscription.nextBillingDate) >
                           new Date() ? (
