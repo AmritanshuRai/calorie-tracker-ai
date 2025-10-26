@@ -17,6 +17,7 @@ import openaiLogsRoutes from './routes/openai-logs.js';
 import adminRoutes from './routes/admin.js';
 import usageRoutes from './routes/usage.js';
 import paymentRoutes from './routes/payment.js';
+import webhookRoutes from './routes/webhook.js';
 
 // Load environment variables
 dotenv.config();
@@ -65,6 +66,11 @@ app.use(
     credentials: true,
   })
 );
+
+// Webhook routes FIRST (before express.json for raw body)
+app.use('/api/webhook', webhookRoutes);
+
+// Then add JSON parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -88,6 +94,9 @@ app.use(
     }),
   })
 );
+
+// Webhook routes (MUST be registered BEFORE express.json() middleware)
+app.use('/api/webhook', webhookRoutes);
 
 // Apply rate limiting to API routes
 app.use('/api/', limiter);

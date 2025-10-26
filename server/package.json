@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "webhook": "ngrok http 3001",
     "build": "npx prisma generate",
     "postinstall": "npx prisma generate",
     "deploy": "npx prisma migrate deploy",
@@ -43,6 +44,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "openai": "^4.104.0",
+    "standardwebhooks": "^1.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

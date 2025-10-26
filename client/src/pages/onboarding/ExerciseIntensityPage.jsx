@@ -35,7 +35,7 @@ const ExerciseIntensityPage = () => {
       exerciseIntensity,
     });
 
-    navigate('/onboarding/health-conditions');
+    navigate('/onboarding/diet-preference');
   };
 
   return (

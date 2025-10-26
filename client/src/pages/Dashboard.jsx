@@ -20,6 +20,8 @@ import {
   LogOut,
   Settings,
   ChevronDown,
+  CheckCircle,
+  X,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -43,6 +45,7 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [foodEntries, setFoodEntries] = useState([]);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const userMenuRef = useRef(null);
   const [userTargets, setUserTargets] = useState({
     dailyCalorieTarget: 0,
@@ -88,6 +91,22 @@ const Dashboard = () => {
     copper: 0,
     selenium: 0,
   });
+
+  // Check for payment success from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const subscriptionId = urlParams.get('subscription_id');
+    const status = urlParams.get('status');
+
+    if (subscriptionId && status === 'active') {
+      // Show success notification
+      setShowSuccessNotification(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/dashboard');
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => setShowSuccessNotification(false), 5000);
+    }
+  }, []);
 
   // Load user profile data on mount
   useEffect(() => {
@@ -428,6 +447,28 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
+
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <div className='fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300 px-4'>
+          <div className='bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-4 rounded-2xl shadow-2xl border-2 border-white/20 backdrop-blur-sm flex items-center gap-4 max-w-md'>
+            <div className='flex-shrink-0 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center'>
+              <CheckCircle className='w-6 h-6 text-white' />
+            </div>
+            <div className='flex-1'>
+              <h3 className='font-bold text-lg mb-1'>Payment Successful!</h3>
+              <p className='text-sm text-white/90'>
+                Your premium subscription is now active
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSuccessNotification(false)}
+              className='flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors'>
+              <X className='w-5 h-5 text-white' />
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className='max-w-7xl mx-auto px-8 max-lg:px-6 max-sm:px-4 py-8 max-lg:py-6 pb-8 max-lg:pb-24'>
         <div className='grid grid-cols-3 max-lg:grid-cols-1 gap-8 max-lg:gap-6'>

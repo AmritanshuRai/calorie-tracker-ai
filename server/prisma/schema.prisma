@@ -259,11 +259,16 @@ model Subscription {
   userId                String
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Dodo Payments references
+  dodoSubscriptionId    String?  @unique // Dodo's subscription_id
+  dodoCustomerId        String?  // Dodo's customer_id
+  dodoProductId         String?  // Dodo's product_id
+  
   // Subscription details
   plan                  String   // monthly, annual
-  status                String   @default("active") // active, cancelled, expired, paused
-  amount                Float    // Amount paid in INR
-  currency              String   @default("INR")
+  status                String   @default("active") // active, cancelled, expired, paused, on_hold, pending, failed
+  amount                Float    // Amount paid
+  currency              String   @default("USD")
   
   // Subscription period
   startDate             DateTime @default(now())
@@ -273,16 +278,28 @@ model Subscription {
   
   // Billing
   nextBillingDate       DateTime?
+  previousBillingDate   DateTime?
   cancelledAt           DateTime?
   cancelReason          String?
   
-  // Metadata
+  // Payment details from Dodo
+  paymentFrequencyCount     Int?
+  paymentFrequencyInterval  String? // Day, Week, Month, Year
+  subscriptionPeriodCount   Int?
+  subscriptionPeriodInterval String? // Day, Week, Month, Year
+  trialPeriodDays           Int?     @default(0)
+  
+  // Additional Dodo metadata
+  metadata              Json?    // Store additional Dodo data
+  
+  // Timestamps
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   
   @@index([userId])
   @@index([status])
   @@index([endDate])
+  @@index([dodoSubscriptionId])
 }
 
 model Payment {
@@ -290,32 +307,51 @@ model Payment {
   userId              String
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Dodo Payments references
+  dodoPaymentId       String?  @unique // Dodo's payment_id
+  dodoCustomerId      String?  // Dodo's customer_id
+  dodoSubscriptionId  String?  // Dodo's subscription_id (if subscription payment)
+  dodoCheckoutSessionId String? // Dodo's checkout_session_id
+  
   // Payment details
-  amount              Float    // Amount in INR
-  currency            String   @default("INR")
-  status              String   // created, authorized, captured, refunded, failed
-  method              String?  // card, netbanking, wallet, upi
+  amount              Float    // Amount in smallest currency unit (cents)
+  currency            String   @default("USD")
+  status              String   // succeeded, failed, cancelled, processing, etc.
+  method              String?  // card, bank_transfer, etc.
+  
+  // Card details (if available)
+  cardLastFour        String?
+  cardNetwork         String?  // VISA, MASTERCARD, etc.
+  cardType            String?  // DEBIT, CREDIT
+  cardIssuingCountry  String?
   
   // Order details
   orderType           String   // subscription, one-time
   plan                String?  // monthly, annual (if subscription)
   description         String?
   
-  // Payment reference
-  paymentReference    String   @unique
+  // Payment amounts
+  totalAmount         Int?     // Total charged in cents
+  taxAmount           Int?     // Tax amount in cents
+  settlementAmount    Int?     // Amount credited to merchant
+  settlementCurrency  String?
+  settlementTax       Int?
   
-  // Receipt and invoice
-  receipt             String?
-  notes               Json?    // Additional metadata
+  // Product information
+  productCart         Json?    // One-time products purchased
+  
+  // Status and errors
+  errorCode           String?
+  errorMessage        String?
   
   // Refund details
   refundedAmount      Float?
   refundedAt          DateTime?
   refundReason        String?
   
-  // Failure details
-  errorCode           String?
-  errorDescription    String?
+  // Additional Dodo metadata
+  metadata            Json?    // Store additional Dodo data
+  billingAddress      Json?    // Billing address from Dodo
   
   // Timestamps
   createdAt           DateTime @default(now())
@@ -323,6 +359,36 @@ model Payment {
   
   @@index([userId])
   @@index([status])
-  @@index([paymentReference])
+  @@index([dodoPaymentId])
+  @@index([dodoSubscriptionId])
   @@index([createdAt])
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  
+  // Webhook identification
+  webhookId       String   @unique // From webhook-id header
+  eventType       String   // payment.succeeded, subscription.active, etc.
+  
+  // Dodo business reference
+  businessId      String?
+  
+  // Payload
+  payload         Json     // Full webhook payload
+  
+  // Processing status
+  processed       Boolean  @default(false)
+  processingError String?  @db.Text
+  retryCount      Int      @default(0)
+  
+  // Timestamps
+  webhookTimestamp DateTime // From webhook-timestamp header
+  receivedAt       DateTime @default(now())
+  processedAt      DateTime?
+  
+  @@index([webhookId])
+  @@index([eventType])
+  @@index([processed])
+  @@index([receivedAt])
 }
