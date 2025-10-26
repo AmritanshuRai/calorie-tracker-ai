@@ -207,8 +207,21 @@ async function handlePaymentSucceeded(data) {
 
   if (subscription_id) {
     orderType = 'subscription';
-    // Get plan from product metadata or subscription
-    plan = metadata?.plan || 'monthly';
+
+    // Fetch the subscription from our database to get the correct plan
+    // The subscription.active webhook is processed before payment.succeeded
+    const existingSubscription = await prisma.subscription.findUnique({
+      where: { dodoSubscriptionId: subscription_id },
+    });
+
+    if (existingSubscription) {
+      plan = existingSubscription.plan;
+    } else {
+      // Fallback: if subscription not found yet, default to monthly
+      // This shouldn't happen as subscription.active is processed first
+      console.warn('⚠️ Subscription not found in DB, defaulting to monthly');
+      plan = 'monthly';
+    }
   }
 
   // Create or update payment record
@@ -351,8 +364,9 @@ async function handleSubscriptionActive(data) {
     throw new Error(`User not found for email: ${customer.email}`);
   }
 
-  // Determine plan from metadata
-  const plan = metadata?.plan === '365D' ? 'annual' : 'monthly';
+  // Determine plan from payment_frequency_interval (more reliable than metadata)
+  // Year = annual, Month = monthly
+  const plan = payment_frequency_interval === 'Year' ? 'annual' : 'monthly';
 
   // Calculate subscription period
   const startDate = previous_billing_date
