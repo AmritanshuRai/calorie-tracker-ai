@@ -20,49 +20,50 @@ const DEFAULT_MODEL = 'gpt-5';
 const PRICING = {
   'gpt-5': {
     input: 1.25, // $1.25 per 1M input tokens
-    output: 5.0, // $5.00 per 1M output tokens
+    cachedInput: 0.125, // $0.125 per 1M cached input tokens
+    output: 10.0, // $10.00 per 1M output tokens
   },
   'gpt-5-mini': {
     input: 0.25, // $0.250 per 1M input tokens
     output: 2.0, // $2.000 per 1M output tokens
   },
-  'gpt-4o': {
-    input: 2.5,
-    output: 10.0,
-  },
-  'gpt-4o-mini': {
-    input: 0.15,
-    output: 0.6,
-  },
-  'gpt-4-turbo': {
-    input: 10.0,
-    output: 30.0,
-  },
-  'gpt-4': {
-    input: 30.0,
-    output: 60.0,
-  },
-  'gpt-3.5-turbo': {
-    input: 0.5,
-    output: 1.5,
+  'gpt-5-nano': {
+    input: 0.05, // $0.050 per 1M input tokens
+    cachedInput: 0.005, // $0.005 per 1M cached input tokens
+    output: 0.4, // $0.400 per 1M output tokens
   },
 };
 
 /**
  * Calculate cost based on token usage and model
  */
-function calculateCost(model, inputTokens, outputTokens) {
+function calculateCost(
+  model,
+  inputTokens,
+  outputTokens,
+  cachedInputTokens = 0
+) {
   const pricing = PRICING[model];
   if (!pricing) {
-    return { inputCost: null, outputCost: null, totalCost: null };
+    return {
+      inputCost: null,
+      outputCost: null,
+      cachedInputCost: null,
+      totalCost: null,
+    };
   }
 
-  const inputCost = (inputTokens / 1_000_000) * pricing.input;
+  const regularInputTokens = inputTokens - cachedInputTokens;
+  const inputCost = (regularInputTokens / 1_000_000) * pricing.input;
+  const cachedInputCost = pricing.cachedInput
+    ? (cachedInputTokens / 1_000_000) * pricing.cachedInput
+    : 0;
   const outputCost = (outputTokens / 1_000_000) * pricing.output;
-  const totalCost = inputCost + outputCost;
+  const totalCost = inputCost + cachedInputCost + outputCost;
 
   return {
     inputCost: parseFloat(inputCost.toFixed(6)),
+    cachedInputCost: parseFloat(cachedInputCost.toFixed(6)),
     outputCost: parseFloat(outputCost.toFixed(6)),
     totalCost: parseFloat(totalCost.toFixed(6)),
   };
@@ -79,6 +80,7 @@ async function logOpenAICall({
   rawOutput,
   inputTokens,
   outputTokens,
+  cachedInputTokens = 0,
   totalTokens,
   responseTimeMs,
   status = 'success',
@@ -88,10 +90,11 @@ async function logOpenAICall({
 }) {
   try {
     // Calculate costs
-    const { inputCost, outputCost, totalCost } = calculateCost(
+    const { inputCost, outputCost, cachedInputCost, totalCost } = calculateCost(
       model,
       inputTokens || 0,
-      outputTokens || 0
+      outputTokens || 0,
+      cachedInputTokens || 0
     );
 
     await prisma.openAILog.create({
@@ -103,9 +106,11 @@ async function logOpenAICall({
         rawOutput,
         inputTokens,
         outputTokens,
+        cachedInputTokens,
         totalTokens,
         inputCost,
         outputCost,
+        cachedInputCost,
         totalCost,
         responseTimeMs,
         status,
@@ -215,6 +220,8 @@ export async function parseFood(
             - Do not swap or misalign nutrient meanings (e.g. do not confuse Vitamin B1/B2/B3).
             - Output must strictly follow the JSON schema provided by the user.
             `,
+          // Enable prompt caching for this message
+          cache_control: { type: 'ephemeral' },
         },
         {
           role: 'user',
@@ -342,6 +349,24 @@ All values must be calculated for the specified quantity. Use null only when the
 
     console.log('Raw content from OpenAI:', content);
 
+    // Extract token usage including cached tokens
+    const inputTokens = completion.usage?.prompt_tokens || 0;
+    const outputTokens = completion.usage?.completion_tokens || 0;
+    const cachedInputTokens =
+      completion.usage?.prompt_tokens_details?.cached_tokens || 0;
+    const totalTokens = completion.usage?.total_tokens || 0;
+
+    console.log('Token usage:', {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      totalTokens,
+      savingsFromCache:
+        cachedInputTokens > 0
+          ? `${((cachedInputTokens / inputTokens) * 100).toFixed(1)}%`
+          : '0%',
+    });
+
     // Log the successful API call
     await logOpenAICall({
       userId,
@@ -349,9 +374,10 @@ All values must be calculated for the specified quantity. Use null only when the
       requestType: 'text',
       input: text,
       rawOutput: content,
-      inputTokens: completion.usage?.prompt_tokens || null,
-      outputTokens: completion.usage?.completion_tokens || null,
-      totalTokens: completion.usage?.total_tokens || null,
+      inputTokens,
+      outputTokens,
+      cachedInputTokens,
+      totalTokens,
       responseTimeMs,
       status: 'success',
       endpoint,
