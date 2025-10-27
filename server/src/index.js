@@ -157,10 +157,13 @@ app.listen(PORT, () => {
       process.env.DODO_PAYMENTS_API_KEY
     );
   }
-  console.log('DODO_WEBHOOK_SECRET exists:', !!process.env.DODO_WEBHOOK_SECRET);
   console.log(
-    'DODO_WEBHOOK_SECRET length:',
-    process.env.DODO_WEBHOOK_SECRET?.length || 0
+    'DODO_PAYMENTS_WEBHOOK_SECRET exists:',
+    !!process.env.DODO_PAYMENTS_WEBHOOK_SECRET
+  );
+  console.log(
+    'DODO_PAYMENTS_WEBHOOK_SECRET length:',
+    process.env.DODO_PAYMENTS_WEBHOOK_SECRET?.length || 0
   );
 
   const DODO_API_URL =
