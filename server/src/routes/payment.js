@@ -115,6 +115,7 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
         },
       ],
       customer: customer,
+      currency: 'USD', // Explicitly force USD currency
       return_url: `${process.env.CLIENT_URL}/dashboard`,
       confirm: false, // Let user confirm on Dodo checkout page
       customization: {
@@ -122,7 +123,7 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
         show_order_details: true,
       },
       feature_flags: {
-        allow_currency_selection: true,
+        allow_currency_selection: false, // Force USD only, no currency selection
         allow_discount_code: true,
         allow_phone_number_collection: true,
         allow_tax_id: false,
