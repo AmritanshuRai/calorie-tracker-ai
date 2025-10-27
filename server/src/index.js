@@ -136,6 +136,39 @@ app.listen(PORT, () => {
   console.log(
     `📊 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`
   );
+
+  // Log Dodo Payments configuration
+  console.log('\n=== Dodo Payments Configuration ===');
+  console.log(
+    'DODO_PAYMENTS_ENVIRONMENT:',
+    process.env.DODO_PAYMENTS_ENVIRONMENT || 'NOT SET'
+  );
+  console.log(
+    'DODO_PAYMENTS_API_KEY exists:',
+    !!process.env.DODO_PAYMENTS_API_KEY
+  );
+  console.log(
+    'DODO_PAYMENTS_API_KEY length:',
+    process.env.DODO_PAYMENTS_API_KEY?.length || 0
+  );
+  if (process.env.DODO_PAYMENTS_API_KEY) {
+    console.log(
+      'DODO_PAYMENTS_API_KEY prefix:',
+      process.env.DODO_PAYMENTS_API_KEY
+    );
+  }
+  console.log('DODO_WEBHOOK_SECRET exists:', !!process.env.DODO_WEBHOOK_SECRET);
+  console.log(
+    'DODO_WEBHOOK_SECRET length:',
+    process.env.DODO_WEBHOOK_SECRET?.length || 0
+  );
+
+  const DODO_API_URL =
+    process.env.DODO_PAYMENTS_ENVIRONMENT === 'test_mode'
+      ? 'https://test.dodopayments.com'
+      : 'https://live.dodopayments.com';
+  console.log('DODO_API_URL:', DODO_API_URL);
+  console.log('====================================\n');
 });
 
 export default app;
