@@ -98,9 +98,6 @@ app.use(
   })
 );
 
-// Webhook routes (MUST be registered BEFORE express.json() middleware)
-app.use('/api/webhook', webhookRoutes);
-
 // Apply rate limiting to API routes
 app.use('/api/', limiter);
 
