@@ -95,17 +95,6 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
       phone_number: customerInfo?.phoneNumber || null,
     };
 
-    // Prepare billing address if provided
-    const billing = billingAddress
-      ? {
-          city: billingAddress.city || null,
-          country: billingAddress.country || 'IN',
-          state: billingAddress.state || null,
-          street: billingAddress.street || null,
-          zipcode: billingAddress.zipcode || null,
-        }
-      : null;
-
     // Create checkout session
     const checkoutData = {
       product_cart: [
@@ -115,7 +104,6 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
         },
       ],
       customer: customer,
-      currency: 'USD', // Explicitly force USD currency
       return_url: `${process.env.CLIENT_URL}/dashboard`,
       confirm: false, // Let user confirm on Dodo checkout page
       customization: {
@@ -133,11 +121,6 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
         user_email: user.email,
       },
     };
-
-    // Add billing address if provided
-    if (billing) {
-      checkoutData.billing_address = billing;
-    }
 
     const response = await fetch(`${DODO_API_URL}/checkouts`, {
       method: 'POST',
