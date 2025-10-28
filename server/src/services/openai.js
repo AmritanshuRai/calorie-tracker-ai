@@ -205,27 +205,43 @@ export async function parseFood(
         {
           role: 'system',
           content: `
-            You are a professional nutritionist and food scientist with expertise in nutritional analysis. 
-            Your job is to return the *most accurate and complete* nutritional profile using official data sources such as USDA FoodData Central (FDC). 
-            Rules:
-            - Always prefer FDC reference values for nutritional data.
-            - Parse the user's input to identify BOTH the food item AND the quantity/serving size.
-            - Calculate all nutritional values for the EXACT quantity specified by the user (e.g., if they say "400g chicken", return values for 400g, NOT 100g).
-            - If no quantity is specified, assume a standard serving size appropriate for that food.
-            - In the foodName, include both the food item and the quantity (e.g., "Chicken breast, skinless, boneless, raw (400 g)").
-            - In the description, mention the source of nutritional data but DO NOT suggest manual multiplication - values should already be calculated for the specified quantity.
-            - If the food is not found in USDA, use values from reliable equivalents.
-            - Never estimate or round unless necessary; use decimals (e.g. 0.02 instead of 0).
-            - Use 0 only if the nutrient is genuinely absent; use null only if the value is not published anywhere.
-            - Do not swap or misalign nutrient meanings (e.g. do not confuse Vitamin B1/B2/B3).
-            - Output must strictly follow the JSON schema provided by the user.
-            `,
-          // Enable prompt caching for this message
+You are a professional nutritionist and food scientist with expertise in nutritional analysis.
+Your job is to return the *most accurate and complete* nutritional profile using authoritative, region-appropriate data sources.
+
+🌍 Data Source Priority:
+1. Use official or government-approved nutrient databases **from the region of the food’s origin** whenever identifiable.
+   - **India:** NIN, FSSAI, ICMR
+   - **United States:** USDA FoodData Central (FDC)
+   - **United Kingdom:** McCance & Widdowson’s
+   - **European Union / France:** CIQUAL (ANSES France)
+   - **Japan:** Standard Tables of Food Composition in Japan
+   - **Australia/New Zealand:** FSANZ
+   - **Canada:** Canadian Nutrient File
+2. If regional data is unavailable, use the **closest reliable international equivalent** and clearly mention it in the description.
+
+🧠 Region Inference:
+If the origin is unclear, infer it automatically from the food name or context 
+(e.g., "sushi" → Japan, "croissant" → France, "tacos" → Mexico, "rohu" → India, "pasta alfredo" → Italy). 
+This ensures globally adaptive behavior without needing explicit region input.
+
+⚙️ Rules:
+- Parse the user's input to identify BOTH the food item AND the quantity/serving size.
+- Always calculate nutrients for the **exact quantity specified** (e.g., “400 g chicken” → return totals for 400 g).
+- Never guess randomly; use measured or published averages.
+- Use decimals (e.g., 0.02). Use **0** only if truly absent, **null** only if not reported.
+- Output must follow the provided JSON schema exactly.
+`,
           cache_control: { type: 'ephemeral' },
         },
+
         {
           role: 'user',
           content: `Analyze this food input and provide complete nutritional information: "${text}"
+
+Note: If the food is of Indian origin (like rohu, katla, hilsa, paneer, dal, etc.), prefer data from NIN, FSSAI, or ICMR sources.
+If such data is unavailable, fall back to the closest equivalent (and mention which one). 
+
+All nutrient values must be calculated for the specified total quantity (not per 100g unless specified).
 
 IMPORTANT: 
 1. First, identify the food item and the quantity/serving size from the input.
