@@ -542,7 +542,7 @@ const Dashboard = () => {
                           Unlock Premium AI Accuracy
                         </h3>
                         <p className='text-sm text-white/90'>
-                          Track 30+ nutrients with advanced AI • Just ₹125/month
+                          Track 30+ nutrients with advanced AI
                         </p>
                         {/* Free logs counter */}
                         {subscription?.freeLogs >= 0 && (
