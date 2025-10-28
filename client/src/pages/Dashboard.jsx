@@ -22,6 +22,8 @@ import {
   ChevronDown,
   CheckCircle,
   X,
+  Info,
+  ArrowRight,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -40,6 +42,9 @@ const Dashboard = () => {
   const subscription = useUserStore((state) => state.subscription);
   const logout = useUserStore((state) => state.logout);
   const setUser = useUserStore((state) => state.setUser);
+  const clearOnboardingData = useUserStore(
+    (state) => state.clearOnboardingData
+  );
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -307,6 +312,11 @@ const Dashboard = () => {
     authService.logout();
   };
 
+  const handleStartOnboarding = () => {
+    clearOnboardingData();
+    navigate('/onboarding/gender');
+  };
+
   const getUserInitials = () => {
     if (!user?.name) return 'U';
     const names = user.name.split(' ');
@@ -493,6 +503,26 @@ const Dashboard = () => {
                 onDateSelect={setSelectedDate}
               />
             </Card>
+
+            {/* Onboarding Reminder - Compact version */}
+            {!user?.profileCompleted && (
+              <div className='bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='flex items-center gap-3 min-w-0 flex-1'>
+                    <Info className='w-5 h-5 text-amber-600 flex-shrink-0' />
+                    <p className='text-sm text-amber-900 font-medium truncate'>
+                      Complete your health profile for personalized targets
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleStartOnboarding}
+                    className='text-sm font-semibold text-amber-700 hover:text-amber-800 whitespace-nowrap flex items-center gap-1 hover:gap-2 transition-all'>
+                    Start Now
+                    <ArrowRight className='w-4 h-4' />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Upgrade Banner - Only show for free users */}
             {!user?.isPro && (
