@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
 import Admin from './pages/Admin';
 import Upgrade from './pages/Upgrade';
+import Insights from './pages/Insights';
 
 // Onboarding Pages
 import GenderPage from './pages/onboarding/GenderPage';
@@ -268,6 +269,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/insights'
+            element={
+              <ProtectedRoute>
+                <Insights />
               </ProtectedRoute>
             }
           />

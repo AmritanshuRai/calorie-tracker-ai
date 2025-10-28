@@ -13,6 +13,14 @@ export const foodService = {
     return response.data;
   },
 
+  // Get food logs for a date range (batch endpoint)
+  getFoodLogRange: async (startDate, endDate) => {
+    const response = await api.get(
+      `/food/log/range?startDate=${startDate}&endDate=${endDate}`
+    );
+    return response.data;
+  },
+
   // Add food entry
   addFoodEntry: async (foodEntry) => {
     const response = await api.post('/food/entry', foodEntry);

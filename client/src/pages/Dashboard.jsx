@@ -407,6 +407,18 @@ const Dashboard = () => {
                       <button
                         onClick={() => {
                           setShowUserMenu(false);
+                          navigate('/insights');
+                        }}
+                        className='w-full px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 transition-colors text-left'>
+                        <TrendingUp className='w-5 h-5 text-slate-600' />
+                        <span className='font-medium text-slate-700'>
+                          Insights
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
                           navigate('/account');
                         }}
                         className='w-full px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 transition-colors text-left'>

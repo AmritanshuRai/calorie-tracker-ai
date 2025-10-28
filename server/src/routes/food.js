@@ -110,6 +110,52 @@ router.get('/log', authenticateToken, async (req, res) => {
   }
 });
 
+// Get food logs for a date range (batch endpoint for analytics)
+router.get('/log/range', authenticateToken, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: 'Start and end dates are required' });
+    }
+
+    // Parse dates in UTC to avoid timezone issues
+    const start = new Date(startDate + 'T00:00:00.000Z');
+    const end = new Date(endDate + 'T23:59:59.999Z');
+
+    // Fetch all entries in the date range
+    const entries = await prisma.foodEntry.findMany({
+      where: {
+        userId: req.user.userId,
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    // Group entries by date
+    const entriesByDate = {};
+    entries.forEach((entry) => {
+      const dateKey = entry.date.toISOString().split('T')[0];
+      if (!entriesByDate[dateKey]) {
+        entriesByDate[dateKey] = [];
+      }
+      entriesByDate[dateKey].push(entry);
+    });
+
+    res.json(entriesByDate);
+  } catch (error) {
+    console.error('Get food log range error:', error);
+    res.status(500).json({ error: 'Failed to get food log range' });
+  }
+});
+
 // Add food entry
 router.post('/entry', authenticateToken, async (req, res) => {
   try {
