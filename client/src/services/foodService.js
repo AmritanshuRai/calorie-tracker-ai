@@ -7,6 +7,19 @@ export const foodService = {
     return response.data;
   },
 
+  // Parse food from image using AI
+  parseFoodFromImage: async (imageFile) => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await api.post('/food/parse-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // Get food log for a specific date
   getFoodLog: async (date) => {
     const response = await api.get(`/food/log?date=${date}`);

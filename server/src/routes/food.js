@@ -1,10 +1,27 @@
 import express from 'express';
+import multer from 'multer';
 import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { parseFood } from '../services/openai.js';
+import { parseFood, parseFoodFromImage } from '../services/openai.js';
 import { FREE_LOGS_LIMIT } from '../utils/constants.js';
 
 const router = express.Router();
+
+// Configure multer for handling image uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+});
 
 // Parse food text using AI
 router.post('/parse', authenticateToken, async (req, res) => {
@@ -75,6 +92,86 @@ router.post('/parse', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to parse food' });
   }
 });
+
+// Parse food image using AI
+router.post(
+  '/parse-image',
+  authenticateToken,
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Image file is required' });
+      }
+
+      // Check user's subscription status and free logs
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: {
+          subscriptionStatus: true,
+          subscriptionEnd: true,
+          freeLogs: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check if user has Pro access
+      const isPro =
+        user.subscriptionStatus === 'active' ||
+        (user.subscriptionStatus === 'cancelled' &&
+          user.subscriptionEnd &&
+          new Date(user.subscriptionEnd) > new Date());
+
+      // If not Pro and no free logs remaining, deny access
+      if (!isPro && user.freeLogs <= 0) {
+        return res.status(403).json({
+          error: 'No free logs remaining',
+          code: 'FREE_LOGS_EXHAUSTED',
+          message: `You have used all ${FREE_LOGS_LIMIT} free logs. Upgrade to Pro for unlimited access.`,
+          freeLogs: 0,
+        });
+      }
+
+      // Convert buffer to base64
+      const imageBuffer = req.file.buffer;
+      const mimeType = req.file.mimetype;
+
+      // Parse food from image (Sharp will compress inside the function)
+      const nutritionData = await parseFoodFromImage(
+        imageBuffer,
+        mimeType,
+        req.user.userId,
+        '/api/food/parse-image'
+      );
+
+      // If not Pro, decrement free logs after successful parse
+      let remainingLogs = user.freeLogs;
+      if (!isPro) {
+        const updatedUser = await prisma.user.update({
+          where: { id: req.user.userId },
+          data: { freeLogs: { decrement: 1 } },
+          select: { freeLogs: true },
+        });
+        remainingLogs = updatedUser.freeLogs;
+      }
+
+      // Include remaining logs in response
+      res.json({
+        ...nutritionData,
+        freeLogs: isPro ? -1 : remainingLogs, // -1 indicates unlimited (Pro)
+        isPro,
+      });
+    } catch (error) {
+      console.error('Parse food image error:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to parse food image',
+      });
+    }
+  }
+);
 
 // Get food log for a specific date
 router.get('/log', authenticateToken, async (req, res) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,6 +13,9 @@ import {
   ChevronLeft,
   BarChart3,
   AlertCircle,
+  Camera,
+  Image as ImageIcon,
+  Upload,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { foodService } from '../services/foodService';
@@ -23,13 +26,18 @@ import Input from './Input';
 
 const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
   const [step, setStep] = useState(1); // 1: Input, 2: Review, 3: Success
+  const [inputMode, setInputMode] = useState('text'); // 'text' or 'image'
   const [foodText, setFoodText] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [mealType, setMealType] = useState('breakfast');
   const [isLoading, setIsLoading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { subscription, user, setUser } = useUserStore();
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: Sunrise },
@@ -38,9 +46,51 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
     { value: 'snacks', label: 'Snacks', icon: Candy },
   ];
 
+  // Handle image file selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image size must be less than 10MB');
+      return;
+    }
+
+    setSelectedImage(file);
+    setError('');
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Clear selected image
+  const handleClearImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
+
   const handleParse = async () => {
-    if (!foodText.trim()) {
+    // Validate input based on mode
+    if (inputMode === 'text' && !foodText.trim()) {
       setError('Please enter what you ate');
+      return;
+    }
+
+    if (inputMode === 'image' && !selectedImage) {
+      setError('Please select or capture an image');
       return;
     }
 
@@ -56,7 +106,15 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
     setError('');
 
     try {
-      const data = await foodService.parseFood(foodText);
+      let data;
+
+      if (inputMode === 'image') {
+        // Parse food from image
+        data = await foodService.parseFoodFromImage(selectedImage);
+      } else {
+        // Parse food from text
+        data = await foodService.parseFood(foodText);
+      }
 
       if (data.error) {
         setError(data.error);
@@ -117,7 +175,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
         protein: parsedData.protein,
         carbs: parsedData.carbs,
         fats: parsedData.fats,
-        source: 'text',
+        source: inputMode, // 'text' or 'image'
         aiParsed: true,
       };
 
@@ -186,11 +244,16 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
 
   const handleClose = () => {
     setStep(1);
+    setInputMode('text');
     setFoodText('');
+    setSelectedImage(null);
+    setImagePreview(null);
     setMealType('breakfast');
     setParsedData(null);
     setError('');
     setIsLoading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
     onClose();
   };
 
@@ -237,8 +300,38 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                     Log Your Food
                   </h2>
                   <p className='text-slate-600 mt-2'>
-                    Tell us what you ate, and AI will calculate the nutrition
+                    Tell us what you ate, or snap a photo for AI analysis
                   </p>
+                </div>
+
+                {/* Input Mode Toggle */}
+                <div className='flex gap-2 p-1 bg-slate-100 rounded-xl'>
+                  <button
+                    onClick={() => {
+                      setInputMode('text');
+                      handleClearImage();
+                    }}
+                    className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
+                      inputMode === 'text'
+                        ? 'bg-white text-emerald-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-800'
+                    }`}>
+                    <UtensilsCrossed className='w-4 h-4 inline-block mr-2' />
+                    Text Input
+                  </button>
+                  <button
+                    onClick={() => {
+                      setInputMode('image');
+                      setFoodText('');
+                    }}
+                    className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
+                      inputMode === 'image'
+                        ? 'bg-white text-emerald-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-800'
+                    }`}>
+                    <Camera className='w-4 h-4 inline-block mr-2' />
+                    Photo
+                  </button>
                 </div>
 
                 {/* Meal Type Selection */}
@@ -268,29 +361,114 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                   </div>
                 </div>
 
-                {/* Food Input */}
-                <div>
-                  <label className='block text-sm font-medium text-slate-700 mb-2'>
-                    What did you eat?
-                  </label>
-                  <textarea
-                    value={foodText}
-                    onChange={(e) => setFoodText(e.target.value)}
-                    placeholder='e.g., 2 scrambled eggs with toast and orange juice'
-                    className='w-full p-4 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 outline-none resize-none text-slate-800 placeholder:text-slate-400'
-                    rows={4}
-                    disabled={isLoading}
-                  />
-                  <p className='text-xs text-slate-500 mt-2 flex items-start gap-1.5'>
-                    <span className='text-amber-500 text-base leading-none'>
-                      💡
-                    </span>
-                    <span>
-                      Be specific: include quantities, cooking methods, and
-                      ingredients
-                    </span>
-                  </p>
-                </div>
+                {/* Text Input Mode */}
+                {inputMode === 'text' && (
+                  <div>
+                    <label className='block text-sm font-medium text-slate-700 mb-2'>
+                      What did you eat?
+                    </label>
+                    <textarea
+                      value={foodText}
+                      onChange={(e) => setFoodText(e.target.value)}
+                      placeholder='e.g., 2 scrambled eggs with toast and orange juice'
+                      className='w-full p-4 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 outline-none resize-none text-slate-800 placeholder:text-slate-400'
+                      rows={4}
+                      disabled={isLoading}
+                    />
+                    <p className='text-xs text-slate-500 mt-2 flex items-start gap-1.5'>
+                      <span className='text-amber-500 text-base leading-none'>
+                        💡
+                      </span>
+                      <span>
+                        Be specific: include quantities, cooking methods, and
+                        ingredients
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Image Input Mode */}
+                {inputMode === 'image' && (
+                  <div>
+                    <label className='block text-sm font-medium text-slate-700 mb-2'>
+                      Upload or capture food image
+                    </label>
+
+                    {!imagePreview ? (
+                      <div className='space-y-3'>
+                        {/* Upload from gallery */}
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isLoading}
+                          className='w-full p-6 border-2 border-dashed border-slate-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed'>
+                          <Upload className='w-10 h-10 mx-auto mb-2 text-slate-400' />
+                          <p className='text-sm font-semibold text-slate-700'>
+                            Upload from gallery
+                          </p>
+                          <p className='text-xs text-slate-500 mt-1'>
+                            JPG, PNG or HEIC (max 10MB)
+                          </p>
+                        </button>
+
+                        {/* Capture with camera */}
+                        <button
+                          onClick={() => cameraInputRef.current?.click()}
+                          disabled={isLoading}
+                          className='w-full p-6 border-2 border-slate-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed'>
+                          <Camera className='w-10 h-10 mx-auto mb-2 text-slate-400' />
+                          <p className='text-sm font-semibold text-slate-700'>
+                            Take a photo
+                          </p>
+                          <p className='text-xs text-slate-500 mt-1'>
+                            Use your device camera
+                          </p>
+                        </button>
+
+                        {/* Hidden file inputs */}
+                        <input
+                          ref={fileInputRef}
+                          type='file'
+                          accept='image/*'
+                          onChange={handleImageSelect}
+                          className='hidden'
+                        />
+                        <input
+                          ref={cameraInputRef}
+                          type='file'
+                          accept='image/*'
+                          capture='environment'
+                          onChange={handleImageSelect}
+                          className='hidden'
+                        />
+                      </div>
+                    ) : (
+                      <div className='space-y-3'>
+                        {/* Image Preview */}
+                        <div className='relative rounded-xl overflow-hidden border-2 border-slate-200'>
+                          <img
+                            src={imagePreview}
+                            alt='Food preview'
+                            className='w-full h-64 object-cover'
+                          />
+                          <button
+                            onClick={handleClearImage}
+                            className='absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors'>
+                            <X className='w-4 h-4' />
+                          </button>
+                        </div>
+                        <p className='text-xs text-slate-500 flex items-start gap-1.5'>
+                          <span className='text-amber-500 text-base leading-none'>
+                            💡
+                          </span>
+                          <span>
+                            For best results, ensure good lighting and the food
+                            is clearly visible
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {error && (
                   <div className='p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3'>
@@ -358,7 +536,10 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 <Button
                   onClick={handleParse}
                   disabled={
-                    isLoading || !foodText.trim() || subscription.freeLogs === 0
+                    isLoading ||
+                    (inputMode === 'text' && !foodText.trim()) ||
+                    (inputMode === 'image' && !selectedImage) ||
+                    subscription.freeLogs === 0
                   }
                   className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed'>
                   {isLoading ? (
@@ -367,7 +548,16 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       Analyzing with AI...
                     </>
                   ) : (
-                    'Analyze Food'
+                    <>
+                      {inputMode === 'image' ? (
+                        <>
+                          <ImageIcon className='w-5 h-5 mr-2' />
+                          Analyze Photo
+                        </>
+                      ) : (
+                        'Analyze Food'
+                      )}
+                    </>
                   )}
                 </Button>
               </div>
