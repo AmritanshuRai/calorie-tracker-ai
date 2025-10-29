@@ -333,7 +333,7 @@ All values must be calculated for the specified quantity. Use null only when the
             ],
             additionalProperties: false,
           },
-          strict: true,
+          strict: false,
         },
       },
       reasoning: {
@@ -749,13 +749,13 @@ Provide all nutrients with best estimates based on ingredient composition.`,
             ],
             additionalProperties: false,
           },
-          strict: true,
+          strict: false,
         },
       },
       reasoning: {
         effort: 'low', // Use low reasoning for faster responses
       },
-      max_output_tokens: 3000, // Increased to accommodate reasoning tokens + JSON output
+      max_output_tokens: 5000, // Increased to accommodate reasoning tokens + JSON output
     });
 
     const responseTimeMs = Date.now() - startTime;
