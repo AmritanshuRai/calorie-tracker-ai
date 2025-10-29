@@ -198,21 +198,18 @@ export async function parseFood(
     const model = DEFAULT_MODEL;
     const reasoningEffort = 'minimal';
 
-    // Use Structured Outputs for reliable JSON
-    const completion = await client.chat.completions.create({
+    // Use the new Responses API with Structured Outputs
+    const response = await client.responses.create({
       model,
-      messages: [
-        {
-          role: 'system',
-          content: `
+      instructions: `
 You are a professional nutritionist and food scientist with expertise in nutritional analysis.
 Your job is to return the *most accurate and complete* nutritional profile using authoritative, region-appropriate data sources.
 
 🌍 Data Source Priority:
-1. Use official or government-approved nutrient databases **from the region of the food’s origin** whenever identifiable.
+1. Use official or government-approved nutrient databases **from the region of the food's origin** whenever identifiable.
    - **India:** NIN, FSSAI, ICMR
    - **United States:** USDA FoodData Central (FDC)
-   - **United Kingdom:** McCance & Widdowson’s
+   - **United Kingdom:** McCance & Widdowson's
    - **European Union / France:** CIQUAL (ANSES France)
    - **Japan:** Standard Tables of Food Composition in Japan
    - **Australia/New Zealand:** FSANZ
@@ -226,17 +223,12 @@ This ensures globally adaptive behavior without needing explicit region input.
 
 ⚙️ Rules:
 - Parse the user's input to identify BOTH the food item AND the quantity/serving size.
-- Always calculate nutrients for the **exact quantity specified** (e.g., “400 g chicken” → return totals for 400 g).
+- Always calculate nutrients for the **exact quantity specified** (e.g., "400 g chicken" → return totals for 400 g).
 - Never guess randomly; use measured or published averages.
 - Use decimals (e.g., 0.02). Use **0** only if truly absent, **null** only if not reported.
 - Output must follow the provided JSON schema exactly.
 `,
-          cache_control: { type: 'ephemeral' },
-        },
-
-        {
-          role: 'user',
-          content: `Analyze this food input and provide complete nutritional information: "${text}"
+      input: `Analyze this food input and provide complete nutritional information: "${text}"
 
 Note: If the food is of Indian origin (like rohu, katla, hilsa, paneer, dal, etc.), prefer data from NIN, FSSAI, or ICMR sources.
 If such data is unavailable, fall back to the closest equivalent (and mention which one). 
@@ -256,13 +248,10 @@ Provide detailed values for:
 - Essential minerals (calcium, iron, magnesium, phosphorus, potassium, zinc, manganese, copper, selenium)
 
 All values must be calculated for the specified quantity. Use null only when the nutrient data is truly unavailable. Use actual measured values even if small (e.g., 0.02 instead of 0).`,
-        },
-      ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
+      text: {
+        format: {
+          type: 'json_schema',
           name: 'nutrition_data',
-          strict: true,
           schema: {
             type: 'object',
             properties: {
@@ -343,21 +332,35 @@ All values must be calculated for the specified quantity. Use null only when the
             ],
             additionalProperties: false,
           },
+          strict: true,
         },
       },
-      // Optional: Set reasonable token limit for cost control
-      // If omitted, model uses its default maximum
-      max_completion_tokens: 2500,
-      // 'minimal' reasoning effort is optimal for structured data extraction tasks
-      // If omitted, defaults to 'medium' - but 'minimal' is better for this use case
-      reasoning_effort: reasoningEffort,
+      reasoning: {
+        effort: reasoningEffort, // 'minimal' is optimal for structured data extraction
+      },
+      max_output_tokens: 2500, // Set reasonable token limit for cost control
     });
 
     const responseTimeMs = Date.now() - startTime;
 
-    console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
+    console.log('OpenAI response:', JSON.stringify(response, null, 2));
 
-    const content = completion.choices[0]?.message?.content?.trim();
+    // Extract content from the new Responses API structure
+    // The SDK provides a convenience property output_text that aggregates text from all output_text items
+    let content = response.output_text?.trim();
+
+    // Fallback: manually extract from output array if output_text is not available
+    if (!content) {
+      const messageItem = response.output?.find(
+        (item) => item.type === 'message'
+      );
+      if (messageItem) {
+        const textContent = messageItem.content?.find(
+          (c) => c.type === 'output_text'
+        );
+        content = textContent?.text?.trim();
+      }
+    }
 
     if (!content) {
       throw new Error('Empty response from OpenAI');
@@ -365,12 +368,12 @@ All values must be calculated for the specified quantity. Use null only when the
 
     console.log('Raw content from OpenAI:', content);
 
-    // Extract token usage including cached tokens
-    const inputTokens = completion.usage?.prompt_tokens || 0;
-    const outputTokens = completion.usage?.completion_tokens || 0;
+    // Extract token usage from the new response structure
+    const inputTokens = response.usage?.input_tokens || 0;
+    const outputTokens = response.usage?.output_tokens || 0;
     const cachedInputTokens =
-      completion.usage?.prompt_tokens_details?.cached_tokens || 0;
-    const totalTokens = completion.usage?.total_tokens || 0;
+      response.usage?.input_tokens_details?.cached_tokens || 0;
+    const totalTokens = response.usage?.total_tokens || 0;
 
     console.log('Token usage:', {
       inputTokens,
