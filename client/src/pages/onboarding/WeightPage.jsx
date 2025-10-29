@@ -82,7 +82,7 @@ const WeightPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-2xl font-bold text-gray-800 mb-1.5'>
+          <h2 className='text-xl sm:text-2xl font-bold text-gray-800 mb-1.5'>
             {isImprovedHealth
               ? "What's your current weight?"
               : "What's your target weight?"}

@@ -70,7 +70,7 @@ const TimelinePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-3xl max-lg:text-2xl font-black text-slate-900 mb-1.5'>
+          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
             How fast do you want to reach your goal?
           </h2>
           <p className='text-base font-medium text-slate-600'>

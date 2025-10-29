@@ -88,7 +88,7 @@ const HealthConditionsPage = () => {
           <div className='w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-100 to-pink-100 rounded-3xl flex items-center justify-center'>
             <Heart className='w-10 h-10 text-red-600' />
           </div>
-          <h2 className='text-4xl max-lg:text-3xl font-black text-slate-900 mb-3'>
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
             Any health conditions we should know?
           </h2>
           <p className='text-lg font-medium text-slate-600'>

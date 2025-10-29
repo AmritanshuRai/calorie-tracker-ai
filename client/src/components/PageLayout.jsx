@@ -11,7 +11,7 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
   const isAdminPage = location.pathname === '/admin';
   const isUpgradePage = location.pathname === '/upgrade';
   const isOnboardingPage = location.pathname.startsWith('/onboarding');
-  const isFullWidth = isAdminPage || isUpgradePage;
+  const isFullWidth = isAdminPage || isUpgradePage || isOnboardingPage;
 
   // Calculate onboarding progress
   const onboardingSteps = [
@@ -117,7 +117,9 @@ const PageLayout = ({ children, title, showBack = false, rightAction }) => {
       {/* Content */}
       <div
         className={`${
-          isFullWidth ? 'w-full' : 'max-w-3xl mx-auto px-6 max-md:px-4'
+          isFullWidth
+            ? 'w-full px-8 max-lg:px-6 max-sm:px-4'
+            : 'max-w-3xl mx-auto px-6 max-md:px-4'
         } ${isOnboardingPage ? 'flex-1 overflow-y-auto py-4' : 'flex-1 py-8'}`}>
         {children}
       </div>

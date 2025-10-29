@@ -42,7 +42,7 @@ const HeightPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-2xl font-black text-slate-900 mb-1.5'>
+          <h2 className='text-xl sm:text-2xl font-black text-slate-900 mb-1.5'>
             What's your height?
           </h2>
           <p className='text-base font-medium text-slate-600'>

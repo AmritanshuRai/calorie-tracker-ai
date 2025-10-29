@@ -128,7 +128,7 @@ const ExerciseDetailsPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-4xl max-lg:text-3xl font-black text-slate-900 mb-3'>
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
             What type of exercise do you do?
           </h2>
           <p className='text-lg font-medium text-slate-600'>
@@ -148,7 +148,7 @@ const ExerciseDetailsPage = () => {
                 Select all that apply
               </h3>
             </div>
-            <div className='grid grid-cols-2 max-md:grid-cols-1 gap-3'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
               {exerciseTypeOptions.map((option) => (
                 <button
                   key={option.value}

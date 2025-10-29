@@ -99,7 +99,7 @@ const MedicationsPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className='text-center'>
-          <h2 className='text-4xl max-lg:text-3xl font-black text-slate-900 mb-3'>
+          <h2 className='text-3xl lg:text-4xl font-black text-slate-900 mb-3'>
             Medications & deficiencies
           </h2>
           <p className='text-lg font-medium text-slate-600'>
