@@ -28,8 +28,9 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
   const [step, setStep] = useState(1); // 1: Input, 2: Review, 3: Success
   const [inputMode, setInputMode] = useState('text'); // 'text' or 'image'
   const [foodText, setFoodText] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [imageInstructions, setImageInstructions] = useState('');
   const [mealType, setMealType] = useState('breakfast');
   const [isLoading, setIsLoading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
@@ -48,36 +49,64 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
 
   // Handle image file selection
   const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
+    // Check if adding these files would exceed the limit
+    if (selectedImages.length + files.length > 5) {
+      setError(
+        `You can only upload up to 5 images. Currently selected: ${selectedImages.length}`
+      );
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Image size must be less than 10MB');
-      return;
+    // Validate each file
+    const validFiles = [];
+    const previews = [];
+
+    for (const file of files) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select valid image files only');
+        continue;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Each image must be less than 10MB');
+        continue;
+      }
+
+      validFiles.push(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        previews.push(reader.result);
+        if (previews.length === validFiles.length) {
+          setImagePreviews([...imagePreviews, ...previews]);
+        }
+      };
+      reader.readAsDataURL(file);
     }
 
-    setSelectedImage(file);
-    setError('');
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    if (validFiles.length > 0) {
+      setSelectedImages([...selectedImages, ...validFiles]);
+      setError('');
+    }
   };
 
-  // Clear selected image
-  const handleClearImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
+  // Remove a specific image
+  const handleRemoveImage = (index) => {
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+  };
+
+  // Clear all images
+  const handleClearAllImages = () => {
+    setSelectedImages([]);
+    setImagePreviews([]);
+    setImageInstructions('');
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -89,8 +118,8 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
       return;
     }
 
-    if (inputMode === 'image' && !selectedImage) {
-      setError('Please select or capture an image');
+    if (inputMode === 'image' && selectedImages.length === 0) {
+      setError('Please select or capture at least one image');
       return;
     }
 
@@ -109,8 +138,11 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
       let data;
 
       if (inputMode === 'image') {
-        // Parse food from image
-        data = await foodService.parseFoodFromImage(selectedImage);
+        // Parse food from images (send all images and instructions)
+        data = await foodService.parseFoodFromImage(
+          selectedImages,
+          imageInstructions
+        );
       } else {
         // Parse food from text
         data = await foodService.parseFood(foodText);
@@ -246,8 +278,9 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
     setStep(1);
     setInputMode('text');
     setFoodText('');
-    setSelectedImage(null);
-    setImagePreview(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
+    setImageInstructions('');
     setMealType('breakfast');
     setParsedData(null);
     setError('');
@@ -309,7 +342,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                   <button
                     onClick={() => {
                       setInputMode('text');
-                      handleClearImage();
+                      handleClearAllImages();
                     }}
                     className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
                       inputMode === 'text'
@@ -391,11 +424,13 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                 {inputMode === 'image' && (
                   <div>
                     <label className='block text-sm font-medium text-slate-700 mb-2'>
-                      Upload or capture food image
+                      Upload or capture food images (up to 5)
                     </label>
 
-                    {!imagePreview ? (
-                      <div className='space-y-3'>
+                    {imagePreviews.length === 0 ? (
+                      <div
+                        className='space-y-3'
+                        style={{ display: 'flex', gap: '10px' }}>
                         {/* Upload from gallery */}
                         <button
                           onClick={() => fileInputRef.current?.click()}
@@ -406,7 +441,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                             Upload from gallery
                           </p>
                           <p className='text-xs text-slate-500 mt-1'>
-                            JPG, PNG or HEIC (max 10MB)
+                            JPG, PNG or HEIC (max 10MB each)
                           </p>
                         </button>
 
@@ -424,11 +459,12 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                           </p>
                         </button>
 
-                        {/* Hidden file inputs */}
+                        {/* Hidden file inputs - allow multiple */}
                         <input
                           ref={fileInputRef}
                           type='file'
                           accept='image/*'
+                          multiple
                           onChange={handleImageSelect}
                           className='hidden'
                         />
@@ -443,19 +479,57 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       </div>
                     ) : (
                       <div className='space-y-3'>
-                        {/* Image Preview */}
-                        <div className='relative rounded-xl overflow-hidden border-2 border-slate-200'>
-                          <img
-                            src={imagePreview}
-                            alt='Food preview'
-                            className='w-full h-64 object-cover'
-                          />
-                          <button
-                            onClick={handleClearImage}
-                            className='absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors'>
-                            <X className='w-4 h-4' />
-                          </button>
+                        {/* Image Previews Grid */}
+                        <div className='grid grid-cols-2 gap-3'>
+                          {imagePreviews.map((preview, index) => (
+                            <div
+                              key={index}
+                              className='relative rounded-xl overflow-hidden border-2 border-slate-200'>
+                              <img
+                                src={preview}
+                                alt={`Food preview ${index + 1}`}
+                                className='w-full h-32 object-cover'
+                              />
+                              <button
+                                onClick={() => handleRemoveImage(index)}
+                                className='absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors'>
+                                <X className='w-3 h-3' />
+                              </button>
+                              <div className='absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-white text-xs rounded-full'>
+                                {index + 1}/{imagePreviews.length}
+                              </div>
+                            </div>
+                          ))}
                         </div>
+
+                        {/* Add more button if under limit */}
+                        {imagePreviews.length < 5 && (
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isLoading}
+                            className='w-full p-3 border-2 border-dashed border-emerald-300 bg-emerald-50 rounded-xl hover:border-emerald-500 hover:bg-emerald-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-emerald-700 font-semibold text-sm'>
+                            <Camera className='w-4 h-4 inline-block mr-2' />
+                            Add more images ({imagePreviews.length}/5)
+                          </button>
+                        )}
+
+                        {/* Additional instructions */}
+                        <div>
+                          <label className='block text-xs font-medium text-slate-700 mb-1.5'>
+                            Additional instructions (optional)
+                          </label>
+                          <textarea
+                            value={imageInstructions}
+                            onChange={(e) =>
+                              setImageInstructions(e.target.value)
+                            }
+                            placeholder='e.g., This is a large serving, or Please estimate portion size'
+                            className='w-full p-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 outline-none resize-none text-sm text-slate-800 placeholder:text-slate-400'
+                            rows={2}
+                            disabled={isLoading}
+                          />
+                        </div>
+
                         <p className='text-xs text-slate-500 flex items-start gap-1.5'>
                           <span className='text-amber-500 text-base leading-none'>
                             💡
@@ -538,7 +612,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                   disabled={
                     isLoading ||
                     (inputMode === 'text' && !foodText.trim()) ||
-                    (inputMode === 'image' && !selectedImage) ||
+                    (inputMode === 'image' && selectedImages.length === 0) ||
                     subscription.freeLogs === 0
                   }
                   className='w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed'>
@@ -552,7 +626,7 @@ const FoodLogModal = ({ isOpen, onClose, selectedDate, onFoodAdded }) => {
                       {inputMode === 'image' ? (
                         <>
                           <ImageIcon className='w-5 h-5 mr-2' />
-                          Analyze Photo
+                          Analyze Photo{selectedImages.length > 1 ? 's' : ''}
                         </>
                       ) : (
                         'Analyze Food'

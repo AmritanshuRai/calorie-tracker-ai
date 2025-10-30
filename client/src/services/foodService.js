@@ -8,9 +8,21 @@ export const foodService = {
   },
 
   // Parse food from image using AI
-  parseFoodFromImage: async (imageFile) => {
+  parseFoodFromImage: async (imageFiles, instructions = '') => {
     const formData = new FormData();
-    formData.append('image', imageFile);
+
+    // Handle both single file and array of files
+    const files = Array.isArray(imageFiles) ? imageFiles : [imageFiles];
+
+    // Append all images
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    // Add instructions if provided
+    if (instructions && instructions.trim()) {
+      formData.append('instructions', instructions.trim());
+    }
 
     const response = await api.post('/food/parse-image', formData, {
       headers: {

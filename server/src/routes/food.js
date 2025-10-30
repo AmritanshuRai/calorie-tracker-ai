@@ -97,12 +97,17 @@ router.post('/parse', authenticateToken, async (req, res) => {
 router.post(
   '/parse-image',
   authenticateToken,
-  upload.single('image'),
+  upload.array('images', 5), // Allow up to 5 images
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'Image file is required' });
+      if (!req.files || req.files.length === 0) {
+        return res
+          .status(400)
+          .json({ error: 'At least one image file is required' });
       }
+
+      // Get optional instructions from request
+      const instructions = req.body.instructions || '';
 
       // Check user's subscription status and free logs
       const user = await prisma.user.findUnique({
@@ -135,14 +140,16 @@ router.post(
         });
       }
 
-      // Convert buffer to base64
-      const imageBuffer = req.file.buffer;
-      const mimeType = req.file.mimetype;
+      // Convert all images to base64
+      const images = req.files.map((file) => ({
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+      }));
 
-      // Parse food from image (Sharp will compress inside the function)
+      // Parse food from images (Sharp will compress inside the function)
       const nutritionData = await parseFoodFromImage(
-        imageBuffer,
-        mimeType,
+        images,
+        instructions,
         req.user.userId,
         '/api/food/parse-image'
       );

@@ -596,8 +596,8 @@ All values must be calculated for the specified quantity. Use null only when the
 }
 
 export async function parseFoodFromImage(
-  imageBuffer,
-  mimeType,
+  images,
+  instructions = '',
   userId = null,
   endpoint = '/api/food/parse-image'
 ) {
@@ -611,7 +611,7 @@ export async function parseFoodFromImage(
       userId,
       model: DEFAULT_MODEL,
       requestType: 'image',
-      input: 'Image upload (base64)',
+      input: `${images.length} image(s) upload`,
       rawOutput: null,
       inputTokens: null,
       outputTokens: null,
@@ -668,28 +668,43 @@ export async function parseFoodFromImage(
     // Use GPT-5 for image OCR parsing - it's faster and cheaper for structured data extraction
     const model = 'gpt-5';
 
-    // Step 1: Extract text from image using Azure Computer Vision OCR
-    console.log('Starting Azure OCR extraction...');
-    const text = await extractTextWithAzureOCR(imageBuffer);
+    // Step 1: Extract text from all images using Azure Computer Vision OCR
+    console.log(
+      `Starting Azure OCR extraction for ${images.length} image(s)...`
+    );
+    const extractedTexts = await Promise.all(
+      images.map(async (image, index) => {
+        console.log(
+          `Extracting text from image ${index + 1}/${images.length}...`
+        );
+        const text = await extractTextWithAzureOCR(image.buffer);
+        return text;
+      })
+    );
 
-    if (!text || text.trim().length === 0) {
-      throw new Error('No text could be extracted from the image');
+    // Combine all extracted texts
+    const combinedText = extractedTexts
+      .map((text, index) => `--- Image ${index + 1} ---\n${text}`)
+      .join('\n\n');
+
+    if (!combinedText || combinedText.trim().length === 0) {
+      throw new Error('No text could be extracted from the images');
     }
 
     console.log(
       '\n================================================================================'
     );
-    console.log('EXTRACTED TEXT FROM IMAGE (Azure OCR):');
+    console.log('EXTRACTED TEXT FROM IMAGES (Azure OCR):');
     console.log(
       '================================================================================'
     );
-    console.log(text);
+    console.log(combinedText);
     console.log(
       '================================================================================\n'
     );
 
     // Step 2: Clean the extracted text
-    const cleanedText = text
+    const cleanedText = combinedText
       .replace(/\|/g, ' ')
       .replace(/([0-9])\s*kcal/gi, '$1 kcal')
       .replace(/([0-9])\s*g/gi, '$1g')
@@ -709,6 +724,26 @@ export async function parseFoodFromImage(
       '================================================================================\n'
     );
 
+    // Step 3: Build the input prompt
+    let inputPrompt = `Parse this nutrition information from ${images.length} image(s) and analyze ingredients to estimate missing micronutrients.
+
+TEXT EXTRACTED FROM IMAGES:
+${cleanedText}`;
+
+    // Add user instructions if provided
+    if (instructions && instructions.trim()) {
+      inputPrompt += `\n\nADDITIONAL USER INSTRUCTIONS:
+${instructions.trim()}
+
+Please take these instructions into account when calculating nutritional values (e.g., adjust portion sizes, servings, etc.).`;
+    }
+
+    inputPrompt += `\n\n1. Extract visible nutrients from the text
+2. Identify ingredients (berries, honey, etc.)
+3. Consider user instructions if provided (e.g., serving size adjustments)
+4. Estimate missing vitamins/minerals based on ingredient composition
+5. Return complete nutritional profile in JSON`;
+
     // Step 3: Send extracted text to OpenAI for parsing
     console.log('Sending extracted text to OpenAI for nutritional analysis...');
     const reasoningEffort = 'minimal'; // No reasoning = faster
@@ -721,6 +756,7 @@ You are a professional nutrition scientist. Parse the following nutrition label 
 Guidelines:
 - Extract all explicitly listed nutrients with exact numeric values.
 - For missing vitamins and minerals, infer reasonable estimates from ingredients.
+- If user provides additional instructions (e.g., "this is a large serving" or "double portion"), adjust values accordingly.
 - Use ingredient-based heuristics:
   - Fruits → vitamin C, potassium
   - Berries → vitamin C, vitamin K, manganese
@@ -742,15 +778,7 @@ vitaminC, vitaminD, vitaminE, vitaminK,
 calcium, iron, magnesium, phosphorus, potassium, zinc, copper, manganese, selenium,
 omega3, transFat, water.
 `,
-      input: `Parse this nutrition label and analyze ingredients to estimate missing micronutrients.
-
-TEXT:
-${cleanedText}
-
-1. Extract visible nutrients from the table
-2. Identify ingredients (berries, honey, etc.)
-3. Estimate missing vitamins/minerals based on ingredient composition
-4. Return complete nutritional profile in JSON`,
+      input: inputPrompt,
       text: {
         format: {
           type: 'json_schema',
@@ -854,7 +882,7 @@ ${cleanedText}
       response.incomplete_details?.reason === 'max_output_tokens'
     ) {
       throw new Error(
-        'Response exceeded token limit. The image may be too complex or contain too much text. Please try with a simpler image.'
+        'Response exceeded token limit. The image may be too complex or contain too much text. Please try with simpler images.'
       );
     }
 
@@ -898,7 +926,9 @@ ${cleanedText}
       userId,
       model,
       requestType: 'text', // Now using text-based analysis after Azure OCR
-      input: `Azure OCR extracted text (${text.length} chars)`,
+      input: `Azure OCR extracted text from ${images.length} image(s) (${
+        combinedText.length
+      } chars)${instructions ? ` with instructions: "${instructions}"` : ''}`,
       rawOutput: content,
       inputTokens,
       outputTokens,
@@ -915,7 +945,8 @@ ${cleanedText}
     // Ensure required fields have default values
     return {
       foodName: nutritionData.foodName || 'Unknown Food',
-      description: nutritionData.description || 'Food from image',
+      description:
+        nutritionData.description || `Food from ${images.length} image(s)`,
       calories: nutritionData.calories || 0,
       protein: nutritionData.protein || 0,
       carbs: nutritionData.carbs || 0,
@@ -960,7 +991,7 @@ ${cleanedText}
       userId,
       model: DEFAULT_MODEL,
       requestType: 'image',
-      input: 'Food image analysis',
+      input: `Food image analysis (${images.length} image(s))`,
       rawOutput: null,
       inputTokens: null,
       outputTokens: null,
