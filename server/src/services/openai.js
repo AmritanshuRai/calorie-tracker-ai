@@ -64,6 +64,9 @@ const PRICING = {
   },
 };
 
+// Vision model for food photo analysis
+const VISION_MODEL = 'gpt-5-mini';
+
 /**
  * Calculate cost based on token usage and model
  */
@@ -210,6 +213,356 @@ async function extractTextWithAzureOCR(imageBuffer) {
   } catch (error) {
     console.error('Azure OCR error:', error);
     throw new Error(`Azure OCR failed: ${error.message}`);
+  }
+}
+
+/**
+ * Detect if extracted text contains nutrition label information
+ * Returns true if it looks like a nutrition label, false if it's likely a food photo
+ */
+function hasNutritionLabelText(text) {
+  if (!text || text.trim().length < 20) {
+    console.log('🔍 Detection: Very little text found, likely a food photo');
+    return false;
+  }
+
+  const lowerText = text.toLowerCase();
+
+  // Keywords that strongly indicate a nutrition label
+  const nutritionLabelKeywords = [
+    'nutrition facts',
+    'nutrition information',
+    'nutritional information',
+    'serving size',
+    'servings per container',
+    'amount per serving',
+    'calories',
+    'total fat',
+    'saturated fat',
+    'trans fat',
+    'cholesterol',
+    'sodium',
+    'total carbohydrate',
+    'dietary fiber',
+    'total sugars',
+    'protein',
+    'vitamin',
+    'ingredients:',
+    'contains:',
+    '% daily value',
+    'per 100g',
+    'per 100ml',
+    'energy kj',
+    'energy kcal',
+  ];
+
+  // Count how many nutrition keywords are present
+  let keywordMatches = 0;
+  const matchedKeywords = [];
+
+  for (const keyword of nutritionLabelKeywords) {
+    if (lowerText.includes(keyword)) {
+      keywordMatches++;
+      matchedKeywords.push(keyword);
+    }
+  }
+
+  // If we find 3 or more nutrition label keywords, it's likely a label
+  const isLabel = keywordMatches >= 3;
+
+  console.log(`\n${'='.repeat(80)}`);
+  console.log('🔍 NUTRITION LABEL DETECTION');
+  console.log(`${'='.repeat(80)}`);
+  console.log(`Text length: ${text.length} characters`);
+  console.log(
+    `Keyword matches: ${keywordMatches}/${nutritionLabelKeywords.length}`
+  );
+  if (matchedKeywords.length > 0) {
+    console.log(`Matched keywords: ${matchedKeywords.join(', ')}`);
+  }
+  console.log(`Decision: ${isLabel ? '📦 NUTRITION LABEL' : '🍽️ FOOD PHOTO'}`);
+  console.log(`${'='.repeat(80)}\n`);
+
+  return isLabel;
+}
+
+/**
+ * Analyze food photo using vision model
+ * This is used when the image doesn't contain a nutrition label
+ */
+async function analyzeFoodPhotoWithVision(
+  images,
+  instructions,
+  userId,
+  endpoint
+) {
+  const client = getOpenAIClient();
+  const startTime = Date.now();
+
+  console.log(`\n${'='.repeat(80)}`);
+  console.log('🍽️ FOOD PHOTO ANALYSIS MODE (Vision)');
+  console.log(`${'='.repeat(80)}`);
+  console.log(`Processing ${images.length} image(s) with GPT-5-mini vision`);
+  console.log(`Model: ${VISION_MODEL}`);
+  console.log(`Detail level: low (cost-effective)`);
+  if (instructions) {
+    console.log(`User instructions: "${instructions}"`);
+  }
+  console.log(`${'='.repeat(80)}\n`);
+
+  try {
+    // Prepare image inputs for vision model
+    const imageInputs = await Promise.all(
+      images.map(async (image, index) => {
+        console.log(
+          `📸 Preparing image ${index + 1}/${
+            images.length
+          } for vision analysis...`
+        );
+
+        // Convert image to base64
+        const base64Image = image.buffer.toString('base64');
+        const dataUrl = `data:${image.mimeType};base64,${base64Image}`;
+
+        return {
+          type: 'input_image',
+          image_url: dataUrl,
+          detail: 'low', // Use low detail for cost savings
+        };
+      })
+    );
+
+    // Build the input prompt
+    const userPrompt = `Analyze the food in ${
+      images.length > 1 ? 'these images' : 'this image'
+    } and provide a complete nutritional breakdown.
+
+Please:
+1. Identify all food items visible in the image(s)
+2. Estimate the portion size for each item (in grams or standard serving sizes)
+3. Calculate total nutritional values for all items combined
+4. Use authoritative nutritional databases (USDA, NIN for Indian foods, etc.)
+
+${instructions ? `\nUser's additional context: ${instructions}\n` : ''}
+Return complete nutritional information including macros and micronutrients.`;
+
+    console.log('📤 Sending images to GPT-5-mini vision model...');
+
+    // Build message content array
+    const messageContent = [
+      { type: 'input_text', text: userPrompt },
+      ...imageInputs,
+    ];
+
+    const response = await client.responses.create({
+      model: VISION_MODEL,
+      input: [
+        {
+          role: 'user',
+          content: messageContent,
+        },
+      ],
+      instructions: `
+You are a professional nutritionist with expertise in visual food analysis and portion estimation.
+
+Your task:
+1. **Identify foods**: Look at the image(s) and identify all visible food items
+2. **Estimate portions**: Estimate the weight/portion size of each item based on:
+   - Plate/bowl size (standard dinner plate ~26cm)
+   - Comparison to common objects
+   - Visual volume estimation
+   - Standard serving sizes
+3. **Calculate nutrition**: Use authoritative databases to calculate complete nutrition:
+   - Macros: calories, protein, carbs, fats
+   - Fiber, sugar, sodium, cholesterol, water
+   - All vitamins (A, C, D, E, K, B1-B12)
+   - All minerals (calcium, iron, magnesium, phosphorus, potassium, zinc, etc.)
+
+Guidelines:
+- Be specific in descriptions: "grilled chicken breast (~200g)" not just "chicken"
+- For Indian foods, use NIN/FSSAI databases
+- For US/Western foods, use USDA FoodData Central
+- Provide realistic estimates, not guesses
+- If multiple items are present, calculate total combined nutrition
+- Use null only when nutrient data is truly unavailable
+`,
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'nutrition_data',
+          schema: {
+            type: 'object',
+            properties: {
+              foodName: { type: 'string' },
+              description: { type: 'string' },
+              calories: { type: 'number' },
+              protein: { type: 'number' },
+              carbs: { type: 'number' },
+              fats: { type: 'number' },
+              fiber: { type: ['number', 'null'] },
+              sugar: { type: ['number', 'null'] },
+              sodium: { type: ['number', 'null'] },
+              cholesterol: { type: ['number', 'null'] },
+              water: { type: ['number', 'null'] },
+              omega3: { type: ['number', 'null'] },
+              transFat: { type: ['number', 'null'] },
+              caffeine: { type: ['number', 'null'] },
+              alcohol: { type: ['number', 'null'] },
+              vitaminA: { type: ['number', 'null'] },
+              vitaminC: { type: ['number', 'null'] },
+              vitaminD: { type: ['number', 'null'] },
+              vitaminE: { type: ['number', 'null'] },
+              vitaminK: { type: ['number', 'null'] },
+              vitaminB1: { type: ['number', 'null'] },
+              vitaminB2: { type: ['number', 'null'] },
+              vitaminB3: { type: ['number', 'null'] },
+              vitaminB5: { type: ['number', 'null'] },
+              vitaminB6: { type: ['number', 'null'] },
+              vitaminB9: { type: ['number', 'null'] },
+              vitaminB12: { type: ['number', 'null'] },
+              calcium: { type: ['number', 'null'] },
+              iron: { type: ['number', 'null'] },
+              magnesium: { type: ['number', 'null'] },
+              phosphorus: { type: ['number', 'null'] },
+              potassium: { type: ['number', 'null'] },
+              zinc: { type: ['number', 'null'] },
+              manganese: { type: ['number', 'null'] },
+              copper: { type: ['number', 'null'] },
+              selenium: { type: ['number', 'null'] },
+            },
+            required: [
+              'foodName',
+              'description',
+              'calories',
+              'protein',
+              'carbs',
+              'fats',
+              'fiber',
+              'sugar',
+              'sodium',
+              'cholesterol',
+              'water',
+              'omega3',
+              'transFat',
+              'caffeine',
+              'alcohol',
+              'vitaminA',
+              'vitaminC',
+              'vitaminD',
+              'vitaminE',
+              'vitaminK',
+              'vitaminB1',
+              'vitaminB2',
+              'vitaminB3',
+              'vitaminB5',
+              'vitaminB6',
+              'vitaminB9',
+              'vitaminB12',
+              'calcium',
+              'iron',
+              'magnesium',
+              'phosphorus',
+              'potassium',
+              'zinc',
+              'manganese',
+              'copper',
+              'selenium',
+            ],
+            additionalProperties: false,
+          },
+          strict: false,
+        },
+      },
+      reasoning: {
+        effort: 'minimal',
+      },
+      max_output_tokens: 2500,
+    });
+
+    const responseTimeMs = Date.now() - startTime;
+
+    console.log(`✅ Vision analysis completed in ${responseTimeMs}ms`);
+
+    // Extract content
+    let content = response.output_text?.trim();
+
+    if (!content) {
+      const messageItem = response.output?.find(
+        (item) => item.type === 'message'
+      );
+      if (messageItem) {
+        const textContent = messageItem.content?.find(
+          (c) => c.type === 'output_text'
+        );
+        content = textContent?.text?.trim();
+      }
+    }
+
+    if (!content) {
+      throw new Error('Empty response from vision model');
+    }
+
+    // Extract token usage
+    const inputTokens = response.usage?.input_tokens || 0;
+    const outputTokens = response.usage?.output_tokens || 0;
+    const cachedInputTokens =
+      response.usage?.input_tokens_details?.cached_tokens || 0;
+    const totalTokens = response.usage?.total_tokens || 0;
+
+    console.log('\n📊 Vision Analysis Token Usage:');
+    console.log(`   Input tokens: ${inputTokens.toLocaleString()}`);
+    console.log(`   Cached tokens: ${cachedInputTokens.toLocaleString()}`);
+    console.log(`   Output tokens: ${outputTokens.toLocaleString()}`);
+    console.log(`   Total tokens: ${totalTokens.toLocaleString()}\n`);
+
+    // Log the API call
+    await logOpenAICall({
+      userId,
+      model: VISION_MODEL,
+      requestType: 'vision', // New type for vision-based analysis
+      input: `Vision analysis of ${images.length} food image(s)${
+        instructions ? ` with instructions: "${instructions}"` : ''
+      }`,
+      rawOutput: content,
+      inputTokens,
+      outputTokens,
+      cachedInputTokens,
+      totalTokens,
+      responseTimeMs,
+      status: 'success',
+      endpoint,
+      reasoningEffort: 'minimal',
+    });
+
+    const nutritionData = JSON.parse(content);
+
+    console.log(
+      `✅ Successfully parsed food from vision: ${nutritionData.foodName}`
+    );
+    console.log(`   ${nutritionData.description}\n`);
+
+    return nutritionData;
+  } catch (error) {
+    const responseTimeMs = Date.now() - startTime;
+    console.error('❌ Vision analysis error:', error);
+
+    // Log the failed API call
+    await logOpenAICall({
+      userId,
+      model: VISION_MODEL,
+      requestType: 'vision',
+      input: `Vision analysis of ${images.length} food image(s)`,
+      rawOutput: null,
+      inputTokens: null,
+      outputTokens: null,
+      totalTokens: null,
+      responseTimeMs,
+      status: 'error',
+      errorMessage: error.message || 'Unknown error',
+      endpoint,
+    });
+
+    throw error;
   }
 }
 
@@ -665,92 +1018,91 @@ export async function parseFoodFromImage(
   }
 
   try {
-    // Use GPT-5 for image OCR parsing - it's faster and cheaper for structured data extraction
-    const model = 'gpt-5';
+    console.log(`\n${'='.repeat(80)}`);
+    console.log('🚀 FOOD IMAGE ANALYSIS STARTED');
+    console.log(`${'='.repeat(80)}`);
+    console.log(`Images to process: ${images.length}`);
+    console.log(`User instructions: ${instructions || 'None'}`);
+    console.log(`${'='.repeat(80)}\n`);
 
-    // Step 1: Extract text from all images using Azure Computer Vision OCR
-    console.log(
-      `Starting Azure OCR extraction for ${images.length} image(s)...`
-    );
+    // Step 1: Try OCR first to extract any text from images
+    console.log('📝 Step 1: Extracting text with Azure OCR...');
     const extractedTexts = await Promise.all(
       images.map(async (image, index) => {
-        console.log(
-          `Extracting text from image ${index + 1}/${images.length}...`
-        );
-        const text = await extractTextWithAzureOCR(image.buffer);
-        return text;
+        console.log(`   Processing image ${index + 1}/${images.length}...`);
+        try {
+          const text = await extractTextWithAzureOCR(image.buffer);
+          console.log(
+            `   ✓ Image ${index + 1}: Extracted ${text.length} characters`
+          );
+          return text;
+        } catch (error) {
+          console.log(`   ⚠ Image ${index + 1}: OCR failed - ${error.message}`);
+          return '';
+        }
       })
     );
 
     // Combine all extracted texts
     const combinedText = extractedTexts
+      .filter((text) => text && text.trim())
       .map((text, index) => `--- Image ${index + 1} ---\n${text}`)
       .join('\n\n');
 
-    if (!combinedText || combinedText.trim().length === 0) {
-      throw new Error('No text could be extracted from the images');
-    }
-
     console.log(
-      '\n================================================================================'
-    );
-    console.log('EXTRACTED TEXT FROM IMAGES (Azure OCR):');
-    console.log(
-      '================================================================================'
-    );
-    console.log(combinedText);
-    console.log(
-      '================================================================================\n'
+      `\n📄 Combined OCR text: ${combinedText.length} characters total\n`
     );
 
-    // Step 2: Clean the extracted text
-    const cleanedText = combinedText
-      .replace(/\|/g, ' ')
-      .replace(/([0-9])\s*kcal/gi, '$1 kcal')
-      .replace(/([0-9])\s*g/gi, '$1g')
-      .replace(/([0-9])\s*mg/gi, '$1mg')
-      .replace(/([0-9])\s*µg/gi, '$1µg')
-      .replace(/(\d+)\s*\.\s*(\d+)/g, '$1.$2') // fix broken decimals
-      .replace(/([A-Za-z])([0-9])/g, '$1 $2') // ensure space between label and number
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Step 2: Decide which approach to use based on detected text
+    const hasLabel = hasNutritionLabelText(combinedText);
 
-    console.log('CLEANED TEXT:');
-    console.log(
-      '================================================================================'
-    );
-    console.log(cleanedText);
-    console.log(
-      '================================================================================\n'
-    );
+    if (hasLabel) {
+      // ===== NUTRITION LABEL PATH (OCR-based) =====
+      console.log(`\n${'='.repeat(80)}`);
+      console.log('📦 USING OCR-BASED PARSING (Nutrition Label Detected)');
+      console.log(`${'='.repeat(80)}\n`);
 
-    // Step 3: Build the input prompt
-    let inputPrompt = `Parse this nutrition information from ${images.length} image(s) and analyze ingredients to estimate missing micronutrients.
+      const model = 'gpt-5';
+
+      // Clean the extracted text
+      const cleanedText = combinedText
+        .replace(/\|/g, ' ')
+        .replace(/([0-9])\s*kcal/gi, '$1 kcal')
+        .replace(/([0-9])\s*g/gi, '$1g')
+        .replace(/([0-9])\s*mg/gi, '$1mg')
+        .replace(/([0-9])\s*µg/gi, '$1µg')
+        .replace(/(\d+)\s*\.\s*(\d+)/g, '$1.$2')
+        .replace(/([A-Za-z])([0-9])/g, '$1 $2')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      console.log('🧹 Cleaned text for analysis\n');
+
+      // Build the input prompt
+      let inputPrompt = `Parse this nutrition information from ${images.length} image(s) and analyze ingredients to estimate missing micronutrients.
 
 TEXT EXTRACTED FROM IMAGES:
 ${cleanedText}`;
 
-    // Add user instructions if provided
-    if (instructions && instructions.trim()) {
-      inputPrompt += `\n\nADDITIONAL USER INSTRUCTIONS:
+      if (instructions && instructions.trim()) {
+        inputPrompt += `\n\nADDITIONAL USER INSTRUCTIONS:
 ${instructions.trim()}
 
 Please take these instructions into account when calculating nutritional values (e.g., adjust portion sizes, servings, etc.).`;
-    }
+      }
 
-    inputPrompt += `\n\n1. Extract visible nutrients from the text
+      inputPrompt += `\n\n1. Extract visible nutrients from the text
 2. Identify ingredients (berries, honey, etc.)
 3. Consider user instructions if provided (e.g., serving size adjustments)
 4. Estimate missing vitamins/minerals based on ingredient composition
 5. Return complete nutritional profile in JSON`;
 
-    // Step 3: Send extracted text to OpenAI for parsing
-    console.log('Sending extracted text to OpenAI for nutritional analysis...');
-    const reasoningEffort = 'minimal'; // No reasoning = faster
+      console.log('📤 Sending to GPT-5 for nutrition label parsing...\n');
+      const reasoningEffort = 'minimal';
 
-    const response = await client.responses.create({
-      model,
-      instructions: `
+      const response = await client.responses.create({
+        model,
+        instructions: `
 You are a professional nutrition scientist. Parse the following nutrition label text and return a structured JSON.
 
 Guidelines:
@@ -778,213 +1130,257 @@ vitaminC, vitaminD, vitaminE, vitaminK,
 calcium, iron, magnesium, phosphorus, potassium, zinc, copper, manganese, selenium,
 omega3, transFat, water.
 `,
-      input: inputPrompt,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'nutrition_data',
-          schema: {
-            type: 'object',
-            properties: {
-              foodName: { type: 'string' },
-              description: { type: 'string' },
-              calories: { type: 'number' },
-              protein: { type: 'number' },
-              carbs: { type: 'number' },
-              fats: { type: 'number' },
-              fiber: { type: ['number', 'null'] },
-              sugar: { type: ['number', 'null'] },
-              sodium: { type: ['number', 'null'] },
-              cholesterol: { type: ['number', 'null'] },
-              water: { type: ['number', 'null'] },
-              omega3: { type: ['number', 'null'] },
-              transFat: { type: ['number', 'null'] },
-              caffeine: { type: ['number', 'null'] },
-              alcohol: { type: ['number', 'null'] },
-              vitaminA: { type: ['number', 'null'] },
-              vitaminC: { type: ['number', 'null'] },
-              vitaminD: { type: ['number', 'null'] },
-              vitaminE: { type: ['number', 'null'] },
-              vitaminK: { type: ['number', 'null'] },
-              vitaminB1: { type: ['number', 'null'] },
-              vitaminB2: { type: ['number', 'null'] },
-              vitaminB3: { type: ['number', 'null'] },
-              vitaminB5: { type: ['number', 'null'] },
-              vitaminB6: { type: ['number', 'null'] },
-              vitaminB9: { type: ['number', 'null'] },
-              vitaminB12: { type: ['number', 'null'] },
-              calcium: { type: ['number', 'null'] },
-              iron: { type: ['number', 'null'] },
-              magnesium: { type: ['number', 'null'] },
-              phosphorus: { type: ['number', 'null'] },
-              potassium: { type: ['number', 'null'] },
-              zinc: { type: ['number', 'null'] },
-              manganese: { type: ['number', 'null'] },
-              copper: { type: ['number', 'null'] },
-              selenium: { type: ['number', 'null'] },
+        input: inputPrompt,
+        text: {
+          format: {
+            type: 'json_schema',
+            name: 'nutrition_data',
+            schema: {
+              type: 'object',
+              properties: {
+                foodName: { type: 'string' },
+                description: { type: 'string' },
+                calories: { type: 'number' },
+                protein: { type: 'number' },
+                carbs: { type: 'number' },
+                fats: { type: 'number' },
+                fiber: { type: ['number', 'null'] },
+                sugar: { type: ['number', 'null'] },
+                sodium: { type: ['number', 'null'] },
+                cholesterol: { type: ['number', 'null'] },
+                water: { type: ['number', 'null'] },
+                omega3: { type: ['number', 'null'] },
+                transFat: { type: ['number', 'null'] },
+                caffeine: { type: ['number', 'null'] },
+                alcohol: { type: ['number', 'null'] },
+                vitaminA: { type: ['number', 'null'] },
+                vitaminC: { type: ['number', 'null'] },
+                vitaminD: { type: ['number', 'null'] },
+                vitaminE: { type: ['number', 'null'] },
+                vitaminK: { type: ['number', 'null'] },
+                vitaminB1: { type: ['number', 'null'] },
+                vitaminB2: { type: ['number', 'null'] },
+                vitaminB3: { type: ['number', 'null'] },
+                vitaminB5: { type: ['number', 'null'] },
+                vitaminB6: { type: ['number', 'null'] },
+                vitaminB9: { type: ['number', 'null'] },
+                vitaminB12: { type: ['number', 'null'] },
+                calcium: { type: ['number', 'null'] },
+                iron: { type: ['number', 'null'] },
+                magnesium: { type: ['number', 'null'] },
+                phosphorus: { type: ['number', 'null'] },
+                potassium: { type: ['number', 'null'] },
+                zinc: { type: ['number', 'null'] },
+                manganese: { type: ['number', 'null'] },
+                copper: { type: ['number', 'null'] },
+                selenium: { type: ['number', 'null'] },
+              },
+              required: [
+                'foodName',
+                'description',
+                'calories',
+                'protein',
+                'carbs',
+                'fats',
+                'fiber',
+                'sugar',
+                'sodium',
+                'cholesterol',
+                'water',
+                'omega3',
+                'transFat',
+                'caffeine',
+                'alcohol',
+                'vitaminA',
+                'vitaminC',
+                'vitaminD',
+                'vitaminE',
+                'vitaminK',
+                'vitaminB1',
+                'vitaminB2',
+                'vitaminB3',
+                'vitaminB5',
+                'vitaminB6',
+                'vitaminB9',
+                'vitaminB12',
+                'calcium',
+                'iron',
+                'magnesium',
+                'phosphorus',
+                'potassium',
+                'zinc',
+                'manganese',
+                'copper',
+                'selenium',
+              ],
+              additionalProperties: false,
             },
-            required: [
-              'foodName',
-              'description',
-              'calories',
-              'protein',
-              'carbs',
-              'fats',
-              'fiber',
-              'sugar',
-              'sodium',
-              'cholesterol',
-              'water',
-              'omega3',
-              'transFat',
-              'caffeine',
-              'alcohol',
-              'vitaminA',
-              'vitaminC',
-              'vitaminD',
-              'vitaminE',
-              'vitaminK',
-              'vitaminB1',
-              'vitaminB2',
-              'vitaminB3',
-              'vitaminB5',
-              'vitaminB6',
-              'vitaminB9',
-              'vitaminB12',
-              'calcium',
-              'iron',
-              'magnesium',
-              'phosphorus',
-              'potassium',
-              'zinc',
-              'manganese',
-              'copper',
-              'selenium',
-            ],
-            additionalProperties: false,
+            strict: false,
           },
-          strict: false,
         },
-      },
-      reasoning: {
-        effort: reasoningEffort, // 'minimal' = no reasoning, fastest response
-      },
-      max_output_tokens: 2500, // Increased slightly to allow for ingredient analysis
-    });
+        reasoning: {
+          effort: reasoningEffort,
+        },
+        max_output_tokens: 2500,
+      });
 
-    const responseTimeMs = Date.now() - startTime;
+      const responseTimeMs = Date.now() - startTime;
 
-    console.log('OpenAI image response:', JSON.stringify(response, null, 2));
+      // Extract content
+      let content = response.output_text?.trim();
 
-    // Check if response is incomplete due to token limit
-    if (
-      response.status === 'incomplete' &&
-      response.incomplete_details?.reason === 'max_output_tokens'
-    ) {
-      throw new Error(
-        'Response exceeded token limit. The image may be too complex or contain too much text. Please try with simpler images.'
-      );
-    }
-
-    // Extract content from the response
-    let content = response.output_text?.trim();
-
-    if (!content) {
-      const messageItem = response.output?.find(
-        (item) => item.type === 'message'
-      );
-      if (messageItem) {
-        const textContent = messageItem.content?.find(
-          (c) => c.type === 'output_text'
+      if (!content) {
+        const messageItem = response.output?.find(
+          (item) => item.type === 'message'
         );
-        content = textContent?.text?.trim();
+        if (messageItem) {
+          const textContent = messageItem.content?.find(
+            (c) => c.type === 'output_text'
+          );
+          content = textContent?.text?.trim();
+        }
       }
+
+      if (!content) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      // Extract token usage
+      const inputTokens = response.usage?.input_tokens || 0;
+      const outputTokens = response.usage?.output_tokens || 0;
+      const cachedInputTokens =
+        response.usage?.input_tokens_details?.cached_tokens || 0;
+      const totalTokens = response.usage?.total_tokens || 0;
+
+      console.log('📊 OCR Analysis Token Usage:');
+      console.log(`   Input tokens: ${inputTokens.toLocaleString()}`);
+      console.log(`   Cached tokens: ${cachedInputTokens.toLocaleString()}`);
+      console.log(`   Output tokens: ${outputTokens.toLocaleString()}`);
+      console.log(`   Total tokens: ${totalTokens.toLocaleString()}\n`);
+
+      // Log the successful API call
+      await logOpenAICall({
+        userId,
+        model,
+        requestType: 'text',
+        input: `Azure OCR extracted text from ${images.length} image(s) (${
+          combinedText.length
+        } chars)${instructions ? ` with instructions: "${instructions}"` : ''}`,
+        rawOutput: content,
+        inputTokens,
+        outputTokens,
+        cachedInputTokens,
+        totalTokens,
+        responseTimeMs,
+        status: 'success',
+        endpoint,
+        reasoningEffort,
+      });
+
+      const nutritionData = JSON.parse(content);
+
+      console.log(
+        `✅ Successfully parsed nutrition label: ${nutritionData.foodName}\n`
+      );
+      console.log(`${'='.repeat(80)}\n`);
+
+      // Ensure required fields have default values
+      return {
+        foodName: nutritionData.foodName || 'Unknown Food',
+        description:
+          nutritionData.description || `Food from ${images.length} image(s)`,
+        calories: nutritionData.calories || 0,
+        protein: nutritionData.protein || 0,
+        carbs: nutritionData.carbs || 0,
+        fats: nutritionData.fats || 0,
+        fiber: nutritionData.fiber || null,
+        sugar: nutritionData.sugar || null,
+        sodium: nutritionData.sodium || null,
+        cholesterol: nutritionData.cholesterol || null,
+        water: nutritionData.water || null,
+        omega3: nutritionData.omega3 || null,
+        transFat: nutritionData.transFat || null,
+        caffeine: nutritionData.caffeine || null,
+        alcohol: nutritionData.alcohol || null,
+        vitaminA: nutritionData.vitaminA || null,
+        vitaminC: nutritionData.vitaminC || null,
+        vitaminD: nutritionData.vitaminD || null,
+        vitaminE: nutritionData.vitaminE || null,
+        vitaminK: nutritionData.vitaminK || null,
+        vitaminB1: nutritionData.vitaminB1 || null,
+        vitaminB2: nutritionData.vitaminB2 || null,
+        vitaminB3: nutritionData.vitaminB3 || null,
+        vitaminB5: nutritionData.vitaminB5 || null,
+        vitaminB6: nutritionData.vitaminB6 || null,
+        vitaminB9: nutritionData.vitaminB9 || null,
+        vitaminB12: nutritionData.vitaminB12 || null,
+        calcium: nutritionData.calcium || null,
+        iron: nutritionData.iron || null,
+        magnesium: nutritionData.magnesium || null,
+        phosphorus: nutritionData.phosphorus || null,
+        potassium: nutritionData.potassium || null,
+        zinc: nutritionData.zinc || null,
+        manganese: nutritionData.manganese || null,
+        copper: nutritionData.copper || null,
+        selenium: nutritionData.selenium || null,
+      };
+    } else {
+      // ===== FOOD PHOTO PATH (Vision-based) =====
+      const nutritionData = await analyzeFoodPhotoWithVision(
+        images,
+        instructions,
+        userId,
+        endpoint
+      );
+
+      console.log(`${'='.repeat(80)}\n`);
+
+      // Ensure required fields have default values
+      return {
+        foodName: nutritionData.foodName || 'Unknown Food',
+        description:
+          nutritionData.description || `Food from ${images.length} image(s)`,
+        calories: nutritionData.calories || 0,
+        protein: nutritionData.protein || 0,
+        carbs: nutritionData.carbs || 0,
+        fats: nutritionData.fats || 0,
+        fiber: nutritionData.fiber || null,
+        sugar: nutritionData.sugar || null,
+        sodium: nutritionData.sodium || null,
+        cholesterol: nutritionData.cholesterol || null,
+        water: nutritionData.water || null,
+        omega3: nutritionData.omega3 || null,
+        transFat: nutritionData.transFat || null,
+        caffeine: nutritionData.caffeine || null,
+        alcohol: nutritionData.alcohol || null,
+        vitaminA: nutritionData.vitaminA || null,
+        vitaminC: nutritionData.vitaminC || null,
+        vitaminD: nutritionData.vitaminD || null,
+        vitaminE: nutritionData.vitaminE || null,
+        vitaminK: nutritionData.vitaminK || null,
+        vitaminB1: nutritionData.vitaminB1 || null,
+        vitaminB2: nutritionData.vitaminB2 || null,
+        vitaminB3: nutritionData.vitaminB3 || null,
+        vitaminB5: nutritionData.vitaminB5 || null,
+        vitaminB6: nutritionData.vitaminB6 || null,
+        vitaminB9: nutritionData.vitaminB9 || null,
+        vitaminB12: nutritionData.vitaminB12 || null,
+        calcium: nutritionData.calcium || null,
+        iron: nutritionData.iron || null,
+        magnesium: nutritionData.magnesium || null,
+        phosphorus: nutritionData.phosphorus || null,
+        potassium: nutritionData.potassium || null,
+        zinc: nutritionData.zinc || null,
+        manganese: nutritionData.manganese || null,
+        copper: nutritionData.copper || null,
+        selenium: nutritionData.selenium || null,
+      };
     }
-
-    if (!content) {
-      throw new Error('Empty response from OpenAI');
-    }
-
-    console.log('Raw content from OpenAI (image):', content);
-
-    // Extract token usage
-    const inputTokens = response.usage?.input_tokens || 0;
-    const outputTokens = response.usage?.output_tokens || 0;
-    const cachedInputTokens =
-      response.usage?.input_tokens_details?.cached_tokens || 0;
-    const totalTokens = response.usage?.total_tokens || 0;
-
-    console.log('Token usage (image):', {
-      inputTokens,
-      cachedInputTokens,
-      outputTokens,
-      totalTokens,
-    });
-
-    // Log the successful API call
-    await logOpenAICall({
-      userId,
-      model,
-      requestType: 'text', // Now using text-based analysis after Azure OCR
-      input: `Azure OCR extracted text from ${images.length} image(s) (${
-        combinedText.length
-      } chars)${instructions ? ` with instructions: "${instructions}"` : ''}`,
-      rawOutput: content,
-      inputTokens,
-      outputTokens,
-      cachedInputTokens,
-      totalTokens,
-      responseTimeMs,
-      status: 'success',
-      endpoint,
-      reasoningEffort,
-    });
-
-    const nutritionData = JSON.parse(content);
-
-    // Ensure required fields have default values
-    return {
-      foodName: nutritionData.foodName || 'Unknown Food',
-      description:
-        nutritionData.description || `Food from ${images.length} image(s)`,
-      calories: nutritionData.calories || 0,
-      protein: nutritionData.protein || 0,
-      carbs: nutritionData.carbs || 0,
-      fats: nutritionData.fats || 0,
-      fiber: nutritionData.fiber || null,
-      sugar: nutritionData.sugar || null,
-      sodium: nutritionData.sodium || null,
-      cholesterol: nutritionData.cholesterol || null,
-      water: nutritionData.water || null,
-      omega3: nutritionData.omega3 || null,
-      transFat: nutritionData.transFat || null,
-      caffeine: nutritionData.caffeine || null,
-      alcohol: nutritionData.alcohol || null,
-      vitaminA: nutritionData.vitaminA || null,
-      vitaminC: nutritionData.vitaminC || null,
-      vitaminD: nutritionData.vitaminD || null,
-      vitaminE: nutritionData.vitaminE || null,
-      vitaminK: nutritionData.vitaminK || null,
-      vitaminB1: nutritionData.vitaminB1 || null,
-      vitaminB2: nutritionData.vitaminB2 || null,
-      vitaminB3: nutritionData.vitaminB3 || null,
-      vitaminB5: nutritionData.vitaminB5 || null,
-      vitaminB6: nutritionData.vitaminB6 || null,
-      vitaminB9: nutritionData.vitaminB9 || null,
-      vitaminB12: nutritionData.vitaminB12 || null,
-      calcium: nutritionData.calcium || null,
-      iron: nutritionData.iron || null,
-      magnesium: nutritionData.magnesium || null,
-      phosphorus: nutritionData.phosphorus || null,
-      potassium: nutritionData.potassium || null,
-      zinc: nutritionData.zinc || null,
-      manganese: nutritionData.manganese || null,
-      copper: nutritionData.copper || null,
-      selenium: nutritionData.selenium || null,
-    };
   } catch (error) {
     const responseTimeMs = Date.now() - startTime;
-    console.error('OpenAI image parse error:', error);
+    console.error('\n❌ FOOD IMAGE ANALYSIS FAILED');
+    console.error('Error:', error.message);
+    console.log(`${'='.repeat(80)}\n`);
 
     // Log the failed API call
     await logOpenAICall({
