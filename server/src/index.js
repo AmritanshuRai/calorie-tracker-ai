@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 // Routes
 import authRoutes from './routes/auth.js';
 import foodRoutes from './routes/food.js';
+import exerciseRoutes from './routes/exercise.js';
 import userRoutes from './routes/user.js';
 import openaiLogsRoutes from './routes/openai-logs.js';
 import adminRoutes from './routes/admin.js';
@@ -109,6 +110,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
+app.use('/api/exercise', exerciseRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/openai-logs', openaiLogsRoutes);
 app.use('/api/admin', adminRoutes);

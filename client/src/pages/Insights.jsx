@@ -39,6 +39,7 @@ import Button from '../components/Button';
 import Footer from '../components/Footer';
 import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
+import { exerciseService } from '../services/exerciseService';
 import { authService } from '../services/authService';
 
 const DATE_RANGES = [
@@ -158,6 +159,12 @@ export default function Insights() {
         endDateStr
       );
 
+      // Fetch all exercise entries for the date range
+      const exerciseEntriesByDate = await exerciseService.getExerciseLogRange(
+        startDateStr,
+        endDateStr
+      );
+
       // Generate array of dates in range
       const dates = [];
       const currentDate = new Date(start);
@@ -168,9 +175,12 @@ export default function Insights() {
 
       // Map entries to dates (fill missing dates with empty arrays)
       const allEntries = dates.map((date) => entriesByDate[date] || []);
+      const allExerciseEntries = dates.map(
+        (date) => exerciseEntriesByDate[date] || []
+      );
 
       // Process data for charts
-      processCalorieTrend(dates, allEntries);
+      processCalorieTrend(dates, allEntries, allExerciseEntries);
       processMacroDistribution(allEntries.flat());
       processMacroTrends(dates, allEntries);
       processNutrientHeatmap(dates, allEntries);
@@ -194,17 +204,29 @@ export default function Insights() {
     navigate('/onboarding/gender');
   };
 
-  const processCalorieTrend = (dates, allEntries) => {
+  const processCalorieTrend = (dates, allEntries, allExerciseEntries) => {
     const data = dates.map((date, index) => {
       const entries = allEntries[index] || [];
+      const exerciseEntries = allExerciseEntries[index] || [];
+      
       const totalCalories = entries.reduce(
         (sum, entry) => sum + (entry.calories || 0),
         0
       );
+      
+      const totalExerciseCalories = exerciseEntries.reduce(
+        (sum, entry) => sum + (entry.caloriesBurned || 0),
+        0
+      );
+      
+      const netCalories = totalCalories - totalExerciseCalories;
+      
       return {
         date: format(new Date(date), 'MMM dd'),
         fullDate: date,
-        calories: Math.round(totalCalories),
+        consumed: Math.round(totalCalories),
+        burned: Math.round(totalExerciseCalories),
+        net: Math.round(netCalories),
         target: user?.dailyCalorieTarget || 2000,
       };
     });
@@ -633,11 +655,27 @@ export default function Insights() {
                   <Legend />
                   <Line
                     type='monotone'
-                    dataKey='calories'
+                    dataKey='consumed'
                     stroke='#10b981'
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', r: 3 }}
+                    name='Consumed'
+                  />
+                  <Line
+                    type='monotone'
+                    dataKey='burned'
+                    stroke='#a855f7'
+                    strokeWidth={2}
+                    dot={{ fill: '#a855f7', r: 3 }}
+                    name='Burned (Exercise)'
+                  />
+                  <Line
+                    type='monotone'
+                    dataKey='net'
+                    stroke='#0ea5e9'
                     strokeWidth={3}
-                    dot={{ fill: '#10b981', r: 4 }}
-                    name='Calories Consumed'
+                    dot={{ fill: '#0ea5e9', r: 4 }}
+                    name='Net Calories'
                   />
                   <Line
                     type='monotone'

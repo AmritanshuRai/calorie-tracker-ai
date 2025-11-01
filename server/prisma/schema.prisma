@@ -36,6 +36,7 @@ model User {
   
   // Relations
   foodEntries       FoodEntry[]
+  exerciseEntries   ExerciseEntry[]
   onboardingHistory UserOnboarding[]
   openaiLogs        OpenAILog[]
   subscriptions     Subscription[]
@@ -194,6 +195,35 @@ model FoodEntry {
   
   // Metadata
   source      String?  // text, voice, image, barcode, label
+  aiParsed    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+}
+
+model ExerciseEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Entry details
+  date        DateTime @default(now())
+  exerciseName String
+  description String?
+  duration    Float?   // Duration in minutes
+  
+  // Exercise characteristics
+  exerciseType String?  // cardio, strength, flexibility, sports, etc.
+  intensity   String?   // light, moderate, vigorous, very_vigorous
+  
+  // Calories burned (calculated by AI)
+  caloriesBurned Float
+  
+  // Metadata
   aiParsed    Boolean  @default(false)
   
   createdAt   DateTime @default(now())

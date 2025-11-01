@@ -54,7 +54,18 @@ router.get('/stats', authenticateToken, async (req, res) => {
       },
     });
 
-    // Calculate today's totals
+    // Get today's exercise entries
+    const todayExerciseEntries = await prisma.exerciseEntry.findMany({
+      where: {
+        userId: req.user.userId,
+        date: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+    });
+
+    // Calculate today's food totals
     const todayTotals = todayEntries.reduce(
       (acc, entry) => ({
         calories: acc.calories + (entry.calories || 0),
@@ -82,9 +93,22 @@ router.get('/stats', authenticateToken, async (req, res) => {
       }
     );
 
+    // Calculate today's exercise calories burned
+    const todayExerciseCalories = todayExerciseEntries.reduce(
+      (total, entry) => total + (entry.caloriesBurned || 0),
+      0
+    );
+
+    // Calculate net calories (consumed - burned)
+    const netCalories = todayTotals.calories - todayExerciseCalories;
+
     res.json({
       user,
-      today: todayTotals,
+      today: {
+        ...todayTotals,
+        exerciseCalories: todayExerciseCalories,
+        netCalories,
+      },
       targets: {
         calories: user.dailyCalories,
         protein: user.dailyProtein,

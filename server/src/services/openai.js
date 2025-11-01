@@ -107,6 +107,7 @@ function calculateCost(
  */
 async function logOpenAICall({
   userId = null,
+  user = null,
   model,
   requestType,
   input,
@@ -130,20 +131,21 @@ async function logOpenAICall({
       cachedInputTokens || 0
     );
 
+    // Handle both userId (old style) and user relation (new style)
+    const userData = user || (userId ? { connect: { id: userId } } : undefined);
+
     await prisma.openAILog.create({
       data: {
-        userId,
+        ...(userData && { user: userData }),
         model,
         requestType,
         input,
         rawOutput,
         inputTokens,
         outputTokens,
-        cachedInputTokens,
         totalTokens,
         inputCost,
         outputCost,
-        cachedInputCost,
         totalCost,
         responseTimeMs,
         status,
@@ -1438,5 +1440,233 @@ omega3, transFat, water.
       selenium: null,
       error: 'Failed to analyze image with AI, please try again',
     };
+  }
+}
+
+/**
+ * Parse exercise description and calculate calories burned using AI
+ * @param {string} text - Exercise description (e.g., "30 minutes jogging" or "strength training")
+ * @param {object} userData - User data from onboarding for accurate calorie calculation
+ * @param {string} userId - User ID for logging
+ * @param {string} endpoint - API endpoint for logging
+ * @returns {Promise<object>} - Exercise data with calories burned
+ */
+export async function parseExercise(
+  text,
+  userData = {},
+  userId = null,
+  endpoint = '/api/exercise/parse'
+) {
+  const startTime = Date.now();
+
+  try {
+    const client = getOpenAIClient();
+    if (!client) {
+      throw new Error('OpenAI client not configured');
+    }
+
+    const model = DEFAULT_MODEL;
+    const exerciseReasoningEffort = 'minimal';
+
+    console.log('\n' + '='.repeat(80));
+    console.log('📋 EXERCISE PARSING REQUEST');
+    console.log('='.repeat(80));
+    console.log(`User Input: "${text}"`);
+    console.log(`Model: ${model}`);
+    console.log(`User Data:`, {
+      gender: userData.gender || 'unknown',
+      age: userData.age || 'unknown',
+      weight: userData.currentWeight || 'unknown',
+      height: userData.height || 'unknown',
+      activityLevel: userData.activityLevel || 'unknown',
+    });
+    console.log('='.repeat(80) + '\n');
+
+    // Build context prompt with user data
+    const userContext = `
+User Profile for Calorie Calculation:
+- Gender: ${userData.gender || 'unknown'}
+- Age: ${userData.age || 'unknown'} years
+- Weight: ${userData.currentWeight || 'unknown'} kg
+- Height: ${userData.height || 'unknown'} cm
+- Activity Level: ${userData.activityLevel || 'unknown'}
+- Fitness Goal: ${userData.goal || 'unknown'}
+`;
+
+    const response = await client.responses.create({
+      model,
+      instructions: `You are an expert fitness and exercise science AI. Analyze exercise descriptions and calculate calories burned accurately based on user profile data.
+
+${userContext}
+
+Your task:
+1. Parse the exercise description to extract the exercise name, type, duration, and intensity
+2. Calculate estimated calories burned using MET (Metabolic Equivalent of Task) values
+3. Consider the user's weight, gender, age, and fitness level for accurate calculations
+4. If duration is not specified, assume a reasonable default (e.g., 30 minutes for most exercises)
+5. Classify exercise type: cardio, strength, flexibility, sports, or other
+6. Classify intensity: light, moderate, vigorous, or very_vigorous
+
+MET values reference:
+- Walking (slow): 2-3 METs
+- Walking (brisk): 3.5-4 METs
+- Jogging: 7 METs
+- Running (6 mph): 10 METs
+- Cycling (moderate): 6-8 METs
+- Swimming: 6-11 METs
+- Strength training: 3-6 METs
+- HIIT: 8-12 METs
+- Yoga: 2-4 METs
+- Dancing: 4-7 METs
+
+Formula: Calories burned = (MET × weight in kg × duration in hours)
+
+Be accurate and consider all factors. If the input is vague (e.g., "strength exercise"), make reasonable assumptions based on typical workout patterns.`,
+      input: text,
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'exercise_data',
+          schema: {
+            type: 'object',
+            properties: {
+              exerciseName: { type: 'string' },
+              description: { type: 'string' },
+              duration: { type: 'number' }, // in minutes
+              exerciseType: {
+                type: 'string',
+                enum: ['cardio', 'strength', 'flexibility', 'sports', 'other'],
+              },
+              intensity: {
+                type: 'string',
+                enum: ['light', 'moderate', 'vigorous', 'very_vigorous'],
+              },
+              caloriesBurned: { type: 'number' },
+              metValue: { type: 'number' }, // MET value used for calculation
+            },
+            required: [
+              'exerciseName',
+              'description',
+              'duration',
+              'exerciseType',
+              'intensity',
+              'caloriesBurned',
+              'metValue',
+            ],
+            additionalProperties: false,
+          },
+        },
+      },
+      reasoning: {
+        effort: exerciseReasoningEffort, // 'minimal' is optimal for structured data extraction
+      },
+      max_output_tokens: 2500, // Set reasonable token limit for cost control
+    });
+
+    const responseTimeMs = Date.now() - startTime;
+
+    console.log('OpenAI response:', JSON.stringify(response, null, 2));
+
+    // Extract content from the new Responses API structure
+    // The SDK provides a convenience property output_text that aggregates text from all output_text items
+    let content = response.output_text?.trim();
+
+    // Fallback: manually extract from output array if output_text is not available
+    if (!content) {
+      const messageItem = response.output?.find(
+        (item) => item.type === 'message'
+      );
+      if (messageItem) {
+        const textContent = messageItem.content?.find(
+          (c) => c.type === 'output_text'
+        );
+        content = textContent?.text?.trim();
+      }
+    }
+
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
+    }
+
+    console.log('Raw content from OpenAI:', content);
+
+    // Extract token usage from the new response structure
+    const inputTokens = response.usage?.input_tokens || 0;
+    const outputTokens = response.usage?.output_tokens || 0;
+    const cachedInputTokens =
+      response.usage?.input_tokens_details?.cached_tokens || 0;
+    const totalTokens = response.usage?.total_tokens || 0;
+
+    console.log('Token usage:', {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      totalTokens,
+      savingsFromCache:
+        cachedInputTokens > 0
+          ? `${((cachedInputTokens / inputTokens) * 100).toFixed(1)}%`
+          : 'none',
+    });
+
+    console.log('✅ EXERCISE PARSING COMPLETE');
+    console.log(`Response Time: ${responseTimeMs}ms`);
+    console.log(`Tokens: ${totalTokens} (input: ${inputTokens}, output: ${outputTokens})`);
+    console.log('='.repeat(80) + '\n');
+
+    // Log the successful API call
+    await logOpenAICall({
+      userId,
+      model,
+      requestType: 'text',
+      input: `Exercise: ${text} | User: ${userData.gender || 'unknown'}, ${userData.currentWeight || 'unknown'}kg, ${userData.age || 'unknown'}y`,
+      rawOutput: content,
+      inputTokens,
+      outputTokens,
+      cachedInputTokens,
+      totalTokens,
+      responseTimeMs,
+      status: 'success',
+      endpoint,
+    });
+
+    const exerciseData = JSON.parse(content);
+
+    console.log('Parsed Exercise Data:', exerciseData);
+    console.log(`${'='.repeat(80)}\n`);
+
+    // Ensure required fields have default values
+    return {
+      exerciseName: exerciseData.exerciseName || 'Unknown Exercise',
+      description: exerciseData.description || text,
+      duration: exerciseData.duration || 30,
+      exerciseType: exerciseData.exerciseType || 'other',
+      intensity: exerciseData.intensity || 'moderate',
+      caloriesBurned: Math.round(exerciseData.caloriesBurned) || 0,
+      metValue: exerciseData.metValue || 0,
+    };
+  } catch (error) {
+    const responseTimeMs = Date.now() - startTime;
+    console.error('\n❌ EXERCISE PARSING FAILED');
+    console.error('Error:', error.message);
+    console.log(`${'='.repeat(80)}\n`);
+
+    // Log the failed API call
+    await logOpenAICall({
+      userId,
+      model: DEFAULT_MODEL,
+      requestType: 'text',
+      input: `Exercise parsing: ${text}`,
+      rawOutput: null,
+      inputTokens: null,
+      outputTokens: null,
+      cachedInputTokens: 0,
+      totalTokens: null,
+      responseTimeMs,
+      status: 'error',
+      errorMessage: error.message || 'Unknown error',
+      endpoint,
+    });
+
+    throw new Error('Failed to parse exercise');
   }
 }

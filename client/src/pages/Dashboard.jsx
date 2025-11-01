@@ -24,16 +24,19 @@ import {
   X,
   Info,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Calendar from '../components/Calendar';
 import FoodLogModal from '../components/FoodLogModal';
+import ExerciseLogModal from '../components/ExerciseLogModal';
 import Tooltip from '../components/Tooltip';
 import Footer from '../components/Footer';
 import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
+import { exerciseService } from '../services/exerciseService';
 import { authService } from '../services/authService';
 
 const Dashboard = () => {
@@ -48,8 +51,10 @@ const Dashboard = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [foodEntries, setFoodEntries] = useState([]);
+  const [exerciseEntries, setExerciseEntries] = useState([]);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const userMenuRef = useRef(null);
   const [userTargets, setUserTargets] = useState({
@@ -148,6 +153,7 @@ const Dashboard = () => {
   // Fetch food entries when date changes
   useEffect(() => {
     loadFoodEntries();
+    loadExerciseEntries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -262,9 +268,26 @@ const Dashboard = () => {
     }
   };
 
+  const loadExerciseEntries = async () => {
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const entries = await exerciseService.getExerciseLog(dateStr);
+      setExerciseEntries(entries);
+    } catch (error) {
+      console.error('Failed to load exercise entries:', error);
+    }
+  };
+
   const handleAddFood = () => {
     loadFoodEntries();
+    loadExerciseEntries(); // Refresh both when food is added
     setShowModal(false);
+  };
+
+  const handleAddExercise = () => {
+    loadFoodEntries(); // Refresh both when exercise is added
+    loadExerciseEntries();
+    setShowExerciseModal(false);
   };
 
   const handleDeleteFood = async (entryId) => {
@@ -326,8 +349,17 @@ const Dashboard = () => {
     return user.name[0].toUpperCase();
   };
 
+  // Calculate total exercise calories burned
+  const totalExerciseCalories = exerciseEntries.reduce(
+    (total, entry) => total + (entry.caloriesBurned || 0),
+    0
+  );
+
+  // Calculate net calories (food consumed - exercise burned)
+  const netCalories = dailyTotals.calories - totalExerciseCalories;
+
   const calorieProgress = userTargets.dailyCalorieTarget
-    ? (dailyTotals.calories / userTargets.dailyCalorieTarget) * 100
+    ? (netCalories / userTargets.dailyCalorieTarget) * 100
     : 0;
 
   return (
@@ -662,6 +694,115 @@ const Dashboard = () => {
               </div>
             </Card>
 
+            {/* Exercise Entries */}
+            <Card padding='lg' variant='default'>
+              <div className='flex items-center justify-between mb-6'>
+                <h2 className='text-xl font-bold text-slate-800'>
+                  Today's Workouts
+                </h2>
+                <button
+                  onClick={() => setShowExerciseModal(true)}
+                  className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all'>
+                  <Plus className='w-4 h-4' />
+                  <span className='text-sm font-medium'>Log Workout</span>
+                </button>
+              </div>
+
+              <div className='space-y-3'>
+                {exerciseEntries.length === 0 ? (
+                  <div className='text-center py-12'>
+                    <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center'>
+                      <Activity className='w-8 h-8 text-purple-600' />
+                    </div>
+                    <p className='text-slate-600 font-medium mb-2'>
+                      No workouts logged yet
+                    </p>
+                    <p className='text-sm text-slate-400'>
+                      Track your exercise and calories burned
+                    </p>
+                  </div>
+                ) : (
+                  exerciseEntries.map((entry) => (
+                    <Card
+                      key={entry.id}
+                      padding='md'
+                      variant='outline'
+                      className='hover:shadow-md transition-shadow'>
+                      <div className='flex items-start gap-3'>
+                        <div
+                          className={`w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0`}>
+                          <Activity className='w-6 h-6 text-white' />
+                        </div>
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-start justify-between gap-2'>
+                            <div className='flex-1'>
+                              <h3 className='font-bold text-slate-800 mb-1'>
+                                {entry.exerciseName}
+                              </h3>
+                              {entry.description && (
+                                <p className='text-sm text-slate-600 mb-2'>
+                                  {entry.description}
+                                </p>
+                              )}
+                              <div className='flex flex-wrap items-center gap-3 text-xs text-slate-500'>
+                                {entry.duration && (
+                                  <span className='flex items-center gap-1'>
+                                    <Clock className='w-3 h-3' />
+                                    {Math.round(entry.duration)} min
+                                  </span>
+                                )}
+                                {entry.exerciseType && (
+                                  <span className='px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium'>
+                                    {entry.exerciseType}
+                                  </span>
+                                )}
+                                {entry.intensity && (
+                                  <span className='px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full font-medium'>
+                                    {entry.intensity}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <div className='text-right'>
+                                <div className='flex items-center gap-1 text-purple-600 font-bold'>
+                                  <Flame className='w-4 h-4' />
+                                  <span>{Math.round(entry.caloriesBurned)}</span>
+                                </div>
+                                <p className='text-xs text-slate-500'>burned</p>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  if (
+                                    window.confirm(
+                                      'Are you sure you want to delete this workout?'
+                                    )
+                                  ) {
+                                    try {
+                                      await exerciseService.deleteExerciseEntry(
+                                        entry.id
+                                      );
+                                      loadExerciseEntries();
+                                      loadFoodEntries(); // Refresh to update net calories
+                                    } catch (error) {
+                                      console.error('Failed to delete workout:', error);
+                                      alert('Failed to delete workout. Please try again.');
+                                    }
+                                  }
+                                }}
+                                className='p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0'>
+                                <Trash2 className='w-4 h-4' />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </Card>
+
             {/* Quick Stats with Progress */}
             <Card padding='lg' variant='default'>
               <div className='space-y-5'>
@@ -976,7 +1117,7 @@ const Dashboard = () => {
                 <div className='space-y-2'>
                   <div className='flex items-end justify-between'>
                     <h2 className='text-3xl font-bold text-white'>
-                      {Math.round(dailyTotals.calories)}
+                      {Math.round(netCalories)}
                     </h2>
                     <span className='text-sm text-white/80 mb-1'>
                       / {userTargets.dailyCalorieTarget} cal
@@ -989,7 +1130,7 @@ const Dashboard = () => {
                     />
                   </div>
                   <p className='text-xs text-white/80'>
-                    {Math.round(calorieProgress)}% of daily goal
+                    {Math.round(calorieProgress)}% of daily goal (net)
                   </p>
                 </div>
               </div>
@@ -999,6 +1140,18 @@ const Dashboard = () => {
                   <span className='text-white/80'>Consumed</span>
                   <span className='font-bold text-white'>
                     {Math.round(dailyTotals.calories)} cal
+                  </span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-white/80'>Burned (Exercise)</span>
+                  <span className='font-bold text-emerald-300'>
+                    -{Math.round(totalExerciseCalories)} cal
+                  </span>
+                </div>
+                <div className='flex justify-between text-sm border-t border-white/10 pt-2'>
+                  <span className='text-white/80'>Net Calories</span>
+                  <span className='font-bold text-white'>
+                    {Math.round(netCalories)} cal
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
@@ -1012,8 +1165,7 @@ const Dashboard = () => {
                   <span className='font-bold text-white'>
                     {Math.max(
                       0,
-                      userTargets.dailyCalorieTarget -
-                        Math.round(dailyTotals.calories)
+                      userTargets.dailyCalorieTarget - Math.round(netCalories)
                     )}{' '}
                     cal
                   </span>
@@ -1103,6 +1255,14 @@ const Dashboard = () => {
         onClose={() => setShowModal(false)}
         selectedDate={selectedDate}
         onFoodAdded={handleAddFood}
+      />
+
+      {/* Exercise Log Modal */}
+      <ExerciseLogModal
+        isOpen={showExerciseModal}
+        onClose={() => setShowExerciseModal(false)}
+        selectedDate={selectedDate}
+        onExerciseAdded={handleAddExercise}
       />
 
       {/* Footer */}
