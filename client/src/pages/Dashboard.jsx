@@ -25,6 +25,7 @@ import {
   Info,
   ArrowRight,
   Clock,
+  Scale,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -32,12 +33,14 @@ import Button from '../components/Button';
 import Calendar from '../components/Calendar';
 import FoodLogModal from '../components/FoodLogModal';
 import ExerciseLogModal from '../components/ExerciseLogModal';
+import DailyLogModal from '../components/DailyLogModal';
 import Tooltip from '../components/Tooltip';
 import Footer from '../components/Footer';
 import { LogoIcon } from '../components/Logo';
 import { foodService } from '../services/foodService';
 import { exerciseService } from '../services/exerciseService';
 import { authService } from '../services/authService';
+import { dailyLogService } from '../services/dailyLogService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,10 +55,12 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [showDailyLogModal, setShowDailyLogModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [foodEntries, setFoodEntries] = useState([]);
   const [exerciseEntries, setExerciseEntries] = useState([]);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [dailyLog, setDailyLog] = useState(null);
   const userMenuRef = useRef(null);
   const [userTargets, setUserTargets] = useState({
     dailyCalorieTarget: 0,
@@ -154,6 +159,7 @@ const Dashboard = () => {
   useEffect(() => {
     loadFoodEntries();
     loadExerciseEntries();
+    loadDailyLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -275,6 +281,16 @@ const Dashboard = () => {
       setExerciseEntries(entries);
     } catch (error) {
       console.error('Failed to load exercise entries:', error);
+    }
+  };
+
+  const loadDailyLog = async () => {
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const log = await dailyLogService.getDailyLog(dateStr);
+      setDailyLog(log);
+    } catch (error) {
+      console.error('Failed to load daily log:', error);
     }
   };
 
@@ -534,6 +550,70 @@ const Dashboard = () => {
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
               />
+            </Card>
+
+            {/* Daily Log - Weight & Water */}
+            <Card padding='lg' variant='default'>
+              <div className='flex items-center justify-between mb-4'>
+                <h2 className='text-xl font-bold text-slate-800'>Daily Log</h2>
+                <button
+                  onClick={() => setShowDailyLogModal(true)}
+                  className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all'>
+                  <Scale className='w-4 h-4' />
+                  <span className='text-sm font-medium'>
+                    Log Weight & Water
+                  </span>
+                </button>
+              </div>
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <Scale className='w-5 h-5 text-blue-600' />
+                    <h3 className='text-sm font-semibold text-blue-900'>
+                      Weight
+                    </h3>
+                  </div>
+                  {dailyLog?.weight ? (
+                    <>
+                      <p className='text-2xl font-bold text-blue-900'>
+                        {dailyLog.weight} {dailyLog.weightUnit || 'kg'}
+                      </p>
+                      <p className='text-xs text-blue-600 mt-1'>Logged today</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className='text-2xl font-bold text-blue-900'>--</p>
+                      <p className='text-xs text-blue-600 mt-1'>
+                        Not logged yet
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className='p-4 bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <Droplet className='w-5 h-5 text-cyan-600' />
+                    <h3 className='text-sm font-semibold text-cyan-900'>
+                      Water
+                    </h3>
+                  </div>
+                  {dailyLog?.waterIntake ? (
+                    <>
+                      <p className='text-2xl font-bold text-cyan-900'>
+                        {Math.round(dailyLog.waterIntake)}{' '}
+                        {dailyLog.waterUnit || 'ml'}
+                      </p>
+                      <p className='text-xs text-cyan-600 mt-1'>Logged today</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className='text-2xl font-bold text-cyan-900'>--</p>
+                      <p className='text-xs text-cyan-600 mt-1'>
+                        Not logged yet
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
             </Card>
 
             {/* Onboarding Reminder - Compact version */}
@@ -1271,6 +1351,18 @@ const Dashboard = () => {
         onClose={() => setShowExerciseModal(false)}
         selectedDate={selectedDate}
         onExerciseAdded={handleAddExercise}
+      />
+
+      {/* Daily Log Modal */}
+      <DailyLogModal
+        isOpen={showDailyLogModal}
+        onClose={() => setShowDailyLogModal(false)}
+        selectedDate={selectedDate}
+        onLogAdded={() => {
+          // Refresh data after logging
+          loadDailyLog();
+          setShowDailyLogModal(false);
+        }}
       />
 
       {/* Footer */}

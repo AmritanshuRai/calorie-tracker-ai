@@ -41,6 +41,7 @@ model User {
   openaiLogs        OpenAILog[]
   subscriptions     Subscription[]
   payments          Payment[]
+  dailyLogs         DailyLog[]
   
   @@index([email])
   @@index([googleId])
@@ -229,6 +230,34 @@ model ExerciseEntry {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+}
+
+model DailyLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Date tracking (normalized to UTC midnight)
+  date      DateTime @unique
+  
+  // Weight tracking
+  weight    Float?   // in kg
+  weightUnit String? @default("kg") // kg or lbs
+  
+  // Water tracking
+  waterIntake Float? // in ml
+  waterUnit   String? @default("ml") // ml, cups, oz, liters
+  
+  // Optional notes
+  notes     String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, date])
   @@index([userId])
   @@index([date])
   @@index([userId, date])
