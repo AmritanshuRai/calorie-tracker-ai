@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 import {
   X,
   Scale,
@@ -24,16 +25,24 @@ const DailyLogModal = ({ isOpen, onClose, selectedDate, onLogAdded }) => {
 
   const loadExistingData = useCallback(async () => {
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const data = await dailyLogService.getDailyLog(dateStr);
 
+      // Always reset the state based on the data received
       if (data.weight) {
         setWeight(data.weight.toString());
         setWeightUnit(data.weightUnit || 'kg');
+      } else {
+        setWeight('');
+        setWeightUnit('kg');
       }
+
       if (data.waterIntake) {
         setWaterIntake(data.waterIntake.toString());
         setWaterUnit(data.waterUnit || 'ml');
+      } else {
+        setWaterIntake('');
+        setWaterUnit('ml');
       }
     } catch (err) {
       console.error('Failed to load existing data:', err);
@@ -46,8 +55,8 @@ const DailyLogModal = ({ isOpen, onClose, selectedDate, onLogAdded }) => {
       if (history.length > 0) {
         const prev = history.find(
           (entry) =>
-            new Date(entry.date).toISOString().split('T')[0] !==
-            selectedDate.toISOString().split('T')[0]
+            format(new Date(entry.date), 'yyyy-MM-dd') !==
+            format(selectedDate, 'yyyy-MM-dd')
         );
         if (prev) {
           setPreviousWeight(prev.weight);
@@ -88,7 +97,7 @@ const DailyLogModal = ({ isOpen, onClose, selectedDate, onLogAdded }) => {
     setError('');
 
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const data = {};
 
       if (weightValue) {
