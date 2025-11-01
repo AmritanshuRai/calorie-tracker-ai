@@ -767,7 +767,9 @@ const Dashboard = () => {
                               <div className='text-right'>
                                 <div className='flex items-center gap-1 text-purple-600 font-bold'>
                                   <Flame className='w-4 h-4' />
-                                  <span>{Math.round(entry.caloriesBurned)}</span>
+                                  <span>
+                                    {Math.round(entry.caloriesBurned)}
+                                  </span>
                                 </div>
                                 <p className='text-xs text-slate-500'>burned</p>
                               </div>
@@ -785,8 +787,13 @@ const Dashboard = () => {
                                       loadExerciseEntries();
                                       loadFoodEntries(); // Refresh to update net calories
                                     } catch (error) {
-                                      console.error('Failed to delete workout:', error);
-                                      alert('Failed to delete workout. Please try again.');
+                                      console.error(
+                                        'Failed to delete workout:',
+                                        error
+                                      );
+                                      alert(
+                                        'Failed to delete workout. Please try again.'
+                                      );
                                     }
                                   }
                                 }}

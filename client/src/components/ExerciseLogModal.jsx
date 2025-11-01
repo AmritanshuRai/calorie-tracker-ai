@@ -20,7 +20,12 @@ import { FREE_LOGS_LIMIT } from '../utils/constants';
 import Button from './Button';
 import Input from './Input';
 
-const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) => {
+const ExerciseLogModal = ({
+  isOpen,
+  onClose,
+  selectedDate,
+  onExerciseAdded,
+}) => {
   const [step, setStep] = useState(1); // 1: Input, 2: Review, 3: Success
   const [exerciseText, setExerciseText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -78,7 +83,8 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
         }
       } else {
         setError(
-          err.response?.data?.error || 'Failed to parse exercise. Please try again.'
+          err.response?.data?.error ||
+            'Failed to parse exercise. Please try again.'
         );
       }
     } finally {
@@ -126,7 +132,9 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
       console.error('Save exercise entry error:', err);
       console.error('Error response:', err.response);
       const errorMessage =
-        err.response?.data?.error || err.message || 'Failed to save exercise entry';
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to save exercise entry';
       setError(errorMessage);
       setIsLoading(false);
     }
@@ -187,7 +195,8 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                     Log Your Workout
                   </h2>
                   <p className='text-slate-600 mt-2'>
-                    Tell us what exercise you did and we'll calculate calories burned
+                    Tell us what exercise you did and we'll calculate calories
+                    burned
                   </p>
                 </div>
 
@@ -268,7 +277,9 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                 <Button
                   onClick={handleParse}
                   disabled={
-                    isLoading || !exerciseText.trim() || subscription.freeLogs === 0
+                    isLoading ||
+                    !exerciseText.trim() ||
+                    subscription.freeLogs === 0
                   }
                   className='w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed'>
                   {isLoading ? (
@@ -301,7 +312,8 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                     Review & Confirm
                   </h2>
                   <p className='text-slate-600 mt-2'>
-                    AI calculated your workout. You can edit values before saving.
+                    AI calculated your workout. You can edit values before
+                    saving.
                   </p>
                 </div>
 
@@ -331,7 +343,10 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                         type='number'
                         value={parsedData.duration}
                         onChange={(e) =>
-                          handleEdit('duration', parseFloat(e.target.value) || 0)
+                          handleEdit(
+                            'duration',
+                            parseFloat(e.target.value) || 0
+                          )
                         }
                       />
                     </div>
@@ -362,7 +377,9 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                       </label>
                       <select
                         value={parsedData.exerciseType}
-                        onChange={(e) => handleEdit('exerciseType', e.target.value)}
+                        onChange={(e) =>
+                          handleEdit('exerciseType', e.target.value)
+                        }
                         className='w-full p-2 border border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:ring-0 outline-none'>
                         <option value='cardio'>Cardio</option>
                         <option value='strength'>Strength</option>
@@ -377,7 +394,9 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                       </label>
                       <select
                         value={parsedData.intensity}
-                        onChange={(e) => handleEdit('intensity', e.target.value)}
+                        onChange={(e) =>
+                          handleEdit('intensity', e.target.value)
+                        }
                         className='w-full p-2 border border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:ring-0 outline-none'>
                         <option value='light'>Light</option>
                         <option value='moderate'>Moderate</option>
@@ -402,7 +421,8 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                         {Math.round(parsedData.caloriesBurned)} cal
                       </p>
                       <p className='text-xs text-purple-600 mt-0.5'>
-                        +{Math.round(parsedData.caloriesBurned)} to your daily budget
+                        +{Math.round(parsedData.caloriesBurned)} to your daily
+                        budget
                       </p>
                     </div>
                   </div>
@@ -416,7 +436,9 @@ const ExerciseLogModal = ({ isOpen, onClose, selectedDate, onExerciseAdded }) =>
                     </label>
                     <textarea
                       value={parsedData.description}
-                      onChange={(e) => handleEdit('description', e.target.value)}
+                      onChange={(e) =>
+                        handleEdit('description', e.target.value)
+                      }
                       className='w-full p-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-0 outline-none resize-none text-sm text-slate-800'
                       rows={2}
                     />

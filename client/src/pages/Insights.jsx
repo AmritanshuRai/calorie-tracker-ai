@@ -208,19 +208,19 @@ export default function Insights() {
     const data = dates.map((date, index) => {
       const entries = allEntries[index] || [];
       const exerciseEntries = allExerciseEntries[index] || [];
-      
+
       const totalCalories = entries.reduce(
         (sum, entry) => sum + (entry.calories || 0),
         0
       );
-      
+
       const totalExerciseCalories = exerciseEntries.reduce(
         (sum, entry) => sum + (entry.caloriesBurned || 0),
         0
       );
-      
+
       const netCalories = totalCalories - totalExerciseCalories;
-      
+
       return {
         date: format(new Date(date), 'MMM dd'),
         fullDate: date,

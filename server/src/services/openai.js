@@ -1610,7 +1610,9 @@ Be accurate and consider all factors. If the input is vague (e.g., "strength exe
 
     console.log('✅ EXERCISE PARSING COMPLETE');
     console.log(`Response Time: ${responseTimeMs}ms`);
-    console.log(`Tokens: ${totalTokens} (input: ${inputTokens}, output: ${outputTokens})`);
+    console.log(
+      `Tokens: ${totalTokens} (input: ${inputTokens}, output: ${outputTokens})`
+    );
     console.log('='.repeat(80) + '\n');
 
     // Log the successful API call
@@ -1618,7 +1620,9 @@ Be accurate and consider all factors. If the input is vague (e.g., "strength exe
       userId,
       model,
       requestType: 'text',
-      input: `Exercise: ${text} | User: ${userData.gender || 'unknown'}, ${userData.currentWeight || 'unknown'}kg, ${userData.age || 'unknown'}y`,
+      input: `Exercise: ${text} | User: ${userData.gender || 'unknown'}, ${
+        userData.currentWeight || 'unknown'
+      }kg, ${userData.age || 'unknown'}y`,
       rawOutput: content,
       inputTokens,
       outputTokens,
