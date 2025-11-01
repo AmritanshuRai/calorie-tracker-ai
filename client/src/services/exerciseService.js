@@ -2,8 +2,12 @@ import api from './api';
 
 export const exerciseService = {
   // Parse exercise text using AI
-  parseExercise: async (exerciseText) => {
-    const response = await api.post('/exercise/parse', { text: exerciseText });
+  parseExercise: async (exerciseText, exerciseType, intensity) => {
+    const response = await api.post('/exercise/parse', {
+      text: exerciseText,
+      exerciseType,
+      intensity,
+    });
     return response.data;
   },
 

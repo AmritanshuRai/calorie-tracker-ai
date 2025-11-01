@@ -154,8 +154,18 @@ async function logOpenAICall({
         reasoningEffort,
       },
     });
+
+    console.log('✅ OpenAI call logged successfully');
   } catch (error) {
-    console.error('Failed to log OpenAI call:', error);
+    console.error('❌ Failed to log OpenAI call:', error);
+    console.error('Error details:', {
+      message: error.message,
+      userId,
+      user,
+      userData,
+      model,
+      endpoint,
+    });
     // Don't throw - logging should not break the main flow
   }
 }
@@ -1449,13 +1459,17 @@ omega3, transFat, water.
  * @param {object} userData - User data from onboarding for accurate calorie calculation
  * @param {string} userId - User ID for logging
  * @param {string} endpoint - API endpoint for logging
+ * @param {string} userExerciseType - User-selected exercise type (cardio, strength, etc.)
+ * @param {string} userIntensity - User-selected intensity (light, moderate, vigorous, very_vigorous)
  * @returns {Promise<object>} - Exercise data with calories burned
  */
 export async function parseExercise(
   text,
   userData = {},
   userId = null,
-  endpoint = '/api/exercise/parse'
+  endpoint = '/api/exercise/parse',
+  userExerciseType = null,
+  userIntensity = null
 ) {
   const startTime = Date.now();
 
@@ -1473,6 +1487,8 @@ export async function parseExercise(
     console.log('='.repeat(80));
     console.log(`User Input: "${text}"`);
     console.log(`Model: ${model}`);
+    console.log(`User-Selected Type: ${userExerciseType || 'not specified'}`);
+    console.log(`User-Selected Intensity: ${userIntensity || 'not specified'}`);
     console.log(`User Data:`, {
       gender: userData.gender || 'unknown',
       age: userData.age || 'unknown',
@@ -1491,6 +1507,24 @@ User Profile for Calorie Calculation:
 - Height: ${userData.height || 'unknown'} cm
 - Activity Level: ${userData.activityLevel || 'unknown'}
 - Fitness Goal: ${userData.goal || 'unknown'}
+
+User-Selected Exercise Details:
+- Type: ${userExerciseType || 'not specified - please infer from description'}
+- Intensity: ${userIntensity || 'not specified - please infer from description'}
+${
+  userExerciseType
+    ? '\nIMPORTANT: The user has explicitly selected the exercise type as "' +
+      userExerciseType +
+      '". Use this in your response.'
+    : ''
+}
+${
+  userIntensity
+    ? '\nIMPORTANT: The user has explicitly selected the intensity as "' +
+      userIntensity +
+      '". Use this for more accurate calorie calculations.'
+    : ''
+}
 `;
 
     const response = await client.responses.create({

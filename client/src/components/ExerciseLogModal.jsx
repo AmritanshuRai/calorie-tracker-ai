@@ -28,6 +28,8 @@ const ExerciseLogModal = ({
 }) => {
   const [step, setStep] = useState(1); // 1: Input, 2: Review, 3: Success
   const [exerciseText, setExerciseText] = useState('');
+  const [exerciseType, setExerciseType] = useState('cardio');
+  const [intensity, setIntensity] = useState('moderate');
   const [isLoading, setIsLoading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState('');
@@ -52,7 +54,11 @@ const ExerciseLogModal = ({
     setError('');
 
     try {
-      const data = await exerciseService.parseExercise(exerciseText);
+      const data = await exerciseService.parseExercise(
+        exerciseText,
+        exerciseType,
+        intensity
+      );
 
       if (data.error) {
         setError(data.error);
@@ -143,6 +149,8 @@ const ExerciseLogModal = ({
   const handleClose = () => {
     setStep(1);
     setExerciseText('');
+    setExerciseType('cardio');
+    setIntensity('moderate');
     setParsedData(null);
     setError('');
     setIsLoading(false);
@@ -216,6 +224,46 @@ const ExerciseLogModal = ({
                   <p className='text-xs text-slate-500 mt-2'>
                     💡 Tip: Include duration and intensity for better accuracy
                   </p>
+                </div>
+
+                {/* Exercise Type & Intensity Selection */}
+                <div className='p-4 bg-slate-50 rounded-xl border border-slate-200'>
+                  <h3 className='text-sm font-medium text-slate-700 mb-3'>
+                    Exercise Details
+                  </h3>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div>
+                      <label className='block text-xs text-slate-600 mb-2'>
+                        Type
+                      </label>
+                      <select
+                        value={exerciseType}
+                        onChange={(e) => setExerciseType(e.target.value)}
+                        className='w-full p-3 border border-slate-200 rounded-xl text-sm focus:border-purple-500 focus:ring-0 outline-none bg-white'
+                        disabled={isLoading}>
+                        <option value='cardio'>Cardio</option>
+                        <option value='strength'>Strength</option>
+                        <option value='flexibility'>Flexibility</option>
+                        <option value='sports'>Sports</option>
+                        <option value='other'>Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className='block text-xs text-slate-600 mb-2'>
+                        Intensity
+                      </label>
+                      <select
+                        value={intensity}
+                        onChange={(e) => setIntensity(e.target.value)}
+                        className='w-full p-3 border border-slate-200 rounded-xl text-sm focus:border-purple-500 focus:ring-0 outline-none bg-white'
+                        disabled={isLoading}>
+                        <option value='light'>Light</option>
+                        <option value='moderate'>Moderate</option>
+                        <option value='vigorous'>Vigorous</option>
+                        <option value='very_vigorous'>Very Vigorous</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Error Message */}
@@ -364,45 +412,6 @@ const ExerciseLogModal = ({
                           )
                         }
                       />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Exercise Type & Intensity */}
-                <div className='p-4 bg-slate-50 rounded-xl border border-slate-200'>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div>
-                      <label className='block text-xs text-slate-600 mb-2'>
-                        Type
-                      </label>
-                      <select
-                        value={parsedData.exerciseType}
-                        onChange={(e) =>
-                          handleEdit('exerciseType', e.target.value)
-                        }
-                        className='w-full p-2 border border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:ring-0 outline-none'>
-                        <option value='cardio'>Cardio</option>
-                        <option value='strength'>Strength</option>
-                        <option value='flexibility'>Flexibility</option>
-                        <option value='sports'>Sports</option>
-                        <option value='other'>Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className='block text-xs text-slate-600 mb-2'>
-                        Intensity
-                      </label>
-                      <select
-                        value={parsedData.intensity}
-                        onChange={(e) =>
-                          handleEdit('intensity', e.target.value)
-                        }
-                        className='w-full p-2 border border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:ring-0 outline-none'>
-                        <option value='light'>Light</option>
-                        <option value='moderate'>Moderate</option>
-                        <option value='vigorous'>Vigorous</option>
-                        <option value='very_vigorous'>Very Vigorous</option>
-                      </select>
                     </div>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ const router = express.Router();
 // Parse exercise text using AI
 router.post('/parse', authenticateToken, async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, exerciseType, intensity } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
@@ -63,12 +63,14 @@ router.post('/parse', authenticateToken, async (req, res) => {
 
     const userData = latestOnboarding || {};
 
-    // Parse exercise using AI
+    // Parse exercise using AI with user-selected type and intensity
     const exerciseData = await parseExercise(
       text,
       userData,
       req.user.userId,
-      '/api/exercise/parse'
+      '/api/exercise/parse',
+      exerciseType,
+      intensity
     );
 
     // If not Pro, decrement free logs after successful parse
