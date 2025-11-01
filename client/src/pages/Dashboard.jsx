@@ -355,11 +355,11 @@ const Dashboard = () => {
     0
   );
 
-  // Calculate net calories (food consumed - exercise burned)
-  const netCalories = dailyTotals.calories - totalExerciseCalories;
+  // Adjusted target includes exercise calories burned (you can eat more when you exercise)
+  const adjustedTarget = userTargets.dailyCalorieTarget + totalExerciseCalories;
 
-  const calorieProgress = userTargets.dailyCalorieTarget
-    ? (netCalories / userTargets.dailyCalorieTarget) * 100
+  const calorieProgress = adjustedTarget
+    ? (dailyTotals.calories / adjustedTarget) * 100
     : 0;
 
   return (
@@ -1124,10 +1124,10 @@ const Dashboard = () => {
                 <div className='space-y-2'>
                   <div className='flex items-end justify-between'>
                     <h2 className='text-3xl font-bold text-white'>
-                      {Math.round(netCalories)}
+                      {Math.round(dailyTotals.calories)}
                     </h2>
                     <span className='text-sm text-white/80 mb-1'>
-                      / {userTargets.dailyCalorieTarget} cal
+                      / {Math.round(adjustedTarget)} cal
                     </span>
                   </div>
                   <div className='relative h-3 bg-white/20 rounded-full overflow-hidden'>
@@ -1137,7 +1137,7 @@ const Dashboard = () => {
                     />
                   </div>
                   <p className='text-xs text-white/80'>
-                    {Math.round(calorieProgress)}% of daily goal (net)
+                    {Math.round(calorieProgress)}% of adjusted goal
                   </p>
                 </div>
               </div>
@@ -1152,19 +1152,19 @@ const Dashboard = () => {
                 <div className='flex justify-between text-sm'>
                   <span className='text-white/80'>Burned (Exercise)</span>
                   <span className='font-bold text-emerald-300'>
-                    -{Math.round(totalExerciseCalories)} cal
+                    +{Math.round(totalExerciseCalories)} cal
                   </span>
                 </div>
                 <div className='flex justify-between text-sm border-t border-white/10 pt-2'>
-                  <span className='text-white/80'>Net Calories</span>
+                  <span className='text-white/80'>Base Target</span>
                   <span className='font-bold text-white'>
-                    {Math.round(netCalories)} cal
+                    {userTargets.dailyCalorieTarget} cal
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
-                  <span className='text-white/80'>Target</span>
+                  <span className='text-white/80'>Adjusted Target</span>
                   <span className='font-bold text-white'>
-                    {userTargets.dailyCalorieTarget} cal
+                    {Math.round(adjustedTarget)} cal
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
@@ -1172,7 +1172,8 @@ const Dashboard = () => {
                   <span className='font-bold text-white'>
                     {Math.max(
                       0,
-                      userTargets.dailyCalorieTarget - Math.round(netCalories)
+                      Math.round(adjustedTarget) -
+                        Math.round(dailyTotals.calories)
                     )}{' '}
                     cal
                   </span>
