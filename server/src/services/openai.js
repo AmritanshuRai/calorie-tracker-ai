@@ -1665,6 +1665,7 @@ Be accurate and consider all factors. If the input is vague (e.g., "strength exe
       responseTimeMs,
       status: 'success',
       endpoint,
+      reasoningEffort: exerciseReasoningEffort,
     });
 
     const exerciseData = JSON.parse(content);
