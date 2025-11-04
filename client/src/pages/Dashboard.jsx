@@ -26,6 +26,7 @@ import {
   ArrowRight,
   Clock,
   Scale,
+  Camera,
 } from 'lucide-react';
 import useUserStore from '../stores/useUserStore';
 import Card from '../components/Card';
@@ -41,6 +42,7 @@ import { foodService } from '../services/foodService';
 import { exerciseService } from '../services/exerciseService';
 import { authService } from '../services/authService';
 import { dailyLogService } from '../services/dailyLogService';
+import { pictureService } from '../services/pictureService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -61,6 +63,7 @@ const Dashboard = () => {
   const [exerciseEntries, setExerciseEntries] = useState([]);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [dailyLog, setDailyLog] = useState(null);
+  const [dailyPicture, setDailyPicture] = useState(null);
   const userMenuRef = useRef(null);
   const [userTargets, setUserTargets] = useState({
     dailyCalorieTarget: 0,
@@ -160,6 +163,7 @@ const Dashboard = () => {
     loadFoodEntries();
     loadExerciseEntries();
     loadDailyLog();
+    loadDailyPicture();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -291,6 +295,17 @@ const Dashboard = () => {
       setDailyLog(log);
     } catch (error) {
       console.error('Failed to load daily log:', error);
+    }
+  };
+
+  const loadDailyPicture = async () => {
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const picture = await pictureService.getPicture(dateStr);
+      setDailyPicture(picture);
+    } catch {
+      // No picture for this date - that's okay
+      setDailyPicture(null);
     }
   };
 
@@ -565,7 +580,7 @@ const Dashboard = () => {
                   </span>
                 </button>
               </div>
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-3 gap-4'>
                 <div className='p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl'>
                   <div className='flex items-center gap-2 mb-2'>
                     <Scale className='w-5 h-5 text-blue-600' />
@@ -608,6 +623,36 @@ const Dashboard = () => {
                     <>
                       <p className='text-2xl font-bold text-cyan-900'>--</p>
                       <p className='text-xs text-cyan-600 mt-1'>
+                        Not logged yet
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className='p-4 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <Camera className='w-5 h-5 text-purple-600' />
+                    <h3 className='text-sm font-semibold text-purple-900'>
+                      Picture
+                    </h3>
+                  </div>
+                  {dailyPicture?.thumbnailUrl ? (
+                    <>
+                      <img
+                        src={dailyPicture.thumbnailUrl}
+                        alt='Daily progress'
+                        className='w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity'
+                        onClick={() => setShowDailyLogModal(true)}
+                      />
+                      <p className='text-xs text-purple-600 mt-1'>
+                        Click to view
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className='w-full h-20 bg-purple-100 rounded-lg flex items-center justify-center'>
+                        <Camera className='w-8 h-8 text-purple-300' />
+                      </div>
+                      <p className='text-xs text-purple-600 mt-1'>
                         Not logged yet
                       </p>
                     </>
@@ -1361,6 +1406,7 @@ const Dashboard = () => {
         onLogAdded={() => {
           // Refresh data after logging
           loadDailyLog();
+          loadDailyPicture();
           setShowDailyLogModal(false);
         }}
       />

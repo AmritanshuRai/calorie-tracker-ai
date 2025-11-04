@@ -1,9 +1,38 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.js';
+import upload from '../middleware/imageUpload.js';
+import DailyPictureService from '../services/dailyPictureService.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const dailyPictureService = new DailyPictureService();
+
+// Rate limiters
+const uploadPictureRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 uploads per 15 minutes
+  message: 'Too many uploads, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const viewPictureRateLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 views per minute
+  message: 'Too many requests, please slow down.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const deletePictureRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 deletes per 15 minutes
+  message: 'Too many delete requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Get daily log for a specific date
 router.get('/:date', authenticateToken, async (req, res) => {
@@ -184,6 +213,130 @@ router.get('/water/history', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching water history:', error);
     res.status(500).json({ error: 'Failed to fetch water history' });
+  }
+});
+
+// ============================================
+// PICTURE ROUTES
+// ============================================
+
+// Upload daily picture
+router.post(
+  '/picture',
+  authenticateToken,
+  uploadPictureRateLimiter,
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      const { date } = req.body;
+      const userId = req.user.userId;
+
+      if (!date) {
+        return res.status(400).json({ error: 'Date is required' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'Image file is required' });
+      }
+
+      const dailyPicture = await dailyPictureService.uploadDailyPicture(
+        userId,
+        date,
+        req.file
+      );
+
+      res.json(dailyPicture);
+    } catch (error) {
+      console.error('Error uploading picture:', error);
+      res
+        .status(500)
+        .json({ error: error.message || 'Failed to upload picture' });
+    }
+  }
+);
+
+// Get picture for a specific date
+router.get(
+  '/:date/picture',
+  authenticateToken,
+  viewPictureRateLimiter,
+  async (req, res) => {
+    try {
+      const { date } = req.params;
+      const userId = req.user.userId;
+
+      const picture = await dailyPictureService.getDailyPicture(userId, date);
+
+      if (!picture) {
+        return res.status(404).json({ error: 'Picture not found' });
+      }
+
+      res.json(picture);
+    } catch (error) {
+      console.error('Error fetching picture:', error);
+      res.status(500).json({ error: 'Failed to fetch picture' });
+    }
+  }
+);
+
+// Delete picture for a specific date
+router.delete(
+  '/picture/:date',
+  authenticateToken,
+  deletePictureRateLimiter,
+  async (req, res) => {
+    try {
+      const { date } = req.params;
+      const userId = req.user.userId;
+
+      await dailyPictureService.deleteDailyPicture(userId, date);
+
+      res.json({ message: 'Picture deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting picture:', error);
+      res
+        .status(500)
+        .json({ error: error.message || 'Failed to delete picture' });
+    }
+  }
+);
+
+// Get all pictures for timeline/gallery
+router.get(
+  '/pictures/history',
+  authenticateToken,
+  viewPictureRateLimiter,
+  async (req, res) => {
+    try {
+      const userId = req.user.userId;
+      const { startDate, endDate, limit = 50, offset = 0 } = req.query;
+
+      const pictures = await dailyPictureService.getPictureHistory(userId, {
+        startDate,
+        endDate,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+      });
+
+      res.json(pictures);
+    } catch (error) {
+      console.error('Error fetching picture history:', error);
+      res.status(500).json({ error: 'Failed to fetch picture history' });
+    }
+  }
+);
+
+// Check remaining picture uploads for free users
+router.get('/user/picture-quota', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const quota = await dailyPictureService.getPictureQuota(userId);
+
+    res.json(quota);
+  } catch (error) {
+    console.error('Error fetching picture quota:', error);
+    res.status(500).json({ error: 'Failed to fetch picture quota' });
   }
 });
 
