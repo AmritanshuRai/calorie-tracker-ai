@@ -8,7 +8,7 @@ export default function Card({
 }) {
   const variants = {
     default:
-      'bg-white border-2 border-slate-300 shadow-lg hover:shadow-xl hover:border-emerald-400 transition-all duration-300',
+      'bg-white border-2 border-slate-300 hover:border-emerald-400 transition-all duration-300',
     glass:
       'bg-white/95 backdrop-blur-md border-2 border-slate-300/50 shadow-xl',
     premium:

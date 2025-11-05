@@ -80,7 +80,7 @@ const ActivityLevelPage = () => {
           </p>
         </motion.div>
 
-        <div className='space-y-1.5 mt-2 flex-1 overflow-y-auto'>
+        <div className='space-y-1.5 mt-2 overflow-y-auto'>
           {ACTIVITY_LEVELS.map((level, index) => (
             <motion.div
               key={level.id}
@@ -89,18 +89,14 @@ const ActivityLevelPage = () => {
               transition={{ delay: index * 0.05 }}>
               <button
                 onClick={() => handleSelect(level.id)}
-                className={`w-full text-left transition-all duration-200 ${
-                  selectedActivity === level.id
-                    ? 'scale-[1.01]'
-                    : 'hover:scale-[1.005]'
-                }`}>
+                className='w-full text-left'>
                 <Card
                   padding='sm'
                   variant='default'
                   className={`transition-all duration-200 ${
                     selectedActivity === level.id
-                      ? 'border-emerald-500 bg-emerald-50 shadow-lg'
-                      : 'hover:border-emerald-300 hover:shadow-md'
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'hover:border-emerald-300'
                   }`}>
                   <div className='flex items-center justify-between gap-3 py-1'>
                     <div className='flex items-center gap-2 flex-1'>

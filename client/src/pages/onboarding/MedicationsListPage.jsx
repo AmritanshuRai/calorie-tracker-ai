@@ -56,18 +56,18 @@ const MedicationsListPage = () => {
 
   return (
     <PageLayout title='Medications & Health' showBack={true}>
-      <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto'>
+      <div className='h-full flex flex-col space-y-4 max-w-5xl mx-auto px-4'>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className='text-center'>
+          className='text-center flex-shrink-0'>
           <div className='w-14 h-14 mx-auto mb-2 bg-gradient-to-br from-red-100 to-pink-200 rounded-2xl flex items-center justify-center'>
             <Pill className='w-7 h-7 text-red-600' />
           </div>
-          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1.5'>
+          <h2 className='text-2xl lg:text-3xl font-black text-slate-900 mb-1'>
             Are you taking any medications?
           </h2>
-          <p className='text-base font-medium text-slate-600'>
+          <p className='text-sm font-medium text-slate-600'>
             Medications can affect nutrient absorption and needs
           </p>
         </motion.div>
@@ -76,18 +76,21 @@ const MedicationsListPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className='space-y-2 mt-4 max-h-[50vh] overflow-y-auto'>
-          {medicationOptions.map((med) => (
-            <button
+          className='grid grid-cols-2 lg:grid-cols-3 gap-2 flex-1'>
+          {medicationOptions.map((med, index) => (
+            <motion.button
               key={med}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.05 * index }}
               onClick={() => toggleMedication(med)}
-              className={`w-full p-3 rounded-xl border-2 font-bold text-left transition-all ${
+              className={`p-3 rounded-xl border-2 font-semibold text-sm text-center transition-all ${
                 medications.includes(med)
                   ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
                   : 'border-slate-300 bg-white text-slate-900 hover:border-emerald-300'
               }`}>
               {med}
-            </button>
+            </motion.button>
           ))}
         </motion.div>
 
@@ -95,7 +98,7 @@ const MedicationsListPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className='mt-4'>
+          className='flex-shrink-0 pt-2'>
           <Button
             variant='primary'
             size='md'
