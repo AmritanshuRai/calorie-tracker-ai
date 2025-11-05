@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addWeeks } from 'date-fns';
 import { AlertTriangle, Calendar, TrendingDown } from 'lucide-react';
+import * as Slider from '@radix-ui/react-slider';
 import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -63,6 +64,11 @@ const TimelinePage = () => {
     navigate('/onboarding/activity');
   };
 
+  // Handle slider change
+  const handleSliderChange = (values) => {
+    setWeeklyRate(values[0]);
+  };
+
   return (
     <PageLayout title='Timeline' showBack={true}>
       <div className='h-full flex flex-col justify-center space-y-3 max-w-3xl mx-auto'>
@@ -103,33 +109,31 @@ const TimelinePage = () => {
                 </div>
               </div>
 
-              {/* Slider */}
-              <div className='px-4 py-4'>
-                <div className='relative h-3'>
-                  {/* Background track */}
-                  <div className='absolute top-0 left-0 w-full h-3 bg-slate-200 rounded-lg' />
-
-                  {/* Progress fill */}
-                  <div
-                    className='absolute top-0 left-0 h-3 bg-emerald-600 rounded-lg pointer-events-none transition-all duration-150'
-                    style={{
-                      width: `${((weeklyRate - 0.25) / (3 - 0.25)) * 100}%`,
-                    }}
+              {/* Radix Slider */}
+              <div className='px-4 py-8'>
+                <Slider.Root
+                  className='relative flex items-center select-none touch-none w-full h-5'
+                  value={[weeklyRate]}
+                  onValueChange={handleSliderChange}
+                  max={3}
+                  min={0.25}
+                  step={0.05}>
+                  <Slider.Track className='bg-slate-200 relative grow rounded-full h-3'>
+                    <Slider.Range className='absolute bg-emerald-600 rounded-full h-full' />
+                  </Slider.Track>
+                  <Slider.Thumb
+                    className='block w-7 h-7 bg-emerald-600 rounded-full border-4 border-white shadow-lg hover:shadow-xl hover:scale-110 focus:outline-none focus:shadow-xl focus:scale-105 transition-all duration-200 ease-out cursor-grab active:cursor-grabbing active:scale-100'
+                    aria-label='Weekly weight change rate'
                   />
+                </Slider.Root>
 
-                  {/* Slider input */}
-                  <input
-                    type='range'
-                    min='0.25'
-                    max='3'
-                    step='0.05'
-                    value={weeklyRate}
-                    onChange={(e) => setWeeklyRate(parseFloat(e.target.value))}
-                    className='absolute top-0 left-0 w-full h-3 appearance-none cursor-pointer slider-thumb bg-transparent'
-                  />
-                </div>
-                <div className='relative flex items-center justify-between text-xs font-bold text-slate-500 mt-2'>
-                  <span className='absolute left-0'>0.25</span>
+                {/* Labels - positioned accurately based on slider values */}
+                <div className='relative text-xs font-bold text-slate-500 mt-4'>
+                  <span
+                    className='absolute'
+                    style={{ left: '0%', transform: 'translateX(0%)' }}>
+                    0.25
+                  </span>
                   <span
                     className='absolute'
                     style={{
@@ -146,18 +150,13 @@ const TimelinePage = () => {
                     }}>
                     2.0
                   </span>
-                  <span className='absolute right-0'>3.0</span>
-                </div>
-              </div>
-
-              {/* Recommendation Badge */}
-              {weeklyRate >= 0.45 && weeklyRate <= 0.55 && (
-                <div className='text-center'>
-                  <span className='inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black'>
-                    ✓ Recommended Pace
+                  <span
+                    className='absolute'
+                    style={{ left: '100%', transform: 'translateX(-100%)' }}>
+                    3.0
                   </span>
                 </div>
-              )}
+              </div>
             </div>
           </Card>
         </motion.div>
