@@ -1,30 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Sparkles,
-  Scale,
-  Waves,
-  Apple,
-  Beef,
-  Salad,
-  Ban,
-  Drumstick,
-  CakeSlice,
-} from 'lucide-react';
+import { Scale, Apple, Ban, Drumstick, CakeSlice } from 'lucide-react';
 import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import useUserStore from '../../stores/useUserStore';
 
 const DIET_PREFERENCES = [
-  {
-    id: 'ai_recommended',
-    label: 'AI Recommended',
-    description: 'Let AI suggest the best diet based on your goals',
-    icon: Sparkles,
-    color: 'emerald',
-  },
   {
     id: 'balanced',
     label: 'Balanced',
@@ -33,38 +16,10 @@ const DIET_PREFERENCES = [
     color: 'blue',
   },
   {
-    id: 'mediterranean',
-    label: 'Mediterranean',
-    description: 'Rich in fruits, vegetables, fish, and olive oil',
-    icon: Waves,
-    color: 'cyan',
-  },
-  {
     id: 'keto',
     label: 'Keto',
     description: 'Very low carb, high fat for ketosis',
     icon: Apple,
-    color: 'green',
-  },
-  {
-    id: 'paleo',
-    label: 'Paleo',
-    description: 'Whole foods, no processed items',
-    icon: Beef,
-    color: 'orange',
-  },
-  {
-    id: 'vegetarian',
-    label: 'Vegetarian',
-    description: 'Plant-based with dairy and eggs',
-    icon: Salad,
-    color: 'lime',
-  },
-  {
-    id: 'vegan',
-    label: 'Vegan',
-    description: 'Strictly plant-based, no animal products',
-    icon: Salad,
     color: 'green',
   },
   {
@@ -132,7 +87,7 @@ const DietPreferencePage = () => {
           </p>
         </motion.div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 flex-1 overflow-y-auto'>
+        <div className='space-y-2 mt-3 max-w-2xl mx-auto w-full'>
           {DIET_PREFERENCES.map((diet, index) => {
             const Icon = diet.icon;
             return (
@@ -143,20 +98,16 @@ const DietPreferencePage = () => {
                 transition={{ delay: index * 0.05 }}>
                 <button
                   onClick={() => handleSelect(diet.id)}
-                  className={`w-full text-left transition-all duration-200 ${
-                    selectedDiet === diet.id
-                      ? 'scale-[1.02]'
-                      : 'hover:scale-[1.01]'
-                  }`}>
+                  className='w-full text-left'>
                   <Card
                     padding='sm'
                     variant='default'
                     className={`transition-all duration-200 ${
                       selectedDiet === diet.id
-                        ? 'border-emerald-500 bg-emerald-50 shadow-lg'
-                        : 'hover:border-emerald-300 hover:shadow-md'
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'hover:border-emerald-300'
                     }`}>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-3 py-1'>
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           selectedDiet === diet.id

@@ -251,9 +251,7 @@ const FinalPlanPage = () => {
           <Card padding='lg' variant='default'>
             <div className='flex items-center gap-3 mb-6'>
               <BarChart3 className='w-6 h-6 text-emerald-600' />
-              <h3 className='text-lg font-black text-slate-900'>
-                Macros (Auto-calculated)
-              </h3>
+              <h3 className='text-lg font-black text-slate-900'>Macros</h3>
             </div>
             <div className='grid grid-cols-3 gap-6'>
               <div className='text-center'>
