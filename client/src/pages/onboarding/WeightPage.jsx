@@ -5,6 +5,7 @@ import PageLayout from '../../components/PageLayout';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import useUserStore from '../../stores/useUserStore';
+import SmoothSlider from '../../components/SmoothSlider/js';
 
 const WeightPage = () => {
   const navigate = useNavigate();
@@ -14,10 +15,10 @@ const WeightPage = () => {
   );
 
   const [currentWeight, setCurrentWeight] = useState(
-    onboardingData.currentWeight || ''
+    onboardingData.currentWeight || '80'
   );
   const [targetWeight, setTargetWeight] = useState(
-    onboardingData.targetWeight || ''
+    onboardingData.targetWeight || '70'
   );
   const [error, setError] = useState('');
 
@@ -95,51 +96,105 @@ const WeightPage = () => {
         </motion.div>
 
         <div className='space-y-3 mt-4'>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}>
-            <Input
-              label='Current Weight'
-              type='number'
-              value={currentWeight}
-              onChange={(e) => {
-                setCurrentWeight(e.target.value);
-                setError('');
-              }}
-              placeholder='75'
-              unit='kg'
-              min='1'
-              step='0.1'
-            />
-          </motion.div>
-
-          {!isImprovedHealth && (
+          {/* Desktop: Show input fields */}
+          <div className='hidden md:block space-y-3'>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}>
+              transition={{ delay: 0.1 }}>
               <Input
-                label='Target Weight'
+                label='Current Weight'
                 type='number'
-                value={targetWeight}
+                value={currentWeight}
                 onChange={(e) => {
-                  setTargetWeight(e.target.value);
+                  setCurrentWeight(e.target.value);
                   setError('');
                 }}
-                placeholder='70'
+                placeholder='75'
                 unit='kg'
                 min='1'
                 step='0.1'
               />
             </motion.div>
-          )}
+
+            {!isImprovedHealth && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}>
+                <Input
+                  label='Target Weight'
+                  type='number'
+                  value={targetWeight}
+                  onChange={(e) => {
+                    setTargetWeight(e.target.value);
+                    setError('');
+                  }}
+                  placeholder='70'
+                  unit='kg'
+                  min='1'
+                  step='0.1'
+                />
+              </motion.div>
+            )}
+          </div>
+
+          {/* Mobile: Show iOS picker */}
+          <div className='md:hidden'>
+            {!isImprovedHealth ? (
+              <>
+                <div className='grid grid-cols-2 gap-6 mb-4'>
+                  <p className='text-base font-bold text-gray-800 text-center'>
+                    Current Weight
+                  </p>
+                  <p className='text-base font-bold text-gray-800 text-center'>
+                    Target Weight
+                  </p>
+                </div>
+                <SmoothSlider
+                  isDualColumn={true}
+                  value={currentWeight}
+                  onChange={(value) => {
+                    setCurrentWeight(value);
+                    setError('');
+                  }}
+                  min={30}
+                  max={200}
+                  label='kg'
+                  value2={targetWeight}
+                  onChange2={(value) => {
+                    setTargetWeight(value);
+                    setError('');
+                  }}
+                  min2={30}
+                  max2={200}
+                  label2='kg'
+                />
+              </>
+            ) : (
+              <>
+                <p className='text-base font-bold text-gray-800 mb-4 text-center'>
+                  Current Weight
+                </p>
+                <SmoothSlider
+                  value={currentWeight}
+                  onChange={(value) => {
+                    setCurrentWeight(value);
+                    setError('');
+                  }}
+                  min={30}
+                  max={200}
+                  label='kg'
+                />
+              </>
+            )}
+          </div>
 
           {!isImprovedHealth && weightDifference > 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-green-50 border border-green-200 rounded-lg p-3'>
+              className='bg-green-50 border border-green-200 rounded-lg p-3 hidden md:block'>
               <div className='flex items-center gap-2 text-green-800'>
                 <svg
                   className='w-4 h-4'
@@ -164,7 +219,7 @@ const WeightPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm'>
+              className='bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm hidden md:block'>
               {error}
             </motion.div>
           )}
